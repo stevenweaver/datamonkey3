@@ -1,0 +1,188 @@
+To rewrite the provided `hyphy-biowasm.md` for a SvelteKit application, we will convert the content into Svelte components, utilize SvelteKit's routing and data handling capabilities, and structure the code appropriately within the SvelteKit framework. Below is the rewritten version:
+
+--- 
+
+# HyPhy-biowasm in SvelteKit
+
+## Implementation Steps
+
+### Project Setup
+
+1. **Create a new SvelteKit project** if you haven't already:
+
+   ```bash
+   npm init svelte@next my-hyphy-app
+   cd my-hyphy-app
+   npm install
+   ```
+
+2. **Install necessary dependencies**:
+
+   ```bash
+   npm install @biowasm/aioli
+   ```
+
+### File Structure
+
+Here’s how your file structure might look:
+
+```
+src/
+├ lib/
+│ └ server/
+│   └ database.js
+└ routes/
+    └ hyphy/
+        ├ +page.svelte
+        ├ +page.js
+        └ service-worker.js
+```
+
+### service-worker.js
+
+Create a file `src/routes/hyphy/service-worker.js` where you can manage the loading and caching:
+
+```js
+/// <reference types="@sveltejs/kit" />
+import { build, files, version } from '$service-worker';
+
+const CACHE = `cache-${version}`;
+const ASSETS = [...build, ...files];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
+  event.respondWith(
+    (async () => {
+      const cache = await caches.open(CACHE);
+      const response = await cache.match(event.request);
+      return response || fetch(event.request);
+    })()
+  );
+});
+```
+
+### +page.svelte
+
+Create a file `src/routes/hyphy/+page.svelte` to handle user interactions and display results:
+
+```svelte
+<script>
+  import { onMount } from 'svelte';
+  import { html } from 'htl';
+  
+  let hyphyOut = '';
+  let loading = true;
+
+  onMount(async () => {
+    const cliObj = await new Aioli({
+      tool: "hyphy",
+      version: "2.5.63",
+      urlPrefix: "https://data.hyphy.org/web/biowasm"
+    }, {
+      printInterleaved: false,
+      callback: updateHyphyProgress
+    });
+
+    const result = await cliObj.cli.exec("hyphy --version");
+    hyphyOut = result.stdout;
+    loading = false;
+  });
+
+  function updateHyphyProgress(payload) {
+    if (payload.type === 'print') {
+      // Handle print messages
+      console.log(payload.text);
+    }
+    // You can add progress handling logic as needed
+  }
+</script>
+
+{#if loading}
+  <div style='height:2000px'>
+    <div class='loader'></div>
+    <p>Loading HyPhy...</p>
+  </div>
+{:else}
+  <pre>{hyphyOut}</pre>
+{/if}
+
+<style>
+.loader {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+```
+
+### +page.js
+
+Create a file `src/routes/hyphy/+page.js` to handle server-side logic if necessary:
+
+```js
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ */
+export async function load(event) {
+  // Here you can handle server-side data fetching, if necessary
+  return {};
+}
+```
+
+### User Input
+
+To allow users to upload their alignment and tree files, you can add a file input:
+
+In `src/routes/hyphy/+page.svelte`, add:
+
+```svelte
+<script>
+  let file;
+
+  function handleFileUpload(event) {
+    file = event.target.files[0];
+  }
+</script>
+
+<input type="file" accept=".nex" on:change={handleFileUpload} />
+```
+
+### Running the App
+
+1. **Run your application**:
+
+   ```bash
+   npm run dev
+   ```
+
+2. **Access your application** at `http://localhost:5173/hyphy` to view the loading screen, file upload, or any other elements you integrate.
+
+### Conclusion
+
+This setup allows you to utilize the HyPhy functionality within a SvelteKit app while keeping user experience and accessibility in mind. The structure will help in managing the loading states and responses efficiently, thanks to SvelteKit's reactive framework.
+
+## Note on Performance
+Consider optimizing image loading, overall performance, and accessibility in your implementation for a better user experience. 
+
+For more information on advanced topics in SvelteKit, refer to the [official documentation](https://kit.svelte.dev/docs/introduction).
+
+--- 
+
+This rewrite encapsulates the original content into a SvelteKit application format, showcasing typical SvelteKit features such as a service worker, async data loading, and component structure while replacing existing JavaScript conventions and HTML structures with their respective Svelte and SvelteKit counterparts.
