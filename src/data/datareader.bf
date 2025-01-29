@@ -1,5 +1,6 @@
 NORMALIZE_SEQUENCE_NAMES = 0;
 internalRenames = 0;
+jsonOutput = "results.json";
 
 
 function notify(type, msg) {
@@ -9,18 +10,20 @@ function notify(type, msg) {
 }
 
 function except(msg) {
-	fprintf (stdout, "{" );
-	fprintf (stdout, "\"error\": \"" + msg + "\"");
-	fprintf (stdout, "}");
+	fprintf (jsonOutput,CLEAR_FILE);
+	fprintf (jsonOutput, "{" );
+	fprintf (jsonOutput, "\"error\": \"" + msg + "\"");
+	fprintf (jsonOutput, "}");
   return 0;
 }
 
 function to_json (file_info_record, sequence_records, fpi_record) {
-	fprintf (stdout, "{" );
-	fprintf (stdout, "\"FILE_INFO\": " + file_info_record + ",");
-	fprintf (stdout, "\"SEQUENCES\": " + sequence_records + ",");
-	fprintf (stdout, "\"FILE_PARTITION_INFO\": " + fpi_record);
-	fprintf (stdout, "}");
+	fprintf (jsonOutput,CLEAR_FILE);
+	fprintf (jsonOutput, "{" );
+	fprintf (jsonOutput, "\"FILE_INFO\": " + file_info_record + ",");
+	fprintf (jsonOutput, "\"SEQUENCES\": " + sequence_records + ",");
+	fprintf (jsonOutput, "\"FILE_PARTITION_INFO\": " + fpi_record);
+	fprintf (jsonOutput, "}");
 	return 0;
 }
 

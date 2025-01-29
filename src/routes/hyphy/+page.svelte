@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { html } from 'htl';
 	import Aioli from '@biowasm/aioli';
+	import DataReaderResults from '../../lib/dataReaderResults.svelte';
 
 	import dataReader from '../../data/datareader.bf?raw';
 
@@ -15,6 +16,8 @@
 	import GrabBag from '../../data/shared/GrabBag.bf?raw';
 
 	let hyphyOut = '';
+	let jsonOut;
+	let jsonData;
 	let loading = true;
 	let cliObj;
 	let result;
@@ -42,12 +45,9 @@
 			// Handle print messages
 			console.log(payload.text);
 		}
-		// You can add progress handling logic as needed
 	}
 
 	let file;
-	let rvi;
-	let progressValue;
 
 	async function handleFileUpload(event) {
 		file = event.target.files[0];
@@ -66,12 +66,15 @@
 
 		result = await cliObj.exec('hyphy LIBPATH=/shared/hyphy/ ' + inputFiles[1]);
 		hyphyOut = await result.stdout;
-		progressValue = cliObj.download('/shared/data/user.nex.FEL.json');
-		console.log(progressValue);
+		const jsonBlob = await cliObj.download('/shared/data/results.json');
+		const response = await fetch(jsonBlob);
+		const blob = await response.blob();
+		jsonOut = await blob.text();
+		jsonData = JSON.parse(jsonOut);
 	}
 </script>
 
-<div class="container mx-auto p-4">
+<div class="container mx-auto p-12">
 	<input type="file" on:change={handleFileUpload} class="mb-4" />
 
 	{#if loading}
@@ -81,6 +84,10 @@
 		</div>
 	{:else}
 		<pre class="rounded-md bg-gray-100 p-4">{hyphyOut}</pre>
+		{#if jsonData}
+			<!-- Render the DataReaderResults component if jsonData is available -->
+			<DataReaderResults {jsonData} />
+		{/if}
 	{/if}
 </div>
 

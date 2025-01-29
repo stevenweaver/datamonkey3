@@ -62,8 +62,11 @@
   },
   "dependencies": {
     "@biowasm/aioli": "^3.2.1",
+    "@storybook/addon-controls": "^8.5.2",
     "better-sqlite3": "^11.8.0",
+    "d3": "^7.9.0",
     "drizzle-orm": "^0.38.4",
-    "htl": "^0.3.1"
+    "htl": "^0.3.1",
+    "phylotree": "^2.1.0"
   }
 }
