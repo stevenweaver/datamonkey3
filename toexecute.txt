@@ -1,8 +1,0 @@
-src/data/datareader.bf:ExecuteAFile	("./shared/HyPhyGlobals.ibf");
-src/data/datareader.bf:ExecuteAFile	("./shared/chooseGeneticCode.def");
-src/data/datareader.bf:ExecuteAFile	("./shared/ReadDelimitedFiles.bf");
-src/data/datareader.bf:ExecuteAFile	("./shared/TreeTools.ibf");
-src/data/datareader.bf:ExecuteAFile	("./shared/NJ.bf");
-src/data/datareader.bf:			ExecuteAFile ("./shared/PartitionReader.ibf");
-src/data/datareader.bf:ExecuteAFile	("./shared/GrabBag.bf");
-src/data/datareader.bf://ExecuteAFile("../Shared/DBTools.ibf");
