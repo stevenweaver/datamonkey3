@@ -1,16 +1,26 @@
 <script>
-	import { onMount } from 'svelte';
-	import { phylotree } from 'phylotree'; // Import phylotree library
+	import { onMount, afterUpdate } from 'svelte';
+	import { phylotree } from 'phylotree';
 
 	export let newickString;
-	export let height = 600; // Default height
-	export let width = 800; // Default width
+	export let height = 600;
+	export let width = 800;
 
 	let treeContainer;
 	let tree;
 	let renderedTree;
 
 	onMount(() => {
+		renderTree();
+	});
+
+	afterUpdate(() => {
+		if (newickString && treeContainer) {
+			renderTree();
+		}
+	});
+
+	function renderTree() {
 		tree = new phylotree(newickString);
 		renderedTree = tree.render({
 			container: 'tree-container',
@@ -23,10 +33,9 @@
 		// Clear the container and append the SVG element
 		treeContainer.innerHTML = ''; // Clear previous content if any
 		treeContainer.appendChild(renderedTree.show()); // Append the SVG to the container
-	});
+	}
 </script>
 
 <link rel="stylesheet" href="https://unpkg.com/phylotree@1.0.0-alpha.24/dist/phylotree.css" />
 
 <div bind:this={treeContainer} class="phylo-tree"></div>
-<!-- Container for the tree -->
