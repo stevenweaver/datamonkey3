@@ -4569,6 +4569,7 @@ __metadata:
     prettier-plugin-svelte: ^3.3.3
     prettier-plugin-tailwindcss: ^0.6.10
     react: ^19.0.0
+    rollup: ^4.32.1
     storybook: ^8.5.2
     svelte: ^5.0.0
     svelte-check: ^4.0.0
@@ -6800,7 +6801,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^4.23.0":
+"rollup@npm:^4.23.0, rollup@npm:^4.32.1":
   version: 4.32.1
   resolution: "rollup@npm:4.32.1"
   dependencies:
