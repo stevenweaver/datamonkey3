@@ -1,8 +1,9 @@
 <script>
+	import PhyloTree from './phylotree.svelte';
 	export let jsonData;
 </script>
 
-<div class="metrics max-w-lg rounded-lg border border-gray-300 bg-gray-50 p-4 shadow-md">
+<div class="metrics min-w-full rounded-lg border border-gray-300 bg-gray-50 p-4 shadow-md">
 	<h3 class="mb-4 text-lg font-bold">Alignment File Metrics</h3>
 
 	{#if jsonData?.error}
@@ -60,6 +61,7 @@
 	{#if jsonData.FILE_INFO?.nj}
 		<h4 class="mt-6 text-lg font-bold">Raw Neighbor Joining (NJ) String</h4>
 		<p class="mt-2 rounded border border-gray-300 bg-gray-100 p-2">{jsonData.FILE_INFO.nj}</p>
+		<PhyloTree newickString={jsonData.FILE_INFO.nj} height={600} width={800} />
 	{/if}
 
 	{#if jsonData?.FILE_PARTITION_INFO}
@@ -67,5 +69,6 @@
 		<p class="mt-2 rounded border border-gray-300 bg-gray-100 p-2">
 			{jsonData.FILE_PARTITION_INFO['0'].usertree}
 		</p>
+		<PhyloTree newickString={jsonData.FILE_PARTITION_INFO['0'].usertree} height={600} width={800} />
 	{/if}
 </div>

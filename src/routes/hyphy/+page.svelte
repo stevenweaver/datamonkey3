@@ -83,11 +83,11 @@
 			<p class="text-xl">Loading HyPhy...</p>
 		</div>
 	{:else}
-		<pre class="rounded-md bg-gray-100 p-4">{hyphyOut}</pre>
 		{#if jsonData}
 			<!-- Render the DataReaderResults component if jsonData is available -->
 			<DataReaderResults {jsonData} />
 		{/if}
+		<pre class="rounded-md bg-gray-100 p-4">{hyphyOut}</pre>
 	{/if}
 </div>
 
