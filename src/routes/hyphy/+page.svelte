@@ -218,7 +218,7 @@
 		}
 	}
 	.code-output {
-		background-color: #f5f5f5; /* Just to give some contrast */
+		background-color: black; /* Just to give some contrast */
 		padding: 10px;
 		border-radius: 5px;
 		overflow-x: auto; /* Allow horizontal scrolling if needed */
