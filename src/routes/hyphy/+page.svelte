@@ -41,6 +41,21 @@
 
 	const methods = Object.keys(methodConfig);
 
+	let iframeEl;
+
+	// Function to send json data to the iframe
+	function sendDataToIframe() {
+		if (iframeEl) {
+			console.log('haro?');
+			iframeEl.contentWindow.postMessage({ type: 'json', data: jsonData }, '*');
+		}
+	}
+
+	// Watch for changes to jsonData and send to iframe
+	$: if (jsonData) {
+		sendDataToIframe();
+	}
+
 	let runMethod = async function (method) {
 		// Extract the command and arguments from the configuration
 
@@ -60,12 +75,12 @@
 		hyphyOut = await result.stdout;
 
 		// Handle JSON output
-		const jsonBlob = await cliObj.download('/shared/data/user.FEL.json');
+		const jsonBlob = await cliObj.download('/shared/data/user.nex.FEL.json');
+		console.log(await cliObj.ls('/shared/data/'));
 		const response = await fetch(jsonBlob);
 		const blob = await response.blob();
 		jsonOut = await blob.text();
 		jsonData = JSON.parse(jsonOut);
-		console.log(jsonData);
 	};
 
 	function getMethodDependencies(method) {
@@ -95,6 +110,13 @@
 		result = await cliObj.exec('hyphy --version');
 		hyphyOut = result.stdout;
 		loading = false;
+
+		// Setup an event listener to receive messages
+		window.addEventListener('message', (event) => {
+			if (event.data.type === 'ready') {
+				sendDataToIframe(); // send data when iframe is ready
+			}
+		});
 	});
 
 	function updateHyphyProgress(payload) {
@@ -143,15 +165,17 @@
 				{#if jsonData}
 					<DataReaderResults {jsonData} />
 				{/if}
-				<pre class="rounded-md bg-gray-100 p-4">{hyphyOut}</pre>
 			</div>
 			<div class="">
 				{#if jsonData}
 					<MethodSelector {methods} {runMethod} />
 				{/if}
 			</div>
+			<pre class="code-output">{hyphyOut}</pre>
 		</div>
 	{/if}
+
+	<iframe bind:this={iframeEl} class="mt-4 h-96 w-full" src="//localhost:3000/pages/fel"></iframe>
 </div>
 
 <style>

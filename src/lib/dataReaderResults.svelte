@@ -67,15 +67,19 @@
 			</table>
 			{#if jsonData.FILE_INFO?.nj}
 				<h4 class="mt-6 text-lg font-bold">Raw Neighbor Joining (NJ) String</h4>
-				<p class="mt-2 rounded border border-gray-300 bg-gray-100 p-2">{jsonData.FILE_INFO.nj}</p>
+				<div class="mt-2 overflow-x-auto rounded border border-gray-300 bg-gray-100 p-2">
+					<pre class="whitespace-pre-wrap text-sm text-gray-700">{jsonData.FILE_INFO.nj}</pre>
+				</div>
 				<PhyloTree newickString={jsonData.FILE_INFO.nj} height={600} width={800} />
 			{/if}
 
 			{#if jsonData?.FILE_PARTITION_INFO}
 				<h4 class="mt-6 text-lg font-bold">User Supplied Tree</h4>
-				<p class="mt-2 rounded border border-gray-300 bg-gray-100 p-2">
-					{jsonData.FILE_PARTITION_INFO['0'].usertree}
-				</p>
+				<div class="mt-2 overflow-x-auto rounded border border-gray-300 bg-gray-100 p-2">
+					<pre class="whitespace-pre-wrap text-sm text-gray-700">{jsonData.FILE_PARTITION_INFO['0']
+							.usertree}</pre>
+				</div>
+
 				<PhyloTree
 					newickString={jsonData.FILE_PARTITION_INFO['0'].usertree}
 					height={600}
