@@ -21,11 +21,11 @@
 	};
 </script>
 
-<div class="method-selector my-4 grid grid-cols-2 gap-4">
-	<h3 class="col-span-2 mb-2 text-lg font-bold">Select a Method</h3>
+<div class="method-selector fixed left-0 top-0 h-full w-64 border-r border-gray-300 bg-white p-4">
+	<h3 class="mb-4 text-lg font-bold">Select a Method</h3>
 	{#each methods as method}
 		<div
-			class="card rounded border border-gray-300 bg-white p-4 shadow-md transition-shadow hover:shadow-lg"
+			class="card mb-4 rounded border border-gray-300 bg-white p-4 shadow-md transition-shadow hover:shadow-lg"
 		>
 			<h4 class="font-bold">{method}</h4>
 			<p class="mt-2 text-gray-600">{methodDetails[method]}</p>
@@ -35,6 +35,10 @@
 			<button
 				class="mt-4 rounded bg-blue-500 px-2 py-1 text-white hover:bg-blue-600"
 				on:click={() => runMethod(method)}>Run</button
+			>
+			<button
+				class="mt-4 rounded bg-green-500 px-2 py-1 text-white hover:bg-green-600"
+				on:click={() => viewMethod(method)}>View</button
 			>
 		</div>
 	{/each}
@@ -48,5 +52,8 @@
 	}
 	.card:hover {
 		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+	}
+	.method-selector {
+		overflow-y: auto; /* Add scroll if content overflows */
 	}
 </style>

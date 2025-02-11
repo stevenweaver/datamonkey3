@@ -77,9 +77,9 @@ const errorData = {
 };
 
 export const Default = {
-  args: { jsonData: validData },
+  args: { fileMetricsJSON: validData },
 };
 
 export const ErrorCase = {
-  args: { jsonData: errorData },
+  args: { fileMetricsJSON: errorData },
 };

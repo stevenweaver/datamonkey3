@@ -18,9 +18,11 @@
 	let hyphyOut = '';
 	let jsonOut;
 	let jsonData;
+	let resultsCompleted;
 	let loading = true;
 	let cliObj;
 	let result;
+	let fileMetricsJSON;
 
 	// Consolidating methods and hyphyCommands
 	const methodConfig = {
@@ -60,6 +62,7 @@
 		// Extract the command and arguments from the configuration
 
 		const { command, args } = methodConfig[method];
+		resultsCompleted = false;
 
 		// Add method-specific data if needed
 		let methodDependencies = getMethodDependencies(method);
@@ -81,6 +84,7 @@
 		const blob = await response.blob();
 		jsonOut = await blob.text();
 		jsonData = JSON.parse(jsonOut);
+		resultsCompleted = true;
 	};
 
 	function getMethodDependencies(method) {
@@ -126,6 +130,7 @@
 	}
 
 	let file;
+	let isStdOutVisible = false; // New state for toggling stdout visibility
 
 	async function handleFileUpload(event) {
 		file = event.target.files[0];
@@ -148,8 +153,13 @@
 		const response = await fetch(jsonBlob);
 		const blob = await response.blob();
 		jsonOut = await blob.text();
-		jsonData = JSON.parse(jsonOut);
+		fileMetricsJSON = JSON.parse(jsonOut);
+		console.log(fileMetricsJSON);
 	}
+
+	const toggleStdOut = () => {
+		isStdOutVisible = !isStdOutVisible; // Toggle the visibility state
+	};
 </script>
 
 <div class="container mx-auto p-12">
@@ -159,23 +169,36 @@
 			<p class="text-xl">Loading HyPhy...</p>
 		</div>
 	{:else}
-		<input type="file" on:change={handleFileUpload} class="mb-4" />
-		<div class="grid grid-cols-1">
-			<div class="">
-				{#if jsonData}
-					<DataReaderResults {jsonData} />
+		{#if fileMetricsJSON}
+			<MethodSelector {methods} {runMethod} />
+		{/if}
+
+		<div class="ml-16">
+			<input type="file" on:change={handleFileUpload} class="mb-4" />
+			<div class="grid grid-cols-1 gap-4 md:grid-cols-1">
+				<!-- Adjust grid to avoid overlap -->
+
+				{#if fileMetricsJSON}
+					<DataReaderResults {fileMetricsJSON} />
 				{/if}
-			</div>
-			<div class="">
-				{#if jsonData}
-					<MethodSelector {methods} {runMethod} />
+				<!-- Add toggle button for stdout -->
+				<button on:click={toggleStdOut} class="mt-4 rounded bg-gray-500 px-2 py-1 text-white">
+					{isStdOutVisible ? 'Hide Output' : 'Show Output'}
+				</button>
+
+				<!-- Output section, collapsible -->
+				{#if isStdOutVisible}
+					<pre class="code-output mt-4">{hyphyOut}</pre>
 				{/if}
+				<iframe
+					bind:this={iframeEl}
+					hidden={!resultsCompleted}
+					class="mt-4 h-screen w-full"
+					src="//localhost:3000/pages/fel"
+				></iframe>
 			</div>
-			<pre class="code-output">{hyphyOut}</pre>
 		</div>
 	{/if}
-
-	<iframe bind:this={iframeEl} class="mt-4 h-96 w-full" src="//localhost:3000/pages/fel"></iframe>
 </div>
 
 <style>
@@ -195,5 +218,11 @@
 		100% {
 			transform: rotate(360deg);
 		}
+	}
+	.code-output {
+		background-color: #f5f5f5; /* Just to give some contrast */
+		padding: 10px;
+		border-radius: 5px;
+		overflow-x: auto; /* Allow horizontal scrolling if needed */
 	}
 </style>
