@@ -190,12 +190,10 @@
 				{#if isStdOutVisible}
 					<pre class="code-output mt-4">{hyphyOut}</pre>
 				{/if}
-				<iframe
-					bind:this={iframeEl}
-					hidden={!resultsCompleted}
-					class="mt-4 h-screen w-full"
-					src="//localhost:3000/pages/fel"
-				></iframe>
+				<div class={resultsCompleted ? '' : 'invisible absolute'}>
+					<iframe bind:this={iframeEl} class="mt-4 h-screen w-full" src="//localhost:3000/pages/fel"
+					></iframe>
+				</div>
 			</div>
 		</div>
 	{/if}
