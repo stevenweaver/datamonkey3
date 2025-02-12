@@ -1,14 +1,12 @@
 <!-- src/lib/FelOptions.svelte -->
 <script>
 	export let runMethod; // Function to be called to run the FEL analysis
-	let gencodeid = '0'; // Default to Universal code
-	let dsVariation = '1'; // Default to Yes
+	let gencodeid = 'Universal'; // Default to Universal code
+	let dsVariation = '2'; // Default to Yes
 	let multipleHits = 'None'; // Default option
 	let siteMultihit = 'Estimate'; // Default option
-	let resample = 50; // Default value for resampling
+	let resample = 0; // Default value for resampling
 	let confidenceInterval = false; // Default for checkbox
-
-	console.log(runMethod);
 </script>
 
 <div id="fel-options" class="rounded-lg bg-white p-6 shadow-md">
@@ -25,18 +23,20 @@
 			name="gencodeid"
 			class="w-full rounded border border-gray-300 p-2"
 		>
-			<option value="0">Universal code</option>
-			<option value="1">Vertebrate mitochondrial DNA code</option>
-			<option value="2">Yeast mitochondrial DNA code</option>
-			<option value="3">Mold, Protozoan and Coelenterate mt; Mycloplasma/Spiroplasma</option>
-			<option value="4">Invertebrate mitochondrial DNA code</option>
-			<option value="5">Ciliate, Dasycladacean and Hexamita Nuclear code</option>
-			<option value="6">Echinoderm mitochondrial DNA code</option>
-			<option value="7">Euplotid Nuclear code</option>
-			<option value="8">Alternative Yeast Nuclear code</option>
-			<option value="9">Ascidian mitochondrial DNA code</option>
-			<option value="10">Flatworm mitochondrial DNA code</option>
-			<option value="11">Blepharisma Nuclear code</option>
+			<option value="Universal">Universal code</option>
+			<option value="Vertebrate mtDNA">Vertebrate mitochondrial DNA code</option>
+			<option value="Yeast mtDNA">Yeast mitochondrial DNA code</option>
+			<option value="Mold/Protozoan mtDNA"
+				>Mold, Protozoan and Coelenterate mt; Mycloplasma/Spiroplasma</option
+			>
+			<option value="Invertebrate mtDNA">Invertebrate mitochondrial DNA code</option>
+			<option value="Ciliate Nuclear">Ciliate, Dasycladacean and Hexamita Nuclear code</option>
+			<option value="Echinoderm mtDNA">Echinoderm mitochondrial DNA code</option>
+			<option value="Eupltoid Nuclear">Euplotid Nuclear code</option>
+			<option value="Alt. Yeast Nuclear">Alternative Yeast Nuclear code</option>
+			<option value="Ascidian mtDNA">Ascidian mitochondrial DNA code</option>
+			<option value="Flatworm mtDNA">Flatworm mitochondrial DNA code</option>
+			<option value="Blepharisma Nuclear">Blepharisma Nuclear code</option>
 		</select>
 	</div>
 
@@ -47,8 +47,8 @@
 			id="ds-variation"
 			class="w-full rounded border border-gray-300 p-2"
 		>
-			<option value="1">Yes</option>
 			<option value="2">No</option>
+			<option value="1">Yes</option>
 		</select>
 	</div>
 
@@ -86,7 +86,15 @@
 	<div class="mb-4">
 		<button
 			class="w-full rounded bg-blue-500 px-4 py-2 font-semibold text-white transition hover:bg-blue-600"
-			on:click={() => runMethod({})}
+			on:click={() =>
+				runMethod({
+					gencodeid,
+					srv: dsVariation,
+					multipleHits,
+					resample,
+					ci: confidenceInterval,
+					siteMultihit
+				})}
 		>
 			Run FEL Analysis
 		</button>
