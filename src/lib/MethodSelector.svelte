@@ -21,7 +21,9 @@
 	};
 </script>
 
-<div class="method-selector fixed left-0 top-0 h-full w-64 border-r border-gray-300 bg-white p-4">
+<div
+	class="method-selector fixed left-0 top-0 mt-16 h-full w-64 border-r border-gray-300 bg-white p-4"
+>
 	<h3 class="mb-4 text-lg font-bold">Select a Method</h3>
 	{#each methods as method}
 		<div
@@ -35,10 +37,6 @@
 			<button
 				class="mt-4 rounded bg-blue-500 px-2 py-1 text-white hover:bg-blue-600"
 				on:click={() => runMethod(method)}>Run</button
-			>
-			<button
-				class="mt-4 rounded bg-green-500 px-2 py-1 text-white hover:bg-green-600"
-				on:click={() => viewMethod(method)}>View</button
 			>
 		</div>
 	{/each}
