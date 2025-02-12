@@ -18,6 +18,8 @@
 	let resample = 0; // Default value for resampling
 	let confidenceInterval = false; // Default for checkbox
 
+	let isRunning = false;
+
 	$: if (jsonData) {
 		sendDataToIframe();
 	}
@@ -31,6 +33,7 @@
 	}
 
 	let runMethod = async function (options) {
+		isRunning = true;
 		const command = 'fel';
 		const inputFile = '/shared/data/user.nex';
 
@@ -52,19 +55,22 @@
 		resultsCompleted = false;
 		await aioliStore.subscribe((value) => (cliObj = value));
 
-		console.log(args);
+		try {
+			result = await cliObj.exec(`hyphy LIBPATH=/shared/hyphy/ ${command} ${args.join(' ')}`);
+			hyphyOut = await result.stdout;
 
-		result = await cliObj.exec(`hyphy LIBPATH=/shared/hyphy/ ${command} ${args.join(' ')}`);
-		hyphyOut = await result.stdout;
-
-		// Handle JSON output
-		const jsonBlob = await cliObj.download('/shared/data/user.nex.FEL.json');
-		const response = await fetch(jsonBlob);
-		const blob = await response.blob();
-		jsonOut = await blob.text();
-		jsonData = JSON.parse(jsonOut);
-		console.log(jsonData);
-		resultsCompleted = true;
+			// Handle JSON output
+			const jsonBlob = await cliObj.download('/shared/data/user.nex.FEL.json');
+			const response = await fetch(jsonBlob);
+			const blob = await response.blob();
+			jsonOut = await blob.text();
+			jsonData = JSON.parse(jsonOut);
+			resultsCompleted = true;
+		} catch (e) {
+			console.warn('hey homie!');
+		} finally {
+			isRunning = false;
+		}
 	};
 
 	onMount(async () => {
@@ -78,8 +84,13 @@
 </script>
 
 <div class="container mx-auto p-12">
-	<h1 class="mb-4 text-3xl font-bold">FEL Analysis</h1>
-	<FelOptions {runMethod} />
+	{#if isRunning}
+		<div class="mb-4 border-l-4 border-yellow-500 bg-yellow-100 p-4 text-yellow-700">
+			<p>Job is running. Please wait...</p>
+		</div>
+	{:else if !resultsCompleted}
+		<FelOptions {runMethod} />
+	{/if}
 
 	<div class={resultsCompleted ? '' : 'invisible absolute'}>
 		<iframe bind:this={iframeEl} class="mt-4 h-screen w-full" src="//localhost:3000/pages/fel"
