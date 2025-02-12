@@ -20,7 +20,7 @@
 		<span class="header-logo ml-2">DATAMONKEY 3 🐒</span>
 	</a>
 	<ul class="flex space-x-4">
-		<li><a class="text-black hover:text-orange-500" href="/hyphy">Home</a></li>
+		<li><a class="text-black hover:text-orange-500" href="/">Home</a></li>
 	</ul>
 </nav>
 
