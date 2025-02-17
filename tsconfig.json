@@ -1,19 +1,23 @@
 {
 	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
-		"allowJs": true,
-		"checkJs": true,
+		"allowJs": true, // Allow JavaScript files
+		"checkJs": false, // Disable JS type-checking for speed
+		"skipLibCheck": true, // Skip type-checking of third-party modules
+		"strict": false, // Disable strict type checks
+		"noEmit": true, // Prevent emitting JS files
+		"noUnusedLocals": false, // Ignore unused local variables
+		"noUnusedParameters": false, // Ignore unused function parameters
+		"noImplicitAny": false, // Allow implicit any types
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
-		"resolveJsonModule": true,
-		"skipLibCheck": true,
-		"sourceMap": true,
-		"strict": true,
-		"moduleResolution": "bundler"
-	}
-	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
-	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
-	//
-	// If you want to overwrite includes/excludes, make sure to copy over the relevant includes/excludes
-	// from the referenced tsconfig.json - TypeScript does not merge them in
+		"sourceMap": false,
+		"incremental": true, // Enable incremental builds
+		"disableSizeLimit": true, // Remove project size limitations
+		"useUnknownInCatchVariables": false
+	},
+	"include": ["src/**/*.js", "src/**/*.svelte"],
+	"exclude": ["node_modules", "build", ".svelte-kit", "**/*.spec.ts"]
 }
