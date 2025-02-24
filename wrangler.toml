@@ -1,0 +1,28 @@
+name = "fasta-validation"
+main = ".svelte-kit/cloudflare/_worker.js"
+compatibility_date = "2024-02-24"
+
+# Set environment variables
+[vars]
+ENVIRONMENT = "production"
+
+# Configure workers_dev to false if you're using a custom domain
+workers_dev = true
+
+# Configure route if you're using a custom domain
+# route = "example.com/*"
+# zone_id = "your-zone-id"
+
+# Configure KV namespaces if needed
+# [[kv_namespaces]]
+# binding = "MY_KV"
+# id = "xxxx"
+
+# Configure Durable Objects if needed
+# [[durable_objects.bindings]]
+# name = "MY_DURABLE_OBJECT"
+# class_name = "DurableObjectExample"
+
+# [[migrations]]
+# tag = "v1"
+# new_classes = ["DurableObjectExample"]
