@@ -34,6 +34,7 @@
     "@storybook/sveltekit": "^8.5.4",
     "@storybook/test": "^8.5.4",
     "@sveltejs/adapter-auto": "^4.0.0",
+    "@sveltejs/adapter-cloudflare": "^5.0.3",
     "@sveltejs/kit": "^2.16.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@tailwindcss/container-queries": "^0.1.1",
