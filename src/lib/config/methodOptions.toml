@@ -1,0 +1,244 @@
+[fel]
+description = "FEL (Fixed Effects Likelihood) estimates site-wise synonymous (α) and non-synonymous (β) rates, and uses a likelihood ratio test to determine if beta ≠ alpha at a site."
+
+[[fel.options]]
+name = "code"
+description = "Which genetic code should be used"
+takes_value = true
+type = "string"
+default = "Universal"
+choices = [
+    { value = "Universal", description = "Universal code" },
+    { value = "Vertebrate mtDNA", description = "Vertebrate mitochondrial DNA code" },
+    { value = "Yeast mtDNA", description = "Yeast mitochondrial DNA code" },
+    { value = "Mold/Protozoan mtDNA", description = "Mold, Protozoan and Coelenterate mt; Mycoplasma/Spiroplasma" },
+    { value = "Invertebrate mtDNA", description = "Invertebrate mitochondrial DNA code" },
+    { value = "Ciliate Nuclear", description = "Ciliate, Dasycladacean and Hexamita Nuclear code" },
+    { value = "Echinoderm mtDNA", description = "Echinoderm mitochondrial DNA code" },
+    { value = "Euplotid Nuclear", description = "Euplotid Nuclear code" },
+    { value = "Alt. Yeast Nuclear", description = "Alternative Yeast Nuclear code" },
+    { value = "Ascidian mtDNA", description = "Ascidian mitochondrial DNA code" },
+    { value = "Flatworm mtDNA", description = "Flatworm mitochondrial DNA code" },
+    { value = "Blepharisma Nuclear", description = "Blepharisma Nuclear code" },
+]
+
+[[fel.options]]
+name = "alignment"
+description = "An in-frame codon alignment in one of the formats supported by HyPhy"
+takes_value = true
+type = "file"
+choices = []
+
+[[fel.options]]
+name = "tree"
+description = "A phylogenetic tree (optionally annotated with {})"
+takes_value = true
+type = "tree"
+default = ""
+choices = []
+
+[[fel.options]]
+name = "branches"
+description = "Branches to test"
+takes_value = true
+type = "string"
+default = "All"
+choices = []
+
+[[fel.options]]
+name = "srv"
+description = "Include synonymous rate variation in the model"
+takes_value = true
+type = "string"
+default = "Yes"
+choices = [
+    { value = "Yes", description = "[Recommended] Consider synonymous rate variation (dS varies across sites)." },
+    { value = "No", description = "Ignore synonymous rate variation (dS := 1 at each site)." },
+]
+
+[[fel.options]]
+name = "multiple-hits"
+description = "Include support for multiple nucleotide substitutions"
+takes_value = true
+type = "string"
+default = "None"
+choices = [
+    { value = "Double", description = "Include branch-specific rates for double nucleotide substitutions" },
+    { value = "Double+Triple", description = "Include branch-specific rates for double and triple nucleotide substitutions" },
+    { value = "None", description = "[Default] Use standard models which permit only single nucleotide changes to occur instantly" },
+]
+
+[[fel.options]]
+name = "pvalue"
+description = "The p-value threshold to use when testing for selection"
+takes_value = true
+type = "number"
+default = 0.1
+choices = []
+
+[[fel.options]]
+name = "ci"
+description = "Compute profile likelihood confidence intervals for each variable site"
+takes_value = true
+type = "string"
+default = "No"
+choices = [
+    { value = "Yes", description = "Compute profile likelihood confidence intervals for dN/dS at each site (~2x slower)." },
+    { value = "No", description = "[Default] Do not compute likelihood confidence intervals" },
+]
+
+[[fel.options]]
+name = "resample"
+description = "[Advanced setting, will result in MUCH SLOWER run time] Perform parametric bootstrap resampling to derive site-level null LRT distributions up to this many replicates per site. Recommended use for small to medium (<30 sequences) datasets"
+takes_value = true
+type = "number"
+default = 0
+minimum = 0
+maximum = 1000
+
+[[fel.options]]
+name = "site-multihit"
+description = "Estimate multiple hit rates for each site"
+takes_value = true
+type = "string"
+default = "Estimate"
+choices = [
+    { value = "Estimate", description = "Include branch-specific rates for double nucleotide substitutions" },
+    { value = "Global", description = "Use a plug-in estimate derived from the global model fit" },
+]
+
+[[fel.options]]
+name = "precision"
+description = "Optimization precision settings for preliminary fits"
+takes_value = true
+type = "string"
+default = "standard"
+choices = [
+    { value = "standard", description = "[Default] Use standard optimization settings." },
+    { value = "reduced", description = "Cruder optimizations settings for faster fitting of preliminary models" },
+]
+
+[[fel.options]]
+name = "full-model"
+description = "Perform branch length re-optimization under the full codon model"
+takes_value = true
+type = "string"
+default = "Yes"
+choices = [
+    { value = "Yes", description = "[Default] Perform branch length re-optimization under the full codon model" },
+    { value = "No", description = "Skip branch length re-optimization under the full codon model (faster but less precise)" },
+]
+
+[meme]
+description = "Command-line tool description here"
+
+[[meme.options]]
+name = "code"
+description = "Which genetic code should be used"
+takes_value = true
+type = "string"
+default = "Universal"
+choices = []
+
+[[meme.options]]
+name = "alignment"
+description = "An in-frame codon alignment in one of the formats supported by HyPhy"
+takes_value = false
+type = "string"
+choices = []
+
+[[meme.options]]
+name = "tree"
+description = "A phylogenetic tree (optionally annotated with {})"
+takes_value = false
+applies_to = "Please select a tree file for the data:"
+type = "string"
+choices = []
+
+[[meme.options]]
+name = "branches"
+description = "Branches to test"
+takes_value = true
+type = "string"
+default = "All"
+choices = []
+
+[[meme.options]]
+name = "pvalue"
+description = "The p-value threshold to use when testing for selection"
+takes_value = true
+type = "string"
+default = "0.1"
+choices = []
+
+[[meme.options]]
+name = "resample"
+description = "[Advanced setting, will result in MUCH SLOWER run time] Perform parametric bootstrap resampling to derive site-level null LRT distributions up to this many replicates per site. Recommended use for small to medium (<30 sequences) datasets"
+takes_value = true
+type = "number"
+default = "50"
+choices = []
+
+[[meme.options]]
+name = "rates"
+description = "The number omega rate classes to include in the model [2-4]"
+takes_value = true
+type = "number"
+default = "2"
+choices = []
+
+[[meme.options]]
+name = "multiple-hits"
+description = "Include support for multiple nucleotide substitutions"
+takes_value = true
+type = "string"
+default = "None"
+choices = [
+    { value = "Double", description = "Include branch-specific rates for double nucleotide substitutions" },
+    { value = "Double+Triple", description = "Include branch-specific rates for double and triple nucleotide substitutions" },
+    { value = "None", description = "[Default] Use standard models which permit only single nucleotide changes to occur instantly" },
+]
+
+[[meme.options]]
+name = "site-multihit"
+description = "Estimate multiple hit rates for each site"
+takes_value = true
+type = "string"
+default = "Estimate"
+choices = [
+    { value = "Estimate", description = "Include branch-specific rates for double nucleotide substitutions" },
+    { value = "Global", description = "Use a plug-in estimate derived from the global model fit" },
+]
+
+[[meme.options]]
+name = "impute-states"
+description = "Use site-level model fits to impute likely character states for each sequence"
+takes_value = true
+type = "string"
+default = "No"
+choices = [
+    { value = "Yes", description = "Impute marginal likelihoods for each codon at each sequence and each site" },
+    { value = "No", description = "Do not impute marginal likelihoods for each codon at each sequence and each site" },
+]
+
+[[meme.options]]
+name = "precision"
+description = "Optimization precision settings for preliminary fits"
+takes_value = true
+type = "string"
+default = "standard"
+choices = [
+    { value = "standard", description = "[Default] Use standard optimization settings" },
+    { value = "reduced", description = "Cruder optimizations settings for faster fitting of preliminary models" },
+]
+
+[[meme.options]]
+name = "full-model"
+description = "Perform branch length re-optimization under the full codon model"
+takes_value = true
+type = "string"
+default = "Yes"
+choices = [
+    { value = "Yes", description = "[Default] Perform branch length re-optimization under the full codon model" },
+    { value = "No", description = "Skip branch length re-optimization under the full codon model (faster but less precise)" },
+]
