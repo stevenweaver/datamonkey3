@@ -10,6 +10,11 @@
 	let showCustomInput = false;
 	let showMLOptions = false;
 	let fileInput;
+	let branchTestMode = false;
+	let selectedBranches = [];
+	let selectedBranchSet = 'foreground'; // Default branch set
+	let branchSets = ['foreground', 'background', 'test']; // Placeholder branch sets
+	let taggedNewick = '';
 
 	$: currentTreeString = trees[selectedTree] || '';
 	$: showCustomInput = selectedTree === 'custom' && !trees.custom;
@@ -18,6 +23,10 @@
 	function handleTreeChange(event) {
 		selectedTree = event.target.value;
 		onChange(selectedTree);
+		
+		// Reset branch selection when tree changes
+		selectedBranches = [];
+		taggedNewick = '';
 		
 		// Show appropriate UI based on selection
 		if (selectedTree === 'custom' && !trees.custom) {
@@ -57,12 +66,38 @@
 		showMLOptions = false;
 		onChange(selectedTree);
 	}
+	
+	function toggleBranchTestMode() {
+		branchTestMode = !branchTestMode;
+		// Reset selections when toggling mode
+		selectedBranches = [];
+		taggedNewick = '';
+	}
+	
+	function handleBranchSelection(event) {
+		selectedBranches = event.detail.selectedBranches;
+		taggedNewick = event.detail.taggedNewick;
+		
+		// Pass the updated tagged Newick back to parent
+		if (onChange && taggedNewick) {
+			onChange(selectedTree, taggedNewick);
+		}
+	}
+	
+	function handleBranchSetChange(event) {
+		selectedBranchSet = event.target.value;
+		// In a real implementation, this would update the tag used for branches
+		// For now, we'll just reset the selections
+		selectedBranches = [];
+		taggedNewick = '';
+	}
 </script>
 
 <div class="tree-selector">
 	<div class="mb-4">
-		<label class="mb-1 block text-gray-700">Select Tree</label>
+		<label for="tree-select" class="mb-1 block text-gray-700">Select Tree</label>
 		<select
+			id="tree-select"
 			bind:value={selectedTree}
 			on:change={handleTreeChange}
 			class="w-full rounded border border-gray-300 p-2"
@@ -85,8 +120,9 @@
 		<div class="mt-4 border border-gray-200 p-4 rounded">
 			<h4 class="font-semibold mb-2">Upload or Enter Custom Tree</h4>
 			<div class="mb-3">
-				<label class="block mb-1 text-sm">Upload Newick File:</label>
+				<label for="tree-file" class="block mb-1 text-sm">Upload Newick File:</label>
 				<input 
+					id="tree-file"
 					type="file" 
 					bind:this={fileInput} 
 					on:change={handleFileUpload} 
@@ -95,8 +131,9 @@
 				/>
 			</div>
 			<div class="mb-3">
-				<label class="block mb-1 text-sm">Or Paste Newick String:</label>
+				<label for="tree-input" class="block mb-1 text-sm">Or Paste Newick String:</label>
 				<textarea 
+					id="tree-input"
 					bind:value={customTreeInput} 
 					class="border border-gray-300 p-2 w-full rounded h-24"
 					placeholder="Enter Newick format tree string..."
@@ -127,9 +164,61 @@
 
 	{#if currentTreeString && !showCustomInput && !showMLOptions}
 		<div class="mt-4 border border-gray-200 p-4 rounded">
+			<!-- Added Branch Testing Mode Toggle -->
+			<div class="mb-4 flex items-center">
+				<input 
+					type="checkbox" 
+					id="branch-test-mode" 
+					bind:checked={branchTestMode} 
+					on:change={toggleBranchTestMode}
+					class="mr-2 h-4 w-4"
+				/>
+				<label for="branch-test-mode" class="text-gray-700">Branch Testing Mode</label>
+			</div>
+			
+			<!-- Branch Set Selection (Only visible in branch test mode) -->
+			{#if branchTestMode}
+				<div class="mb-4">
+					<label for="branch-set" class="mb-1 block text-sm text-gray-700">Branch Set</label>
+					<select
+						id="branch-set"
+						bind:value={selectedBranchSet}
+						on:change={handleBranchSetChange}
+						class="w-full rounded border border-gray-300 p-2 text-sm"
+					>
+						{#each branchSets as branchSet}
+							<option value={branchSet}>
+								{branchSet}
+							</option>
+						{/each}
+					</select>
+					
+					<!-- Selected Branches Info -->
+					<div class="mt-3 text-sm">
+						<p class="mb-1">Selected branches: {selectedBranches.length}</p>
+						{#if selectedBranches.length > 0}
+							<div class="mt-2 max-h-24 overflow-y-auto border border-gray-200 p-2 text-xs bg-gray-50 rounded">
+								<ul class="list-disc pl-4">
+									{#each selectedBranches as branch}
+										<li>{branch}</li>
+									{/each}
+								</ul>
+							</div>
+						{/if}
+					</div>
+				</div>
+			{/if}
+			
 			<h4 class="font-semibold mb-2">Tree Visualization</h4>
 			<div class="tree-view" style="height: 400px; overflow: auto;">
-				<PhyloTree newickString={currentTreeString} height={350} width={700} />
+				<PhyloTree 
+					newickString={currentTreeString} 
+					height={350} 
+					width={700} 
+					branchTestMode={branchTestMode}
+					bind:selectedBranches={selectedBranches}
+					on:branchselection={handleBranchSelection}
+				/>
 			</div>
 		</div>
 	{/if}

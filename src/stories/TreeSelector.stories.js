@@ -23,7 +23,13 @@ Default.args = {
 		ml: "(((HUMAN:0.00432,CHIMP:0.00789):0.01243,(BABOON:0.00321,RHMONKEY:0.00219):0.02814):0.09531,((MOUSE:0.09127,RAT:0.08316):0.27392,(COW:0.19151,PIG:0.17324,HORSE:0.18962):0.06317):0.03215,CAT:0.22376)"
 	},
 	selectedTree: 'nj',
-	onChange: (selected) => console.log(`Tree selected: ${selected}`)
+	onChange: (selected, taggedNewick) => {
+		if (taggedNewick) {
+			console.log(`Tree selected: ${selected} with tagged branches: ${taggedNewick}`);
+		} else {
+			console.log(`Tree selected: ${selected}`);
+		}
+	}
 };
 
 export const SingleTree = Template.bind({});
@@ -32,7 +38,13 @@ SingleTree.args = {
 		nj: "(((((HUMAN:0.0007094811175330963,CHIMP:0.001097999950788399):0.01636505170584718,(BABOON:0.002228135311756104,RHMONKEY:0.003208158699156509):0.02669224056226239):0.1104329651335271,(MOUSE:0.1083853380447001,RAT:0.08033684101813202):0.269861493006827):0.02554526101244153,CAT:0.2324473165131622):0.009523377372626096,(COW:0.2190208699215655,PIG:0.1954998868609751):0.07189141490205825,HORSE:0.1953515445825866)"
 	},
 	selectedTree: 'nj',
-	onChange: (selected) => console.log(`Tree selected: ${selected}`)
+	onChange: (selected, taggedNewick) => {
+		if (taggedNewick) {
+			console.log(`Tree selected: ${selected} with tagged branches: ${taggedNewick}`);
+		} else {
+			console.log(`Tree selected: ${selected}`);
+		}
+	}
 };
 
 export const ManyTrees = Template.bind({});
@@ -45,5 +57,26 @@ ManyTrees.args = {
 		custom: "((HUMAN:0.001,CHIMP:0.001):0.01,[BABOON:0.002,RHMONKEY:0.003]:0.02,MOUSE:0.05,RAT:0.04,(COW:0.02,PIG:0.01,HORSE:0.015):0.03,CAT:0.02)"
 	},
 	selectedTree: 'ml',
-	onChange: (selected) => console.log(`Tree selected: ${selected}`)
+	onChange: (selected, taggedNewick) => {
+		if (taggedNewick) {
+			console.log(`Tree selected: ${selected} with tagged branches: ${taggedNewick}`);
+		} else {
+			console.log(`Tree selected: ${selected}`);
+		}
+	}
+};
+
+export const WithBranchTesting = Template.bind({});
+WithBranchTesting.args = {
+	trees: {
+		nj: "(((((HUMAN:0.0007094811175330963,CHIMP:0.001097999950788399):0.01636505170584718,(BABOON:0.002228135311756104,RHMONKEY:0.003208158699156509):0.02669224056226239):0.1104329651335271,(MOUSE:0.1083853380447001,RAT:0.08033684101813202):0.269861493006827):0.02554526101244153,CAT:0.2324473165131622):0.009523377372626096,(COW:0.2190208699215655,PIG:0.1954998868609751):0.07189141490205825,HORSE:0.1953515445825866)"
+	},
+	selectedTree: 'nj',
+	onChange: (selected, taggedNewick) => {
+		if (taggedNewick) {
+			console.log(`Tree selected: ${selected} with tagged branches: ${taggedNewick}`);
+		} else {
+			console.log(`Tree selected: ${selected}`);
+		}
+	}
 };
