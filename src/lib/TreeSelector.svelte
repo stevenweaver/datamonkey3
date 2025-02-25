@@ -5,12 +5,13 @@
 	export let trees = {};
 	export let selectedTree = 'nj'; // Default selected tree
 	export let onChange; // Function to notify parent on change
+	export let initialBranchTestMode = false; // Optional initial state for branch test mode
 
 	let customTreeInput = '';
 	let showCustomInput = false;
 	let showMLOptions = false;
 	let fileInput;
-	let branchTestMode = false;
+	let branchTestMode = initialBranchTestMode;
 	let selectedBranches = [];
 	let selectedBranchSet = 'foreground'; // Default branch set
 	let branchSets = ['foreground', 'background', 'test']; // Placeholder branch sets
