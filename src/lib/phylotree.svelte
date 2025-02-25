@@ -15,7 +15,7 @@
 	let tree;
 	let renderedTree;
 	let branchTags = {};
-	let menuContainer;
+	let d3_layout_phylotree_context_menu_id = "d3_layout_phylotree_context_menu";
 
 	onMount(() => {
 		renderTree();
@@ -60,7 +60,7 @@
 	}
 	
 	function setupNodeMenu() {
-		// Get all nodes in the tree
+		// Create a bootstrap-style dropdown menu
 		const nodeElements = treeContainer.querySelectorAll('.node');
 		
 		// Add click handlers to each node
@@ -68,78 +68,139 @@
 			node.addEventListener('click', (e) => {
 				e.stopPropagation();
 				
-				// Clear previous menu
-				if (menuContainer) {
-					menuContainer.remove();
-				}
-				
 				// Get node data
 				const nodeId = node.id || node.getAttribute('data-node-id');
 				const treeNode = nodeId ? tree.getNodeByName(nodeId) : null;
 				
 				if (treeNode) {
-					// Create dropdown menu
-					menuContainer = document.createElement('div');
-					menuContainer.className = 'node-menu';
-					menuContainer.style = `
-						position: absolute;
-						top: ${e.pageY}px;
-						left: ${e.pageX}px;
-						background: white;
-						border: 1px solid #ccc;
-						border-radius: 4px;
-						box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-						z-index: 1000;
-						padding: 8px 0;
-					`;
-					
-					// Create menu items
-					const menuItems = [
-						{ label: 'Tag as Foreground', action: () => tagBranch(treeNode, 'foreground') },
-						{ label: 'Tag as Background', action: () => tagBranch(treeNode, 'background') },
-						{ label: 'Remove Tag', action: () => removeTag(treeNode) }
-					];
-					
-					menuItems.forEach(item => {
-						const menuItem = document.createElement('div');
-						menuItem.innerText = item.label;
-						menuItem.style = `
-							padding: 6px 12px;
-							cursor: pointer;
-							font-size: 14px;
-						`;
-						menuItem.addEventListener('mouseover', () => {
-							menuItem.style.backgroundColor = '#f0f0f0';
-						});
-						menuItem.addEventListener('mouseout', () => {
-							menuItem.style.backgroundColor = 'transparent';
-						});
-						menuItem.addEventListener('click', () => {
-							item.action();
-							menuContainer.remove();
-						});
-						menuContainer.appendChild(menuItem);
-					});
-					
-					// Add menu to document
-					document.body.appendChild(menuContainer);
-					
-					// Close menu on document click
-					const closeMenu = (e) => {
-						if (!menuContainer.contains(e.target)) {
-							menuContainer.remove();
-							document.removeEventListener('click', closeMenu);
-						}
-					};
-					document.addEventListener('click', closeMenu);
+					// Show context menu
+					nodeDropdownMenu(treeNode, e);
 				}
 			});
 		});
 	}
 	
+	function nodeDropdownMenu(node, event) {
+		// Create or select the menu object
+		let menu_object = d3.select(treeContainer.parentNode).select("#" + d3_layout_phylotree_context_menu_id);
+
+		if (menu_object.empty()) {
+			menu_object = d3
+				.select(treeContainer.parentNode)
+				.append("div")
+				.attr("id", d3_layout_phylotree_context_menu_id)
+				.attr("class", "dropdown-menu")
+				.attr("role", "menu");
+		}
+
+		// Clear existing menu items
+		menu_object.selectAll("a").remove();
+		menu_object.selectAll("h6").remove();
+		menu_object.selectAll("div").remove();
+
+		// Create menu items for branch tagging
+		menu_object
+			.append("h6")
+			.attr("class", "dropdown-header")
+			.text("Branch Tagging");
+			
+		menu_object
+			.append("a")
+			.attr("class", "dropdown-item")
+			.attr("tabindex", "-1")
+			.text("Tag as Foreground")
+			.on("click", () => {
+				menu_object.style("display", "none");
+				tagBranch(node, 'foreground');
+			});
+			
+		menu_object
+			.append("a")
+			.attr("class", "dropdown-item")
+			.attr("tabindex", "-1")
+			.text("Tag as Background")
+			.on("click", () => {
+				menu_object.style("display", "none");
+				tagBranch(node, 'background');
+			});
+			
+		menu_object
+			.append("a")
+			.attr("class", "dropdown-item")
+			.attr("tabindex", "-1")
+			.text("Remove Tag")
+			.on("click", () => {
+				menu_object.style("display", "none");
+				removeTag(node);
+			});
+
+		// Add descendant selection options for internal nodes
+		if (!isLeafNode(node)) {
+			menu_object.append("div").attr("class", "dropdown-divider");
+			
+			menu_object
+				.append("h6")
+				.attr("class", "dropdown-header")
+				.text("Select Descendants");
+				
+			menu_object
+				.append("a")
+				.attr("class", "dropdown-item")
+				.attr("tabindex", "-1")
+				.text("Tag all terminal branches as Foreground")
+				.on("click", () => {
+					menu_object.style("display", "none");
+					tagDescendants(node, true, false, 'foreground');
+				});
+				
+			menu_object
+				.append("a")
+				.attr("class", "dropdown-item")
+				.attr("tabindex", "-1")
+				.text("Tag all terminal branches as Background")
+				.on("click", () => {
+					menu_object.style("display", "none");
+					tagDescendants(node, true, false, 'background');
+				});
+				
+			menu_object
+				.append("a")
+				.attr("class", "dropdown-item")
+				.attr("tabindex", "-1")
+				.text("Clear all descendant tags")
+				.on("click", () => {
+					menu_object.style("display", "none");
+					clearDescendantTags(node);
+				});
+		}
+
+		// Position the menu
+		let rect = treeContainer.getBoundingClientRect();
+		
+		menu_object
+			.style("position", "absolute")
+			.style("left", "" + (event.clientX - rect.x + 12) + "px")
+			.style("top", "" + (event.clientY - rect.y) + "px")
+			.style("display", "block");
+			
+		// Close menu on document click
+		const closeMenu = () => {
+			menu_object.style("display", "none");
+			document.removeEventListener('click', closeMenu);
+		};
+		
+		// Use setTimeout to avoid closing immediately
+		setTimeout(() => {
+			document.addEventListener('click', closeMenu);
+		}, 100);
+	}
+	
+	function isLeafNode(node) {
+		return !node.children || node.children.length === 0;
+	}
+	
 	function tagBranch(node, tagType) {
 		// Find the SVG element corresponding to this node
-		const nodeElement = treeContainer.querySelector(`#${node.id}`);
 		const branchElement = treeContainer.querySelector(`.branch[id="${node.id}"]`);
 		
 		if (branchElement) {
@@ -197,6 +258,48 @@
 				taggedNewick
 			});
 		}
+	}
+	
+	function tagDescendants(node, includeTerminals, includeInternals, tagType) {
+		// Get all descendants
+		const descendants = selectAllDescendants(node, includeTerminals, includeInternals);
+		
+		// Tag each descendant
+		descendants.forEach(desc => {
+			tagBranch(desc, tagType);
+		});
+	}
+	
+	function clearDescendantTags(node) {
+		// Get all descendants
+		const descendants = selectAllDescendants(node, true, true);
+		
+		// Remove tag from each descendant
+		descendants.forEach(desc => {
+			removeTag(desc);
+		});
+	}
+	
+	function selectAllDescendants(node, includeTerminals, includeInternals) {
+		let selection = [];
+
+		function sel(d) {
+			if (isLeafNode(d)) {
+				if (includeTerminals) {
+					if (d !== node) selection.push(d);
+				}
+			} else {
+				if (includeInternals) {
+					if (d !== node) selection.push(d);
+				}
+				if (d.children) {
+					d.children.forEach(sel);
+				}
+			}
+		}
+
+		sel(node);
+		return selection;
 	}
 	
 	function setupBranchSelection() {
@@ -293,5 +396,56 @@
 	
 	.phylo-tree :global(.node) {
 		cursor: pointer;
+	}
+	
+	:global(.dropdown-menu) {
+		min-width: 10rem;
+		padding: 0.5rem 0;
+		margin: 0.125rem 0 0;
+		font-size: 1rem;
+		color: #212529;
+		text-align: left;
+		list-style: none;
+		background-color: #fff;
+		background-clip: padding-box;
+		border: 1px solid rgba(0, 0, 0, 0.15);
+		border-radius: 0.25rem;
+		z-index: 1000;
+	}
+	
+	:global(.dropdown-item) {
+		display: block;
+		width: 100%;
+		padding: 0.25rem 1.5rem;
+		clear: both;
+		font-weight: 400;
+		color: #212529;
+		text-align: inherit;
+		white-space: nowrap;
+		background-color: transparent;
+		border: 0;
+		cursor: pointer;
+	}
+	
+	:global(.dropdown-item:hover), :global(.dropdown-item:focus) {
+		color: #16181b;
+		text-decoration: none;
+		background-color: #f8f9fa;
+	}
+	
+	:global(.dropdown-header) {
+		display: block;
+		padding: 0.5rem 1.5rem;
+		margin-bottom: 0;
+		font-size: 0.875rem;
+		color: #6c757d;
+		white-space: nowrap;
+	}
+	
+	:global(.dropdown-divider) {
+		height: 0;
+		margin: 0.5rem 0;
+		overflow: hidden;
+		border-top: 1px solid #e9ecef;
 	}
 </style>
