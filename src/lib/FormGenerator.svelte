@@ -10,6 +10,7 @@
 	let currentMethod = page.params.method;
 	let methodConfigs = toml.parse(methodConfigToml);
 	let methodConfig = methodConfigs[currentMethod];
+	let selectedTree = 'nj';
 
 	let formData = {};
 
@@ -24,6 +25,10 @@
 				formData[option.name] = option.minimum || 0; // Default to minimum if no default is set
 			}
 		});
+
+		methodConfig.options = methodConfig.options.filter(
+			(option) => option.type !== 'branch-set' && option.type !== 'tree'
+		);
 	});
 
 	function handleInputChange(event, name) {
@@ -40,10 +45,10 @@
 		if (newTree) {
 			selectedTree = newTree;
 		}
-		
+
 		// Handle parsed tags if provided
 		if (parsedTags && parsedTags.length) {
-			console.log("Received parsed tags:", parsedTags);
+			console.log('Received parsed tags:', parsedTags);
 			// Additional handling for parsed tags can be added here
 		}
 	}

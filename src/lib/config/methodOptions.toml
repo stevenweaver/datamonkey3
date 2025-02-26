@@ -41,7 +41,7 @@ choices = []
 name = "branches"
 description = "Branches to test"
 takes_value = true
-type = "string"
+type = "branch-set"
 default = "All"
 choices = []
 
