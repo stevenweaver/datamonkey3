@@ -33,15 +33,30 @@
 	// Node colorizer function that applies colors based on annotations/tags
 	function nodeColorizer(element, data) {
 		try {
+			if (!data || !selection_set || selection_set.length === 0) {
+				return;
+			}
+			
 			let count_class = 0;
+			// The structure might vary depending on the phylotree version, so we need to safely access it
+			let annotation = null;
+			
+			// Different possible paths to annotation data
+			if (data.annotation) {
+				annotation = data.annotation;
+			} else if (data.data && data.data.annotation) {
+				annotation = data.data.annotation;
+			}
 
-			selection_set.forEach(function (tag, i) {
-				// Check if the node has this tag
-				if (data.annotation && data.annotation === tag) {
-					count_class++;
-					element.style('fill', color_scheme(i), i === current_selection_id ? 'important' : null);
-				}
-			});
+			if (annotation) {
+				selection_set.forEach(function (tag, i) {
+					// Check if the node has this tag
+					if (annotation === tag) {
+						count_class++;
+						element.style('fill', color_scheme(i), i === current_selection_id ? 'important' : null);
+					}
+				});
+			}
 
 			// If no tag was applied, reset the style
 			if (count_class === 0) {
@@ -56,17 +71,27 @@
 	function edgeColorizer(element, data) {
 		try {
 			let count_class = 0;
-			let annotation = data.target.data.annotation;
+			// The structure might vary depending on the phylotree version, so we need to safely access it
+			let annotation = null;
+			
+			// Different possible paths to annotation data
+			if (data.target && data.target.annotation) {
+				annotation = data.target.annotation;
+			} else if (data.target && data.target.data && data.target.data.annotation) {
+				annotation = data.target.data.annotation;
+			} else if (data.annotation) {
+				annotation = data.annotation;
+			}
 
-			selection_set.forEach(function (tag, i) {
-				// Check if the target node has this tag
-				console.log('Tag: ' + tag);
-				console.log('Color : ' + color_scheme(i));
-				if (annotation && annotation === tag) {
-					count_class++;
-					element.style('stroke', color_scheme(i), i === current_selection_id ? 'important' : null);
-				}
-			});
+			if (annotation && selection_set.length > 0) {
+				selection_set.forEach(function (tag, i) {
+					// Check if the target node has this tag
+					if (annotation === tag) {
+						count_class++;
+						element.style('stroke', color_scheme(i), i === current_selection_id ? 'important' : null);
+					}
+				});
+			}
 
 			// Handle multiple classes or reset style if needed
 			if (count_class > 1) {
@@ -80,21 +105,42 @@
 	}
 
 	function renderTree() {
-		// Initialize tree from Newick string
-		tree = new phylotree(newickString);
-
-		// Check for parsed tags in the tree
-		if (tree.parsed_tags && tree.parsed_tags.length) {
-			selection_set = [...tree.parsed_tags];
-			// Dispatch the parsed tags to the parent component
-			dispatch('parsedtags', {
-				parsed_tags: selection_set
-			});
-
-			// If we have tags and in branch test mode, update selections
-			if (branchTestMode) {
-				updateSelectedBranchesFromTags();
+		try {
+			// Make sure we have a valid Newick string
+			if (!newickString || newickString.trim() === '') {
+				return;
 			}
+			
+			// Initialize tree from Newick string
+			tree = new phylotree(newickString);
+	
+			// Check for parsed tags in the tree
+			if (tree.parsed_tags && tree.parsed_tags.length) {
+				selection_set = [...tree.parsed_tags];
+				
+				// Dispatch the parsed tags to the parent component using a timeout
+				// to avoid the initial rendering error
+				setTimeout(() => {
+					try {
+						dispatch('parsedtags', {
+							parsed_tags: selection_set
+						});
+					} catch (dispatchError) {
+						console.error("Error dispatching parsed tags:", dispatchError);
+					}
+				}, 0);
+	
+				// If we have tags and in branch test mode, update selections
+				if (branchTestMode) {
+					try {
+						updateSelectedBranchesFromTags();
+					} catch (updateError) {
+						console.error("Error updating branches from tags:", updateError);
+					}
+				}
+			}
+		} catch (e) {
+			console.error("Error in renderTree:", e);
 		}
 
 		// Render the tree with colorizers

@@ -193,9 +193,11 @@
 			}
 		}
 		
-		// Notify parent about the parsed tags
+		// Notify parent about the parsed tags - but don't pass selectedTree directly
 		if (onChange && parsed_tags.length > 0) {
-			onChange(selectedTree, null, parsed_tags);
+			// Just pass the tags without changing the tree selection
+			const currentSelectionId = selectedTree; // Store current selection ID
+			onChange(currentSelectionId, null, parsed_tags); // Pass it explicitly
 		}
 	}
 

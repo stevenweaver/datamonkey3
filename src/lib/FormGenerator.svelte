@@ -35,8 +35,17 @@
 		formData[name] = event.target.checked;
 	}
 
-	function handleTreeSelection(newTree) {
-		selectedTree = newTree;
+	function handleTreeSelection(newTree, taggedNewick, parsedTags) {
+		// Handle the selected tree
+		if (newTree) {
+			selectedTree = newTree;
+		}
+		
+		// Handle parsed tags if provided
+		if (parsedTags && parsedTags.length) {
+			console.log("Received parsed tags:", parsedTags);
+			// Additional handling for parsed tags can be added here
+		}
 	}
 
 	// Update the run button click handler
