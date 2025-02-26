@@ -1,7 +1,8 @@
 <script>
 	import { onMount } from 'svelte';
-	import { html } from 'htl';
 	import { aioliStore } from '../stores/aioli';
+	import { alignmentFileStore, fileMetricsStore } from '../stores/fileInfo';
+	import { treeStore } from '../stores/tree';
 	import Aioli from '@biowasm/aioli';
 	import DataReaderResults from '../lib/dataReaderResults.svelte';
 	import MethodSelector from '../lib/MethodSelector.svelte';
@@ -19,7 +20,7 @@
 	let hyphyOut = '';
 	let jsonOut;
 	let jsonData;
-	let resultsCompleted;
+	let trees = {};
 	let loading = true;
 	let cliObj;
 	let result;
@@ -120,16 +121,10 @@
 		}
 	};
 
-	// Watch for changes to jsonData and send to iframe
-	$: if (jsonData) {
-		sendDataToIframe();
-	}
-
 	let runMethod = async function (method) {
 		// Extract the command and arguments from the configuration
 
-		const { command, args } = methodConfig[method];
-		resultsCompleted = false;
+		const { command } = methodConfig[method];
 
 		// Add method-specific data if needed
 		let methodDependencies = getMethodDependencies(method);
@@ -146,12 +141,10 @@
 
 		// Handle JSON output
 		const jsonBlob = await cliObj.download('/shared/data/user.nex.FEL.json');
-		console.log(await cliObj.ls('/shared/data/'));
 		const response = await fetch(jsonBlob);
 		const blob = await response.blob();
 		jsonOut = await blob.text();
 		jsonData = JSON.parse(jsonOut);
-		resultsCompleted = true;
 	};
 
 	function getMethodDependencies(method) {
@@ -159,7 +152,7 @@
 			case 'FEL':
 			case 'BUSTED':
 			case 'SLAC':
-				return []; // Empty for now; potentially add dependencies if necessary
+				return [];
 			default:
 				return [];
 		}
@@ -183,13 +176,6 @@
 		result = await cliObj.exec('hyphy --version');
 		hyphyOut = result.stdout;
 		loading = false;
-
-		// Setup an event listener to receive messages
-		window.addEventListener('message', (event) => {
-			if (event.data.type === 'ready') {
-				sendDataToIframe(); // send data when iframe is ready
-			}
-		});
 	});
 
 	function updateHyphyProgress(payload) {
@@ -223,6 +209,19 @@
 		const blob = await response.blob();
 		jsonOut = await blob.text();
 		fileMetricsJSON = JSON.parse(jsonOut);
+
+		// Set the file and its metrics in the store
+		fileMetricsStore.set(fileMetricsJSON);
+		alignmentFileStore.set(file);
+
+		trees['nj'] = fileMetricsJSON.FILE_INFO?.nj;
+		if (fileMetricsJSON?.FILE_PARTITION_INFO) {
+			trees['usertree'] = fileMetricsJSON.FILE_PARTITION_INFO['0'].usertree;
+		}
+
+		console.log(trees);
+
+		treeStore.set(trees);
 	}
 
 	const toggleStdOut = () => {

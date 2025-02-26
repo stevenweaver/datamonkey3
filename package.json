@@ -19,7 +19,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "deploy": "wrangler pages deploy .svelte-kit/cloudflare",
+    "wrangler:dev": "wrangler pages dev .svelte-kit/cloudflare"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.4",
@@ -34,6 +36,7 @@
     "@storybook/sveltekit": "^8.5.4",
     "@storybook/test": "^8.5.4",
     "@sveltejs/adapter-auto": "^4.0.0",
+    "@sveltejs/adapter-cloudflare": "^5.0.3",
     "@sveltejs/kit": "^2.16.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@tailwindcss/container-queries": "^0.1.1",
@@ -57,14 +60,15 @@
     "prettier-plugin-tailwindcss": "^0.6.10",
     "react": "^19.0.0",
     "rollup": "^4.32.1",
-    "storybook": "^8.5.4",
+    "storybook": "^8.5.8",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.20.0",
     "vite": "^6.0.0",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "wrangler": "^3.109.3"
   },
   "dependencies": {
     "@biowasm/aioli": "^3.2.1",
@@ -74,6 +78,7 @@
     "drizzle-orm": "^0.38.4",
     "htl": "^0.3.1",
     "idb-keyval": "^6.2.1",
-    "phylotree": "^2.1.0"
+    "phylotree": "^2.1.0",
+    "toml": "^3.0.0"
   }
 }

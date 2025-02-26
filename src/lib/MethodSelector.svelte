@@ -4,7 +4,6 @@
 	export let runMethod = [];
 
 	function runMethodHandler(method) {
-		// Call runMethod for other methods
 		runMethod(method);
 	}
 </script>
@@ -22,7 +21,7 @@
 			>
 			<a
 				class="mt-4 rounded bg-blue-500 px-2 py-1 text-white hover:bg-blue-600"
-				href={method['url']}
+				href="/methods/{method['url']}"
 			>
 				Run
 			</a>
