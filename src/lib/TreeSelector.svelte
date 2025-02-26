@@ -1,11 +1,28 @@
 <script>
 	import { onMount } from 'svelte';
 	import PhyloTree from './phylotree.svelte';
+	
+	// Define tree methods with readable names and IDs
+	const TREE_METHODS = [
+		{ id: 'nj', name: 'Neighbor Joining' },
+		{ id: 'upgma', name: 'UPGMA' },
+		{ id: 'ml', name: 'Maximum Likelihood', needsGeneration: true },
+		{ id: 'usertree', name: 'User Tree' },
+		{ id: 'custom', name: 'Custom Tree', needsInput: true }
+	];
+
+	// Define branch sets for tagging
+	const BRANCH_SETS = [
+		{ id: 'foreground', name: 'Foreground' },
+		{ id: 'background', name: 'Background' },
+		{ id: 'test', name: 'Test Group' }
+	];
 
 	export let trees = {};
 	export let selectedTree = 'nj'; // Default selected tree
 	export let onChange; // Function to notify parent on change
 	export let initialBranchTestMode = false; // Optional initial state for branch test mode
+	export let userTree = ''; // User-provided tree for the custom option
 
 	let customTreeInput = '';
 	let showCustomInput = false;
@@ -14,12 +31,60 @@
 	let branchTestMode = initialBranchTestMode;
 	let selectedBranches = [];
 	let selectedBranchSet = 'foreground'; // Default branch set
-	let branchSets = ['foreground', 'background', 'test']; // Placeholder branch sets
 	let taggedNewick = '';
+	let showTreeViz = true;
+	let parsed_tags = []; // Store parsed tags from the tree
 
+	// Initialize component and handle pre-populated trees
+	onMount(() => {
+		// If user tree is available in trees object, make sure it's selected as an option
+		if (trees.usertree && !selectedTree) {
+			selectedTree = 'usertree';
+			onChange('usertree');
+		}
+		
+		// Handle custom tree initialization
+		if (selectedTree === 'custom') {
+			// If userTree prop is provided
+			if (userTree) {
+				customTreeInput = userTree;
+				trees.custom = userTree;
+			} 
+			// Or if usertree exists in trees object and we need to initialize custom
+			else if (trees.usertree && !trees.custom) {
+				customTreeInput = trees.usertree;
+				trees.custom = trees.usertree;
+			}
+		}
+	});
+
+	// Derived values
 	$: currentTreeString = trees[selectedTree] || '';
-	$: showCustomInput = selectedTree === 'custom' && !trees.custom;
+	$: currentTreeMethod = TREE_METHODS.find(method => method.id === selectedTree) || TREE_METHODS[0];
+	$: showCustomInput = selectedTree === 'custom';
 	$: showMLOptions = selectedTree === 'ml' && !trees.ml;
+	$: currentBranchSet = BRANCH_SETS.find(set => set.id === selectedBranchSet) || 
+		(parsed_tags.includes(selectedBranchSet) ? { id: selectedBranchSet, name: `Tag: ${selectedBranchSet}` } : BRANCH_SETS[0]);
+	$: showTreeViz = currentTreeString && !(showMLOptions && !trees.ml);
+	$: availableBranchSets = [
+		...BRANCH_SETS,
+		...parsed_tags.map(tag => ({ id: tag, name: `Tag: ${tag}` }))
+			.filter(set => !BRANCH_SETS.some(defaultSet => defaultSet.id === set.id))
+	];
+	
+	// Initialize custom tree input with the appropriate tree when custom option is selected
+	$: if (selectedTree === 'custom' && !customTreeInput) {
+		// First try to use the explicitly provided userTree prop
+		if (userTree) {
+			customTreeInput = userTree;
+			if (!trees.custom) trees.custom = userTree;
+		} 
+		// Otherwise try to use the usertree from trees object
+		else if (trees.usertree) {
+			customTreeInput = trees.usertree;
+			if (!trees.custom) trees.custom = trees.usertree;
+		}
+	}
 
 	function handleTreeChange(event) {
 		selectedTree = event.target.value;
@@ -30,10 +95,24 @@
 		taggedNewick = '';
 
 		// Show appropriate UI based on selection
-		if (selectedTree === 'custom' && !trees.custom) {
+		const method = TREE_METHODS.find(m => m.id === selectedTree);
+		if (method?.id === 'custom') {
 			showCustomInput = true;
-		} else if (selectedTree === 'ml' && !trees.ml) {
+			showMLOptions = false;
+			
+			// Initialize custom tree input with user tree if available
+			if (!customTreeInput) {
+				if (userTree) {
+					customTreeInput = userTree;
+					if (!trees.custom) trees.custom = userTree;
+				} else if (trees.usertree) {
+					customTreeInput = trees.usertree;
+					if (!trees.custom) trees.custom = trees.usertree;
+				}
+			}
+		} else if (method?.needsGeneration && !trees[selectedTree]) {
 			showMLOptions = true;
+			showCustomInput = false;
 		} else {
 			showCustomInput = false;
 			showMLOptions = false;
@@ -86,6 +165,40 @@
 		}
 	}
 
+	function handleParsedTags(event) {
+		// Get parsed tags from the tree
+		parsed_tags = event.detail.parsed_tags || [];
+		
+		// Update branch set dropdown if tags are found
+		if (parsed_tags.length > 0) {
+			// Create custom branch sets from parsed tags
+			const customBranchSets = parsed_tags.map(tag => ({ 
+				id: tag, 
+				name: `Tag: ${tag}` 
+			}));
+			
+			// Only add unique tags that aren't already in the branch sets
+			const existingIds = BRANCH_SETS.map(set => set.id);
+			const uniqueCustomSets = customBranchSets.filter(set => !existingIds.includes(set.id));
+			
+			// If we found new tags, update the branch sets
+			if (uniqueCustomSets.length > 0) {
+				// Update the default selected branch set to use the first parsed tag
+				selectedBranchSet = parsed_tags[0];
+				
+				// Automatically enable branch test mode if tags are found
+				if (!branchTestMode) {
+					branchTestMode = true;
+				}
+			}
+		}
+		
+		// Notify parent about the parsed tags
+		if (onChange && parsed_tags.length > 0) {
+			onChange(selectedTree, null, parsed_tags);
+		}
+	}
+
 	function handleBranchSetChange(event) {
 		selectedBranchSet = event.target.value;
 		// In a real implementation, this would update the tag used for branches
@@ -97,30 +210,43 @@
 
 <div class="tree-selector">
 	<div class="mb-4">
-		<label for="tree-select" class="mb-1 block text-gray-700">Select Tree</label>
+		<label for="tree-select" class="mb-1 block text-gray-700">Select Tree Method</label>
 		<select
 			id="tree-select"
 			bind:value={selectedTree}
 			on:change={handleTreeChange}
 			class="w-full rounded border border-gray-300 p-2"
 		>
-			{#each Object.keys(trees) as treeKey}
-				<option value={treeKey}>
-					{treeKey}
-				</option>
+			{#each TREE_METHODS as method}
+				{#if trees[method.id] || (!method.needsInput && !method.needsGeneration)}
+					<option value={method.id}>
+						{method.name}
+					</option>
+				{/if}
 			{/each}
-			{#if !trees.custom}
-				<option value="custom">custom</option>
-			{/if}
-			{#if !trees.ml}
-				<option value="ml">ml</option>
-			{/if}
+			
+			{#each TREE_METHODS as method}
+				{#if !trees[method.id] && (method.needsInput || method.needsGeneration)}
+					<option value={method.id}>
+						{method.name}
+					</option>
+				{/if}
+			{/each}
 		</select>
 	</div>
 
 	{#if showCustomInput}
 		<div class="mt-4 rounded border border-gray-200 p-4">
-			<h4 class="mb-2 font-semibold">Upload or Enter Custom Tree</h4>
+			<h4 class="mb-2 font-semibold">Custom Tree</h4>
+			
+			{#if trees.custom}
+				<div class="mb-3 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+					<p class="font-medium">Current Custom Tree:</p>
+					<p class="truncate">{trees.custom.substring(0, 50)}{trees.custom.length > 50 ? '...' : ''}</p>
+					<p class="mt-1 font-medium">You can modify this tree below:</p>
+				</div>
+			{/if}
+			
 			<div class="mb-3">
 				<label for="tree-file" class="mb-1 block text-sm">Upload Newick File:</label>
 				<input
@@ -133,7 +259,13 @@
 				/>
 			</div>
 			<div class="mb-3">
-				<label for="tree-input" class="mb-1 block text-sm">Or Paste Newick String:</label>
+				<label for="tree-input" class="mb-1 block text-sm">
+					{#if trees.custom}
+						Edit Newick String:
+					{:else}
+						Paste Newick String:
+					{/if}
+				</label>
 				<textarea
 					id="tree-input"
 					bind:value={customTreeInput}
@@ -146,7 +278,11 @@
 				class="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
 				disabled={!customTreeInput.trim()}
 			>
-				Submit Custom Tree
+				{#if trees.custom}
+					Update Custom Tree
+				{:else}
+					Submit Custom Tree
+				{/if}
 			</button>
 		</div>
 	{/if}
@@ -164,9 +300,15 @@
 		</div>
 	{/if}
 
-	{#if currentTreeString && !showCustomInput && !showMLOptions}
+	<!-- Tree visualization - shown for all trees with data, even while editing custom tree -->
+	{#if showTreeViz}
 		<div class="mt-4 rounded border border-gray-200 p-4">
-			<!-- Added Branch Testing Mode Toggle -->
+			<!-- Current method display -->
+			<div class="mb-2 text-sm text-gray-600">
+				Current method: <span class="font-medium">{currentTreeMethod.name}</span>
+			</div>
+
+			<!-- Branch Testing Mode Toggle -->
 			<div class="mb-4 flex items-center">
 				<input
 					type="checkbox"
@@ -188,9 +330,9 @@
 						on:change={handleBranchSetChange}
 						class="w-full rounded border border-gray-300 p-2 text-sm"
 					>
-						{#each branchSets as branchSet}
-							<option value={branchSet}>
-								{branchSet}
+						{#each availableBranchSets as branchSet}
+							<option value={branchSet.id}>
+								{branchSet.name}
 							</option>
 						{/each}
 					</select>
@@ -222,6 +364,7 @@
 					{branchTestMode}
 					bind:selectedBranches
 					on:branchselection={handleBranchSelection}
+					on:parsedtags={handleParsedTags}
 				/>
 			</div>
 		</div>
@@ -240,4 +383,3 @@
 		border-radius: 0.25rem;
 	}
 </style>
-
