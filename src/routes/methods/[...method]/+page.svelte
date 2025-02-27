@@ -6,6 +6,7 @@
 	import { treeStore } from '../../../stores/tree';
 	import MethodForm from '../../../lib/FormGenerator.svelte';
 	import methodConfigToml from '../../../lib/config/methodOptions.toml?raw';
+	import { PAGES_URL } from '../../../lib/config/env';
 
 	import { page } from '$app/state';
 
@@ -130,7 +131,7 @@
 		<iframe
 			bind:this={iframeEl}
 			class="mt-4 h-screen w-full"
-			src="//localhost:3000/pages/{currentMethod}"
+			src="{PAGES_URL}/{currentMethod}"
 		></iframe>
 	</div>
 
