@@ -74,11 +74,11 @@
     }
     
     // Check for frameshift issues (uneven codon count)
-    if (data.FILE_INFO.sites && data.FILE_INFO.sites % 3 !== 0) {
+    if (data.FILE_INFO.rawsites && data.FILE_INFO.rawsites % 3 !== 0) {
       warnings.push({
         type: 'error',
         title: 'Alignment Length Not Divisible by 3',
-        message: `Your alignment length (${data.FILE_INFO.sites}) is not divisible by 3.`,
+        message: `Your alignment length (${data.FILE_INFO.rawsites}) is not divisible by 3.`,
         details: 'Codon-based analyses require sequence lengths to be multiples of 3. Check for frameshifts or alignment errors.',
         action: null
       });
