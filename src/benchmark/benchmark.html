@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyPhy Browser Benchmark</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    
+    .control-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    label {
+      min-width: 150px;
+    }
+    
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background-color: #4a76a8;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    button:hover {
+      background-color: #3a5a78;
+    }
+    
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    
+    .results {
+      margin-top: 20px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    .log {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+      height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    
+    .status {
+      text-align: center;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    
+    .running {
+      color: #ff9800;
+    }
+    
+    .completed {
+      color: #4caf50;
+    }
+    
+    .error {
+      color: #f44336;
+    }
+  </style>
+</head>
+<body>
+  <h1>HyPhy Browser Benchmark</h1>
+  
+  <div class="controls">
+    <div class="control-group">
+      <label for="method-select">HyPhy Method:</label>
+      <select id="method-select">
+        <option value="fel">FEL</option>
+        <option value="meme">MEME</option>
+        <option value="absrel">aBSREL</option>
+        <option value="busted">BUSTED</option>
+        <option value="slac">SLAC</option>
+      </select>
+    </div>
+    
+    <div class="control-group">
+      <label for="file-input">Alignment File:</label>
+      <input type="file" id="file-input" accept=".nex,.fasta,.fas,.fa,.nexus,.phy,.phylip">
+    </div>
+    
+    <div class="control-group">
+      <label for="iterations">Iterations:</label>
+      <input type="number" id="iterations" min="1" max="20" value="3">
+    </div>
+    
+    <button id="start-benchmark">Start Benchmark</button>
+  </div>
+  
+  <div class="status" id="status"></div>
+  
+  <div class="results" id="results-container" style="display: none;">
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead>
+        <tr>
+          <th>Iteration</th>
+          <th>Time (ms)</th>
+        </tr>
+      </thead>
+      <tbody id="results-body">
+      </tbody>
+      <tfoot id="results-summary">
+      </tfoot>
+    </table>
+  </div>
+  
+  <div class="log" id="log"></div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@biowasm/aioli@3.2.1/dist/aioli.js"></script>
+  <script>
+    // DOM Elements
+    const methodSelect = document.getElementById('method-select');
+    const fileInput = document.getElementById('file-input');
+    const iterationsInput = document.getElementById('iterations');
+    const startButton = document.getElementById('start-benchmark');
+    const statusEl = document.getElementById('status');
+    const resultsContainer = document.getElementById('results-container');
+    const resultsBody = document.getElementById('results-body');
+    const resultsSummary = document.getElementById('results-summary');
+    const logEl = document.getElementById('log');
+    
+    // HyPhy Configuration
+    const hyphyConfig = {
+      tool: 'hyphy',
+      version: '2.5.63',
+      urlPrefix: 'https://data.hyphy.org/web/biowasm'
+    };
+    
+    // Variables
+    let cliObj = null;
+    let isLoading = true;
+    let isBenchmarking = false;
+    let benchmarkResults = [];
+    
+    // Log Function
+    function log(text) {
+      const timestamp = new Date().toLocaleTimeString();
+      logEl.innerHTML += `[${timestamp}] ${text}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    
+    // Update Status
+    function updateStatus(text, type = '') {
+      statusEl.textContent = text;
+      statusEl.className = 'status ' + type;
+    }
+    
+    // Initialize Aioli
+    async function initializeAioli() {
+      try {
+        updateStatus('Loading HyPhy...', 'running');
+        log('Initializing Aioli with HyPhy...');
+        
+        cliObj = await new Aioli(hyphyConfig, {
+          printInterleaved: false,
+          callback: (payload) => {
+            if (payload.type === 'print') {
+              log(payload.text);
+            }
+          }
+        });
+        
+        const result = await cliObj.exec('hyphy --version');
+        log(`HyPhy initialized: ${result.stdout.trim()}`);
+        
+        isLoading = false;
+        updateStatus('HyPhy Ready', 'completed');
+        startButton.disabled = false;
+      } catch (error) {
+        log(`Error initializing HyPhy: ${error.message}`);
+        updateStatus('Failed to load HyPhy', 'error');
+      }
+    }
+    
+    // Run Benchmark
+    async function runBenchmark() {
+      try {
+        const method = methodSelect.value;
+        const file = fileInput.files[0];
+        const iterations = parseInt(iterationsInput.value, 10);
+        
+        if (!file) {
+          alert('Please select an alignment file.');
+          return;
+        }
+        
+        isBenchmarking = true;
+        benchmarkResults = [];
+        startButton.disabled = true;
+        
+        // Clear previous results
+        resultsBody.innerHTML = '';
+        resultsSummary.innerHTML = '';
+        resultsContainer.style.display = 'none';
+        
+        updateStatus(`Running ${method} benchmark...`, 'running');
+        log(`Starting benchmark with method: ${method}, iterations: ${iterations}`);
+        
+        // Read file content
+        const fileData = await file.text();
+        
+        // Display the results table
+        resultsContainer.style.display = 'block';
+        
+        for (let i = 0; i < iterations; i++) {
+          log(`Starting iteration ${i + 1}...`);
+          updateStatus(`Running iteration ${i + 1} of ${iterations}...`, 'running');
+          
+          // Mount the file
+          const inputFiles = await cliObj.mount([
+            { name: 'user.nex', data: fileData }
+          ]);
+          
+          // Record start time
+          const startTime = performance.now();
+          
+          // Run HyPhy
+          const hyphyCommand = `hyphy LIBPATH=/shared/hyphy/ ${method} ${inputFiles[0]}`;
+          log(`Executing: ${hyphyCommand}`);
+          
+          const result = await cliObj.exec(hyphyCommand);
+          await result.stdout;
+          
+          // Try to get the JSON result
+          try {
+            const jsonBlob = await cliObj.download(`/shared/data/user.nex.${method.toUpperCase()}.json`);
+          } catch (err) {
+            log(`Note: Could not find result JSON file: ${err.message}`);
+          }
+          
+          // Record end time
+          const endTime = performance.now();
+          const duration = endTime - startTime;
+          
+          // Add result to array
+          benchmarkResults.push(duration);
+          
+          // Add row to results table
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>Iteration ${i + 1}</td>
+            <td>${duration.toFixed(2)}</td>
+          `;
+          resultsBody.appendChild(row);
+          
+          log(`Iteration ${i + 1} completed in ${duration.toFixed(2)}ms`);
+        }
+        
+        // Calculate summary statistics
+        const total = benchmarkResults.reduce((sum, time) => sum + time, 0);
+        const average = total / benchmarkResults.length;
+        const min = Math.min(...benchmarkResults);
+        const max = Math.max(...benchmarkResults);
+        
+        // Add summary to table
+        resultsSummary.innerHTML = `
+          <tr>
+            <td><strong>Average:</strong></td>
+            <td><strong>${average.toFixed(2)}</strong></td>
+          </tr>
+          <tr>
+            <td>Min:</td>
+            <td>${min.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>Max:</td>
+            <td>${max.toFixed(2)}</td>
+          </tr>
+        `;
+        
+        log('Benchmark completed.');
+        updateStatus('Benchmark completed', 'completed');
+        
+        // Save results as JSON in console
+        console.log('Benchmark results:', {
+          method,
+          filename: file.name,
+          fileSize: file.size,
+          iterations,
+          results: benchmarkResults,
+          summary: {
+            average,
+            min,
+            max
+          }
+        });
+      } catch (error) {
+        log(`Error in benchmark: ${error.message}`);
+        updateStatus('Benchmark failed', 'error');
+      } finally {
+        isBenchmarking = false;
+        startButton.disabled = false;
+      }
+    }
+    
+    // Event Listeners
+    startButton.addEventListener('click', runBenchmark);
+    startButton.disabled = true;
+    
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', initializeAioli);
+  </script>
+</body>
+</html>

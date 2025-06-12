@@ -1,0 +1,3 @@
+# Build configuration for Cloudflare Pages
+[build]
+command = "yarn install && yarn build"

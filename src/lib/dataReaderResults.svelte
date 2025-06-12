@@ -1,10 +1,14 @@
 <script>
 	import PhyloTree from './phylotree.svelte';
+	import SequenceWarnings from './SequenceWarnings.svelte';
 	export let fileMetricsJSON;
 
 	let isOpen = false;
 	const passed = fileMetricsJSON?.FILE_INFO?.goodtree; // Determine if it passed based on your condition
 </script>
+
+<!-- Display sequence warnings if available -->
+<SequenceWarnings {fileMetricsJSON} />
 
 <div class="metrics min-w-full rounded-lg border border-gray-300 bg-gray-50 p-4 shadow-md">
 	<h3 class="mb-4 text-lg font-bold">Alignment File Metrics</h3>
