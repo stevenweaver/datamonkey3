@@ -2,9 +2,18 @@
 <script>
 	export let methodConfig;
 	export let runMethod = [];
+	export let onConfigureMethod = null; // New prop for configuring a method
 
 	function runMethodHandler(method) {
+		console.log(`Running method: ${method}`);
 		runMethod(method);
+	}
+
+	function configureMethodHandler(method) {
+		console.log(`Configuring method: ${method}`);
+		if (onConfigureMethod) {
+			onConfigureMethod(method);
+		}
 	}
 </script>
 
@@ -16,15 +25,22 @@
 		>
 			<h4 class="font-bold">{key}</h4>
 			<p class="mt-2 text-gray-600">{method['description']}</p>
-			<button class="mt-4 rounded bg-yellow-500 px-2 py-1 text-white hover:bg-yellow-600"
-				>More Info</button
-			>
-			<a
-				class="mt-4 rounded bg-blue-500 px-2 py-1 text-white hover:bg-blue-600"
-				href="/methods/{method['url']}"
-			>
-				Run
-			</a>
+			<div class="mt-4 flex gap-2">
+				{#if onConfigureMethod}
+					<button 
+						class="rounded bg-purple-500 px-2 py-1 text-white hover:bg-purple-600"
+						on:click={() => configureMethodHandler(key)}
+					>
+						Configure
+					</button>
+				{/if}
+				<button 
+					class="rounded bg-blue-500 px-2 py-1 text-white hover:bg-blue-600"
+					on:click={() => runMethodHandler(key)}
+				>
+					Run
+				</button>
+			</div>
 		</div>
 	{/each}
 </div>
