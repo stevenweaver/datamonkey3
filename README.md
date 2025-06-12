@@ -37,3 +37,29 @@ You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
 # alignment-validation
+
+## Environment Configuration
+
+This application uses environment variables for configuration:
+
+- `DATABASE_URL`: Path to the SQLite database file (defaults to in-memory database if not provided)
+- `VITE_PAGES_URL`: URL for the visualization iframes (defaults to `//localhost:3000/pages` in development)
+
+### Deployment Notes
+
+When deploying to Cloudflare, the application is configured to use an in-memory SQLite database. 
+This means data will not persist between deployments or across worker instances.
+
+For production scenarios requiring persistent data, consider using:
+
+- Cloudflare D1 database
+- Cloudflare KV for simple key-value storage
+- External database service with appropriate connection handling
+
+## Adding New Visualization Methods
+
+To add new visualization methods:
+
+1. Update the method list in `src/lib/AnalysisResultViewer.svelte`
+2. Ensure the corresponding visualization is available at `${VITE_PAGES_URL}/${methodName}`
+3. The iframe communicates with the parent window via `postMessage`
