@@ -155,7 +155,7 @@
                 </div>
               {/if}
             </div>
-          {:else if ['FEL', 'SLAC', 'MEME', 'BUSTED', 'FUBAR'].includes(analysis.method)}
+          {:else if ['FEL', 'SLAC', 'MEME', 'BUSTED', 'FUBAR', 'aBSREL', 'GARD', 'MULTI-HIT', 'NRM'].includes(analysis.method)}
             <!-- Selection analysis results -->
             <div class="selection-analysis">
               {#if resultData.input && resultData.input.file}
@@ -173,7 +173,7 @@
               <!-- Visualization iframe for selection analyses -->
               <div class="mt-4 mb-4">
                 <iframe 
-                  src="{import.meta.env.VITE_PAGES_URL || '//localhost:3000/pages'}/{analysis.method.toLowerCase()}" 
+                  src="{import.meta.env.VITE_PAGES_URL || '//localhost:3000/pages'}/{analysis.method.toLowerCase().replace('-', '')}" 
                   class="w-full border-0" 
                   style="height: 500px;"
                   title="{analysis.method} Visualization"
