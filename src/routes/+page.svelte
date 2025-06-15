@@ -6,24 +6,17 @@
 	import { analysisStore, currentAnalysis, activeAnalysisProgress } from '../stores/analyses';
 	import { treeStore, addTree, updateTaggedTree } from '../stores/tree';
 	import Aioli from '@biowasm/aioli';
-	import DataReaderResults from '../lib/dataReaderResults.svelte';
-	import MethodSelector from '../lib/MethodSelector.svelte';
-	import FileManager from '../lib/FileManager.svelte';
-	import AnalysisHistory from '../lib/AnalysisHistory.svelte';
-	import AnalysisResultViewer from '../lib/AnalysisResultViewer.svelte';
-	import AnalysisProgress from '../lib/AnalysisProgress.svelte';
-import EnhancedAnalysisProgress from '../lib/EnhancedAnalysisProgress.svelte';
-	import AnalysisCompare from '../lib/AnalysisCompare.svelte';
-	import BatchExport from '../lib/BatchExport.svelte';
-	import ErrorHandler from '../lib/ErrorHandler.svelte';
-	import FastaExport from '../lib/FastaExport.svelte';
 	import TreeSelector from '../lib/TreeSelector.svelte';
-	import MethodOptionsTab from '../lib/MethodOptionsTab.svelte';
+	import ErrorHandler from '../lib/ErrorHandler.svelte';
 	import DemoFileSelector from '../lib/DemoFileSelector.svelte';
-import UnifiedAnalysisView from '../lib/UnifiedAnalysisView.svelte';
 
+	// New tabbed structure components
+	import DataTab from '../lib/DataTab.svelte';
+	import AnalyzeTab from '../lib/AnalyzeTab.svelte';
+	import ResultsTab from '../lib/ResultsTab.svelte';
+
+	// Import HyPhy dependencies
 	import dataReader from '../data/datareader.bf?raw';
-
 	import HyPhyGlobals from '../data/shared/HyPhyGlobals.ibf?raw';
 	import chooseGeneticCode from '../data/shared/chooseGeneticCode.def?raw';
 	import ReadDelimitedFiles from '../data/shared/ReadDelimitedFiles.bf?raw';
@@ -42,10 +35,11 @@ import UnifiedAnalysisView from '../lib/UnifiedAnalysisView.svelte';
 	let fileMetricsJSON;
 	let selectedAnalysisId = null;
 	let showAllHistory = false;
-	let activeTab = 'data'; // 'data', 'tree', 'options', 'analysis', or 'compare'
+	let activeTab = 'data'; // 'data', 'analyze', or 'results'
 	let selectedTree = 'nj';
 	let selectedMethod = 'FEL'; // Default selected method for configuration
 	let treeData = {};
+	let showBatchExport = false;
 
 	// Consolidating methods and hyphyCommands with descriptions
 	const methodConfig = {
@@ -188,7 +182,7 @@ import UnifiedAnalysisView from '../lib/UnifiedAnalysisView.svelte';
 			selectAnalysis(analysisId); // Select the new analysis immediately
 			
 			// Switch to the analysis tab to show the analysis in progress
-			activeTab = 'analysis';
+			activeTab = 'analyze';
 			
 			// Initialize progress tracking
 			analysisStore.startAnalysisProgress(analysisId, `Initializing ${methodName} analysis...`);
@@ -301,6 +295,10 @@ import UnifiedAnalysisView from '../lib/UnifiedAnalysisView.svelte';
 			// Complete progress tracking
 			analysisStore.completeAnalysisProgress(true, `${methodName} analysis completed successfully.`);
 			console.log(`Analysis ${analysisId} for method ${methodName} completed successfully`);
+			
+			// Switch to results tab when analysis completes
+			activeTab = 'results';
+			
 		} catch (error) {
 			console.error(`Error running method ${typeof method === 'string' ? method : 'unknown'}:`, error);
 			hyphyOut = `Error: ${error.message}`;
@@ -421,9 +419,8 @@ import UnifiedAnalysisView from '../lib/UnifiedAnalysisView.svelte';
 	});
 
 	let file;
-	let isStdOutVisible = false; // New state for toggling stdout visibility
+	let isStdOutVisible = false; // State for toggling stdout visibility
 	let validationError = null;
-	let showBatchExport = false;
 
 	async function handleFileUpload(event) {
 		try {
@@ -708,7 +705,21 @@ import UnifiedAnalysisView from '../lib/UnifiedAnalysisView.svelte';
 			treeData = updateTaggedTree(newTreeId, taggedNewick, treeData);
 		}
 	}
+	
+	// Handle tab switching events from child components
+	function handleSwitchTab(event) {
+		if (event.detail && event.detail.tabName) {
+			activeTab = event.detail.tabName;
+			
+			// If we have an analysis ID, select it
+			if (event.detail.analysisId) {
+				selectAnalysis(event.detail.analysisId);
+			}
+		}
+	}
 </script>
+
+<svelte:window on:switchTab={handleSwitchTab} />
 
 <div class="container mx-auto p-8">
 	{#if loading}
@@ -720,175 +731,145 @@ import UnifiedAnalysisView from '../lib/UnifiedAnalysisView.svelte';
 		<div class="pb-8">
 			<h1 class="mb-4 text-2xl font-bold">FASTA Validation and Analysis</h1>
 			
-			<div class="file-section mb-6">
-				<!-- File upload and controls -->
-				<div class="mb-4 flex flex-wrap items-center justify-between gap-4">
-					<div>
-						<label for="file-upload" class="mb-1 block font-medium">Upload File:</label>
-						<input id="file-upload" type="file" on:change={handleFileUpload} class="file-input" />
-						
-						<!-- Demo file selector -->
-						<DemoFileSelector on:selectFile={handleDemoFileSelect} on:error={(e) => validationError = { message: e.detail.message }} />
-					</div>
-					
-					<div class="flex items-center gap-2">
-						<button 
-							on:click={toggleHistoryView} 
-							class="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
-						>
-							{showAllHistory ? 'Current File Only' : 'All Files'}
-						</button>
-						
-						<button 
-							on:click={toggleBatchExport} 
-							class="rounded bg-green-500 px-3 py-1 text-white hover:bg-green-600"
-						>
-							{showBatchExport ? 'Hide Batch Export' : 'Batch Export'}
-						</button>
-					</div>
-				</div>
-				
-				<!-- Error display -->
-				<ErrorHandler 
-					error={validationError} 
-					level="error"
-					on:dismiss={() => validationError = null}
-				/>
-				
-				<!-- Enhanced file management -->
-				<FileManager onSelectFile={handleFileUpload} />
-				
-				<!-- Analysis Progress Indicator -->
-				<EnhancedAnalysisProgress />
-				
-				<!-- Batch Export (conditional) -->
-				{#if showBatchExport}
-					<BatchExport />
-				{/if}
-				
-				<!-- Main Tabbed Interface -->
-				<div class="mt-6 mb-4 border-b border-gray-300">
-					<div class="flex">
-						<button
-							class="border-b-2 px-4 py-2 font-medium transition-colors"
-							class:border-blue-500={activeTab === 'data'}
-							class:text-blue-600={activeTab === 'data'}
-							class:border-transparent={activeTab !== 'data'}
-							class:text-gray-500={activeTab !== 'data'}
-							on:click={() => activeTab = 'data'}
-						>
-							File Data
-						</button>
-						<button
-							class="border-b-2 px-4 py-2 font-medium transition-colors"
-							class:border-blue-500={activeTab === 'tree'}
-							class:text-blue-600={activeTab === 'tree'}
-							class:border-transparent={activeTab !== 'tree'}
-							class:text-gray-500={activeTab !== 'tree'}
-							on:click={() => activeTab = 'tree'}
-						>
-							Tree View
-						</button>
-						<button
-							class="border-b-2 px-4 py-2 font-medium transition-colors"
-							class:border-blue-500={activeTab === 'options'}
-							class:text-blue-600={activeTab === 'options'}
-							class:border-transparent={activeTab !== 'options'}
-							class:text-gray-500={activeTab !== 'options'}
-							on:click={() => activeTab = 'options'}
-						>
-							Analysis Options
-						</button>
-						<button
-							class="border-b-2 px-4 py-2 font-medium transition-colors"
-							class:border-blue-500={activeTab === 'analysis'}
-							class:text-blue-600={activeTab === 'analysis'}
-							class:border-transparent={activeTab !== 'analysis'}
-							class:text-gray-500={activeTab !== 'analysis'}
-							on:click={() => activeTab = 'analysis'}
-						>
+			<!-- Main Tabbed Interface -->
+			<div class="mb-6 border-b border-gray-300">
+				<div class="flex">
+					<button
+						class="relative border-b-2 px-6 py-3 font-medium transition-colors"
+						class:border-blue-500={activeTab === 'data'}
+						class:text-blue-600={activeTab === 'data'}
+						class:border-transparent={activeTab !== 'data'}
+						class:text-gray-500={activeTab !== 'data'}
+						on:click={() => activeTab = 'data'}
+					>
+						<span class="flex items-center">
+							<svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+								<path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+								<path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+							</svg>
+							Data
+						</span>
+						<span class="absolute bottom-0 right-0 left-0 h-0.5 bg-blue-500" class:hidden={activeTab !== 'data'}></span>
+					</button>
+					<button
+						class="relative border-b-2 px-6 py-3 font-medium transition-colors"
+						class:border-blue-500={activeTab === 'analyze'}
+						class:text-blue-600={activeTab === 'analyze'}
+						class:border-transparent={activeTab !== 'analyze'}
+						class:text-gray-500={activeTab !== 'analyze'}
+						on:click={() => activeTab = 'analyze'}
+					>
+						<span class="flex items-center">
+							<svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm1 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V7zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1v-2z" clip-rule="evenodd" />
+							</svg>
+							Analyze
+						</span>
+						{#if $activeAnalysisProgress.id && $activeAnalysisProgress.status !== 'completed'}
+							<span class="ml-2 inline-flex animate-pulse items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+								Running
+							</span>
+						{/if}
+						<span class="absolute bottom-0 right-0 left-0 h-0.5 bg-blue-500" class:hidden={activeTab !== 'analyze'}></span>
+					</button>
+					<button
+						class="relative border-b-2 px-6 py-3 font-medium transition-colors"
+						class:border-blue-500={activeTab === 'results'}
+						class:text-blue-600={activeTab === 'results'}
+						class:border-transparent={activeTab !== 'results'}
+						class:text-gray-500={activeTab !== 'results'}
+						on:click={() => activeTab = 'results'}
+					>
+						<span class="flex items-center">
+							<svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0V8z" clip-rule="evenodd" />
+							</svg>
 							Results
-						</button>
-						<button
-							class="border-b-2 px-4 py-2 font-medium transition-colors"
-							class:border-blue-500={activeTab === 'compare'}
-							class:text-blue-600={activeTab === 'compare'}
-							class:border-transparent={activeTab !== 'compare'}
-							class:text-gray-500={activeTab !== 'compare'}
-							on:click={() => activeTab = 'compare'}
-						>
-							Compare
-						</button>
+						</span>
+						<span class="absolute bottom-0 right-0 left-0 h-0.5 bg-blue-500" class:hidden={activeTab !== 'results'}></span>
+					</button>
+				</div>
+			</div>
+			
+			<!-- Tab Content with Progressive Enhancement -->
+			{#if activeTab === 'data'}
+				<!-- Data Tab -->
+				<DataTab 
+					{handleFileUpload}
+					{handleDemoFileSelect}
+					{validationError}
+					{fileMetricsJSON}
+					{handleValidated}
+					{handleUseRepaired}
+				/>
+			{:else if activeTab === 'analyze'}
+				<!-- Analyze Tab -->
+				<AnalyzeTab 
+					{methodConfig}
+					{runMethod}
+					{selectedMethod}
+					{hyphyOut}
+					{isStdOutVisible}
+					{toggleStdOut}
+					{showAllHistory}
+					{selectAnalysis}
+				/>
+			{:else if activeTab === 'results'}
+				<!-- Results Tab -->
+				<ResultsTab 
+					{selectedAnalysisId}
+					{selectAnalysis}
+					{showAllHistory}
+					{showBatchExport}
+					{toggleBatchExport}
+				/>
+			{/if}
+			
+			<!-- Visual Flow Indicators -->
+			<div class="mt-8 flex items-center justify-center">
+				<div class="flex items-center">
+					<div 
+						class="flex h-10 w-10 items-center justify-center rounded-full font-bold"
+						class:bg-blue-500={activeTab === 'data'}
+						class:text-white={activeTab === 'data'}
+						class:bg-gray-200={activeTab !== 'data'}
+					>
+						1
+					</div>
+					<div class="w-16 h-1 bg-gray-200">
+						<div 
+							class="h-full bg-blue-500 transition-all duration-300" 
+							style="width: {activeTab === 'data' ? '0%' : activeTab === 'analyze' ? '100%' : '100%'}"
+						></div>
+					</div>
+					<div 
+						class="flex h-10 w-10 items-center justify-center rounded-full font-bold"
+						class:bg-blue-500={activeTab === 'analyze'}
+						class:text-white={activeTab === 'analyze'}
+						class:bg-gray-200={activeTab !== 'analyze'}
+					>
+						2
+					</div>
+					<div class="w-16 h-1 bg-gray-200">
+						<div 
+							class="h-full bg-blue-500 transition-all duration-300" 
+							style="width: {activeTab === 'results' ? '100%' : '0%'}"
+						></div>
+					</div>
+					<div 
+						class="flex h-10 w-10 items-center justify-center rounded-full font-bold"
+						class:bg-blue-500={activeTab === 'results'}
+						class:text-white={activeTab === 'results'}
+						class:bg-gray-200={activeTab !== 'results'}
+					>
+						3
 					</div>
 				</div>
-				
-				<!-- Tab Content -->
-				<div class="tab-content mt-4">
-					{#if activeTab === 'data'}
-						<!-- Data Tab: File Information -->
-						<div class="data-view">
-							{#if fileMetricsJSON}
-								<DataReaderResults {fileMetricsJSON} />
-								<FastaExport {fileMetricsJSON} />
-							{:else}
-								<div class="rounded border border-gray-200 bg-gray-50 p-6 text-center">
-									<p class="text-lg text-gray-600">Upload a file to view its information</p>
-								</div>
-							{/if}
-						</div>
-					{:else if activeTab === 'tree'}
-						<!-- Tree Tab: Tree Visualization -->
-						<div class="tree-view">
-							{#if $currentFile && Object.keys(trees).length > 0}
-								<TreeSelector 
-									trees={trees} 
-									selectedTree={selectedTree}
-									onChange={handleTreeChange}
-								/>
-							{:else}
-								<div class="rounded border border-gray-200 bg-gray-50 p-6 text-center">
-									<p class="text-lg text-gray-600">Upload a file to view and manipulate phylogenetic trees</p>
-								</div>
-							{/if}
-						</div>
-					{:else if activeTab === 'options'}
-						<!-- Options Tab: Analysis Options -->
-						<div class="options-view">
-							{#if $currentFile}
-								<MethodOptionsTab {runMethod} {selectedMethod} />
-							{:else}
-								<div class="rounded border border-gray-200 bg-gray-50 p-6 text-center">
-									<p class="text-lg text-gray-600">Upload a file to configure analysis options</p>
-								</div>
-							{/if}
-						</div>
-					{:else if activeTab === 'analysis'}
-						<!-- Analysis Tab: Results View using UnifiedAnalysisView component -->
-						<UnifiedAnalysisView
-							{methodConfig}
-							{runMethod}
-							showAllHistory={!showAllHistory}
-							currentFile={$currentFile}
-							{hyphyOut}
-							{toggleStdOut}
-							{isStdOutVisible}
-							{selectedAnalysisId}
-							{selectAnalysis}
-							onConfigureMethod={(method) => {
-								// Set the active tab to 'options' 
-								activeTab = 'options';
-								// Set the selected method in the state for MethodOptionsTab
-								selectedMethod = method;
-								console.log(`Switching to configure ${method}`);
-							}}
-						/>
-					{:else if activeTab === 'compare'}
-						<!-- Compare Tab: Analysis Comparison -->
-						<div class="comparison-view">
-							<AnalysisCompare />
-						</div>
-					{/if}
-				</div>
+			</div>
+			<div class="mt-2 flex items-center justify-center text-sm text-gray-500">
+				<span class="mx-5 text-center {activeTab === 'data' ? 'font-semibold text-blue-600' : ''}">Prepare Data</span>
+				<span class="mx-9 text-center {activeTab === 'analyze' ? 'font-semibold text-blue-600' : ''}">Run Analysis</span>
+				<span class="mx-5 text-center {activeTab === 'results' ? 'font-semibold text-blue-600' : ''}">View Results</span>
 			</div>
 		</div>
 	{/if}
@@ -910,26 +891,6 @@ import UnifiedAnalysisView from '../lib/UnifiedAnalysisView.svelte';
 		}
 		100% {
 			transform: rotate(360deg);
-		}
-	}
-	
-	.file-input {
-		border: 1px solid #e2e8f0;
-		padding: 0.5rem;
-		border-radius: 0.25rem;
-		background-color: white;
-	}
-	
-	.code-output {
-		font-family: monospace;
-		font-size: 0.875rem;
-		line-height: 1.5;
-	}
-	
-	/* Responsive adjustments */
-	@media (max-width: 1023px) {
-		.main-content > div {
-			margin-bottom: 2rem;
 		}
 	}
 </style>

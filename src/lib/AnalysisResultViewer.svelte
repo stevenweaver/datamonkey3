@@ -5,7 +5,10 @@
 	import ExportPanel from './ExportPanel.svelte';
 	import EnhancedExportPanel from './EnhancedExportPanel.svelte';
 	import FelVisualization from './FelVisualization.svelte';
-	import { HYPHY_EYE_URL } from './config/env';
+	import { FINAL_HYPHY_EYE_URL } from './config/env';
+
+	// Tab management
+	let activeTab = 'results';
 
 	export let analysisId = null;
 
@@ -181,19 +184,124 @@
 								<p><strong>Analysis File:</strong> {resultData.input.file}</p>
 							{/if}
 
-							<!-- FEL-specific visualization for FEL method -->
-							{#if analysis.method === 'FEL'}
-								<div class="mb-6 mt-6 rounded-lg bg-white p-4 shadow-sm">
-									<h3 class="mb-4 text-lg font-semibold">FEL Analysis Visualization</h3>
-									<FelVisualization {resultData} />
+							<!-- Tabs navigation -->
+							<div class="mb-4 border-b border-gray-200">
+								<ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+									<li class="mr-2">
+										<button
+											class="inline-block p-4 rounded-t-lg border-b-2 {activeTab === 'results' ? 'border-blue-500 text-blue-600' : 'border-transparent hover:text-gray-600 hover:border-gray-300'}"
+											on:click={() => activeTab = 'results'}
+										>
+											Results
+										</button>
+									</li>
+									<li class="mr-2">
+										<button
+											class="inline-block p-4 rounded-t-lg border-b-2 {activeTab === 'visualization' ? 'border-blue-500 text-blue-600' : 'border-transparent hover:text-gray-600 hover:border-gray-300'}"
+											on:click={() => activeTab = 'visualization'}
+										>
+											Visualization
+										</button>
+									</li>
+								</ul>
+							</div>
+
+							<!-- Tab Content -->
+							{#if activeTab === 'results'}
+								<!-- FEL-specific visualization for FEL method -->
+								{#if analysis.method === 'FEL'}
+									<div class="mb-6 mt-6 rounded-lg bg-white p-4 shadow-sm">
+										<h3 class="mb-4 text-lg font-semibold">FEL Analysis Visualization</h3>
+										<FelVisualization {resultData} />
+									</div>
+								{/if}
+
+								{#if resultData.fits && resultData.fits.length > 0}
+									<h3 class="mb-2 text-lg font-bold">Model Fits</h3>
+									<div class="overflow-x-auto">
+										<table class="w-full table-auto">
+											<thead class="bg-gray-200">
+												<tr>
+													<th class="p-2 text-left">Model</th>
+													<th class="p-2 text-left">Log Likelihood</th>
+													<th class="p-2 text-left">Parameters</th>
+													<th class="p-2 text-left">AIC</th>
+												</tr>
+											</thead>
+											<tbody>
+												{#each resultData.fits as fit}
+													<tr class="border-b">
+														<td class="p-2">{fit.model || 'Unknown'}</td>
+														<td class="p-2"
+															>{fit.log_likelihood ? fit.log_likelihood.toFixed(2) : 'N/A'}</td
+														>
+														<td class="p-2">{fit.parameters || 'N/A'}</td>
+														<td class="p-2">{fit.AIC ? fit.AIC.toFixed(2) : 'N/A'}</td>
+													</tr>
+												{/each}
+											</tbody>
+										</table>
+									</div>
+								{/if}
+
+								{#if resultData.tested && resultData.tested.sites && resultData.tested.sites.length > 0}
+									<h3 class="my-2 text-lg font-bold">Site Results</h3>
+									<div class="max-h-96 overflow-auto">
+										<table class="w-full table-auto">
+											<thead class="sticky top-0 bg-gray-200">
+												<tr>
+													<th class="p-2 text-left">Site</th>
+													<th class="p-2 text-left">p-value</th>
+													<th class="p-2 text-left">alpha</th>
+													<th class="p-2 text-left">beta</th>
+													<th class="p-2 text-left">Selection</th>
+												</tr>
+											</thead>
+											<tbody>
+												{#each resultData.tested.sites as site}
+													<tr class="border-b" class:bg-yellow-100={site.p <= 0.05}>
+														<td class="p-2">{site.site_index || site.site || 'N/A'}</td>
+														<td class="p-2">{site.p ? site.p.toExponential(2) : 'N/A'}</td>
+														<td class="p-2">{site.alpha ? site.alpha.toFixed(2) : 'N/A'}</td>
+														<td class="p-2">{site.beta ? site.beta.toFixed(2) : 'N/A'}</td>
+														<td class="p-2">
+															{#if site.p <= 0.05}
+																{#if site.beta > site.alpha}
+																	<span class="font-bold text-red-500">Positive</span>
+																{:else}
+																	<span class="font-bold text-blue-500">Negative</span>
+																{/if}
+															{:else}
+																<span class="text-gray-500">Neutral</span>
+															{/if}
+														</td>
+													</tr>
+												{/each}
+											</tbody>
+										</table>
+									</div>
+								{/if}
+
+								{#if !resultData.tested && !resultData.fits}
+									<pre class="bg-gray-100 p-2 text-sm">{JSON.stringify(resultData, null, 2)}</pre>
+								{/if}
+							{:else if activeTab === 'visualization'}
+								<!-- HyPhy-eye iframe visualization -->
+								<div class="visualization-container h-[600px] w-full">
+									<iframe 
+										src="{FINAL_HYPHY_EYE_URL}/viz/{analysis.method.toLowerCase().replace('-', '')}"
+										class="h-full w-full border-0"
+										title="{analysis.method} visualization in HyPhy-eye"
+										allowfullscreen
+									></iframe>
 								</div>
 							{/if}
 
-							<!-- Link to hyphy-eye for visualization -->
+							<!-- Link to external hyphy-eye for reference -->
 							<div class="mb-4 mt-4 rounded-lg bg-gray-100 p-4 text-center shadow-sm">
-								<p class="mb-2">View detailed results in hyphy-eye:</p>
+								<p class="mb-2">Open results in a new tab:</p>
 								<a
-									href="{HYPHY_EYE_URL}/viz/{analysis.method.toLowerCase().replace('-', '')}"
+									href="{FINAL_HYPHY_EYE_URL}/viz/{analysis.method.toLowerCase().replace('-', '')}"
 									target="_blank"
 									rel="noopener noreferrer"
 									class="inline-block rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
@@ -218,76 +326,6 @@
 									Note: You will need to upload your result JSON to hyphy-eye or share the URL.
 								</p>
 							</div>
-
-							{#if resultData.fits && resultData.fits.length > 0}
-								<h3 class="mb-2 text-lg font-bold">Model Fits</h3>
-								<div class="overflow-x-auto">
-									<table class="w-full table-auto">
-										<thead class="bg-gray-200">
-											<tr>
-												<th class="p-2 text-left">Model</th>
-												<th class="p-2 text-left">Log Likelihood</th>
-												<th class="p-2 text-left">Parameters</th>
-												<th class="p-2 text-left">AIC</th>
-											</tr>
-										</thead>
-										<tbody>
-											{#each resultData.fits as fit}
-												<tr class="border-b">
-													<td class="p-2">{fit.model || 'Unknown'}</td>
-													<td class="p-2"
-														>{fit.log_likelihood ? fit.log_likelihood.toFixed(2) : 'N/A'}</td
-													>
-													<td class="p-2">{fit.parameters || 'N/A'}</td>
-													<td class="p-2">{fit.AIC ? fit.AIC.toFixed(2) : 'N/A'}</td>
-												</tr>
-											{/each}
-										</tbody>
-									</table>
-								</div>
-							{/if}
-
-							{#if resultData.tested && resultData.tested.sites && resultData.tested.sites.length > 0}
-								<h3 class="my-2 text-lg font-bold">Site Results</h3>
-								<div class="max-h-96 overflow-auto">
-									<table class="w-full table-auto">
-										<thead class="sticky top-0 bg-gray-200">
-											<tr>
-												<th class="p-2 text-left">Site</th>
-												<th class="p-2 text-left">p-value</th>
-												<th class="p-2 text-left">alpha</th>
-												<th class="p-2 text-left">beta</th>
-												<th class="p-2 text-left">Selection</th>
-											</tr>
-										</thead>
-										<tbody>
-											{#each resultData.tested.sites as site}
-												<tr class="border-b" class:bg-yellow-100={site.p <= 0.05}>
-													<td class="p-2">{site.site_index || site.site || 'N/A'}</td>
-													<td class="p-2">{site.p ? site.p.toExponential(2) : 'N/A'}</td>
-													<td class="p-2">{site.alpha ? site.alpha.toFixed(2) : 'N/A'}</td>
-													<td class="p-2">{site.beta ? site.beta.toFixed(2) : 'N/A'}</td>
-													<td class="p-2">
-														{#if site.p <= 0.05}
-															{#if site.beta > site.alpha}
-																<span class="font-bold text-red-500">Positive</span>
-															{:else}
-																<span class="font-bold text-blue-500">Negative</span>
-															{/if}
-														{:else}
-															<span class="text-gray-500">Neutral</span>
-														{/if}
-													</td>
-												</tr>
-											{/each}
-										</tbody>
-									</table>
-								</div>
-							{/if}
-
-							{#if !resultData.tested && !resultData.fits}
-								<pre class="bg-gray-100 p-2 text-sm">{JSON.stringify(resultData, null, 2)}</pre>
-							{/if}
 						</div>
 					{:else}
 						<!-- Generic JSON display for other methods -->
