@@ -42,19 +42,12 @@ You can preview the production build with `npm run preview`.
 
 This application uses environment variables for configuration:
 
-- `DATABASE_URL`: Path to the SQLite database file (defaults to in-memory database if not provided)
 - `VITE_PAGES_URL`: URL for the visualization iframes (defaults to `//localhost:3000/pages` in development)
 
 ### Deployment Notes
 
-When deploying to Cloudflare, the application is configured to use an in-memory SQLite database. 
-This means data will not persist between deployments or across worker instances.
-
-For production scenarios requiring persistent data, consider using:
-
-- Cloudflare D1 database
-- Cloudflare KV for simple key-value storage
-- External database service with appropriate connection handling
+The application uses browser-based IndexedDB storage for persisting files and analysis results.
+This means data is stored locally in the user's browser.
 
 ## Adding New Visualization Methods
 
