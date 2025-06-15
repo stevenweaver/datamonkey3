@@ -14,6 +14,7 @@
 	import DataTab from '../lib/DataTab.svelte';
 	import AnalyzeTab from '../lib/AnalyzeTab.svelte';
 	import ResultsTab from '../lib/ResultsTab.svelte';
+import PremiumTabNavigation from '../lib/PremiumTabNavigation.svelte';
 
 	// Import HyPhy dependencies
 	import dataReader from '../data/datareader.bf?raw';
@@ -729,10 +730,11 @@
 		</div>
 	{:else}
 		<div class="pb-8">
-			<h1 class="mb-4 text-2xl font-bold">FASTA Validation and Analysis</h1>
+			<h1 class="text-premium-headline font-bold tracking-premium-tight text-text-rich mb-premium-xl">Sequence Analysis Platform</h1>
 			
 			<!-- Main Tabbed Interface -->
-			<div class="mb-6 border-b border-gray-300">
+			<div class="mb-premium-xl">
+				<div class="bg-brand-ghost rounded-premium p-premium-xs">
 				<div class="flex">
 					<button
 						class="relative border-b-2 px-6 py-3 font-medium transition-colors"
