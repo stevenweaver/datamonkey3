@@ -15,6 +15,7 @@
 	import AnalyzeTab from '../lib/AnalyzeTab.svelte';
 	import ResultsTab from '../lib/ResultsTab.svelte';
 	import PremiumTabNavigation from '../lib/PremiumTabNavigation.svelte';
+	import StepNavigation from '../lib/StepNavigation.svelte';
 
 	// Import HyPhy dependencies
 	import dataReader from '../data/datareader.bf?raw';
@@ -773,55 +774,8 @@
 				/>
 			{/if}
 			
-			<!-- Visual Flow Indicators -->
-			<div class="mt-premium-xl flex items-center justify-center">
-				<div class="flex items-center">
-					<div 
-						class="flex h-10 w-10 items-center justify-center rounded-full font-bold"
-						class:bg-brand-royal={activeTab === 'data'}
-						class:text-white={activeTab === 'data'}
-						class:bg-border-platinum={activeTab !== 'data'}
-						class:text-text-slate={activeTab !== 'data'}
-					>
-						1
-					</div>
-					<div class="w-16 h-1 bg-border-platinum">
-						<div 
-							class="h-full bg-brand-gradient transition-all duration-premium" 
-							style="width: {activeTab === 'data' ? '0%' : activeTab === 'analyze' ? '100%' : '100%'}"
-						></div>
-					</div>
-					<div 
-						class="flex h-10 w-10 items-center justify-center rounded-full font-bold"
-						class:bg-brand-royal={activeTab === 'analyze'}
-						class:text-white={activeTab === 'analyze'}
-						class:bg-border-platinum={activeTab !== 'analyze'}
-						class:text-text-slate={activeTab !== 'analyze'}
-					>
-						2
-					</div>
-					<div class="w-16 h-1 bg-border-platinum">
-						<div 
-							class="h-full bg-brand-gradient transition-all duration-premium" 
-							style="width: {activeTab === 'results' ? '100%' : '0%'}"
-						></div>
-					</div>
-					<div 
-						class="flex h-10 w-10 items-center justify-center rounded-full font-bold"
-						class:bg-brand-royal={activeTab === 'results'}
-						class:text-white={activeTab === 'results'}
-						class:bg-border-platinum={activeTab !== 'results'}
-						class:text-text-slate={activeTab !== 'results'}
-					>
-						3
-					</div>
-				</div>
-			</div>
-			<div class="mt-premium-sm flex items-center justify-center text-premium-meta">
-				<span class="mx-5 text-center {activeTab === 'data' ? 'font-semibold text-brand-royal' : 'text-text-slate'}">Prepare Data</span>
-				<span class="mx-9 text-center {activeTab === 'analyze' ? 'font-semibold text-brand-royal' : 'text-text-slate'}">Run Analysis</span>
-				<span class="mx-5 text-center {activeTab === 'results' ? 'font-semibold text-brand-royal' : 'text-text-slate'}">View Results</span>
-			</div>
+			<!-- Interactive Step Navigation -->
+			<StepNavigation {activeTab} onChange={(tab) => activeTab = tab} />
 		</div>
 	{/if}
 </div>
