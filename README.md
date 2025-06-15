@@ -1,58 +1,81 @@
-# sv
+# Datamonkey 3
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+![License](https://img.shields.io/github/license/stevenweaver/datamonkey3)
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
 
-## Creating a project
+A modern, browser-based tool for sequence analysis and molecular evolution studies.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Purpose
+
+Datamonkey 3 is designed to provide researchers with an intuitive interface to validate, analyze, and visualize sequence data without requiring server-side computation. It brings powerful sequence analysis methods directly to your browser, with a workflow built around clarity and efficiency.
+
+## Core Principles
+
+- **Intuitive Workflow**: Progress logically from data preparation to analysis to results
+- **Progressive Disclosure**: View only what you need when you need it
+- **Browser-First**: No installation required, works across platforms
+- **Local Privacy**: Your data stays on your machine using browser storage
+
+## Features
+
+- **Sequence Validation**: Identify and repair issues in FASTA and NEXUS files
+- **Phylogenetic Analysis**: Run methods including FEL, SLAC, MEME, BUSTED, and more
+- **Interactive Visualization**: Explore results with embedded interactive visualizations
+- **Local Data Storage**: Secure, browser-based storage for files and analyses
+
+## Getting Started
+
+### For Users
+
+Visit the hosted version: [https://datamonkey3.hyphy.org](https://datamonkey3.hyphy.org)
+
+### For Developers
 
 ```bash
-# create a new project in the current directory
-npx sv create
+# Clone the repository
+git clone https://github.com/stevenweaver/datamonkey3.git
+cd datamonkey3
 
-# create a new project in my-app
-npx sv create my-app
-```
+# Install dependencies
+npm install
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
+# Start development server
 npm run dev
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
+# Build for production
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+## Workflow
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
-# alignment-validation
+1. **Data**: Upload and validate sequence files
+2. **Analyze**: Select and configure analysis methods
+3. **Results**: View, compare, and export findings
 
 ## Environment Configuration
 
-This application uses environment variables for configuration:
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `VITE_HYPHY_EYE_URL` | URL for visualization service | `//vision.hyphy.org` |
+| `VITE_PAGES_URL` | URL for embedded visualization pages | `//localhost:3000/pages` (dev) |
 
-- `VITE_PAGES_URL`: URL for the visualization iframes (defaults to `//localhost:3000/pages` in development)
+## Technical Architecture
 
-### Deployment Notes
+- **Frontend**: Svelte with TailwindCSS
+- **Analysis**: WebAssembly (HyPhy)
+- **Storage**: IndexedDB for browser-based persistence
+- **Visualization**: Embedded iframes with postMessage communication
 
-The application uses browser-based IndexedDB storage for persisting files and analysis results.
-This means data is stored locally in the user's browser.
+## Adding New Methods
 
-## Adding New Visualization Methods
+1. Update the method configuration in the codebase
+2. Ensure visualization components are available at the correct endpoint
+3. Update documentation for the new method
 
-To add new visualization methods:
+## License
 
-1. Update the method list in `src/lib/AnalysisResultViewer.svelte`
-2. Ensure the corresponding visualization is available at `${VITE_PAGES_URL}/${methodName}`
-3. The iframe communicates with the parent window via `postMessage`
+[MIT License](LICENSE)
+
+---
+
+Designed with clarity, utility, and restraint.
