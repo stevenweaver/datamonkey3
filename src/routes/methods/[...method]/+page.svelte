@@ -6,7 +6,7 @@
 	import { treeStore } from '../../../stores/tree';
 	import MethodForm from '../../../lib/FormGenerator.svelte';
 	import methodConfigToml from '../../../lib/config/methodOptions.toml?raw';
-	import { PAGES_URL } from '../../../lib/config/env';
+	import { PAGES_URL, HYPHY_EYE_URL } from '../../../lib/config/env';
 
 	import { page } from '$app/state';
 
@@ -23,7 +23,6 @@
 	let alignmentFile;
 	let fileMetrics;
 	let trees = {};
-	let iframeEl;
 
 	let isRunning = false;
 	let formData = {};
@@ -52,16 +51,8 @@
 		});
 	});
 
-	$: if (jsonData) {
-		sendDataToIframe();
-	}
-
-	// Function to send json data to the iframe
-	function sendDataToIframe() {
-		if (iframeEl) {
-			iframeEl.contentWindow.postMessage({ type: 'json', data: jsonData }, '*');
-		}
-	}
+	// We no longer need to send data to an iframe
+	// jsonData is now used for the download feature
 
 	let runMethod = async function (options) {
 		isRunning = true;
@@ -103,13 +94,7 @@
 		}
 	};
 
-	onMount(async () => {
-		window.addEventListener('message', (event) => {
-			if (event.data.type === 'ready') {
-				sendDataToIframe();
-			}
-		});
-	});
+	// No need for the message listener since we're no longer using iframes
 </script>
 
 <div class="container mx-auto p-12">
@@ -128,11 +113,53 @@
 	{/if}
 
 	<div class={resultsCompleted ? '' : 'invisible absolute'}>
-		<iframe
-			bind:this={iframeEl}
-			class="mt-4 h-screen w-full"
-			src="{PAGES_URL}/{currentMethod}"
-		></iframe>
+		<div class="mb-4 mt-4 rounded-lg bg-gray-100 p-6 text-center shadow-sm">
+			<h3 class="mb-4 text-xl font-semibold">View Results in hyphy-eye</h3>
+			<p class="mb-4">View detailed visualization of your results in hyphy-eye:</p>
+			<a
+				href="{HYPHY_EYE_URL}/viz/{currentMethod}"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="inline-block rounded-md bg-blue-500 px-5 py-3 text-white transition-colors hover:bg-blue-600"
+			>
+				Open {currentMethod.toUpperCase()} Results in hyphy-eye
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="ml-1 inline-block h-5 w-5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+					/>
+				</svg>
+			</a>
+			<p class="mt-4 text-sm text-gray-600">
+				Note: You may need to download the JSON result file below and upload it to hyphy-eye.
+			</p>
+
+			<div class="mt-6">
+				<h4 class="mb-2 font-medium">Result JSON:</h4>
+				<button
+					class="rounded-md bg-gray-200 px-4 py-2 transition-colors hover:bg-gray-300"
+					on:click={() => {
+						const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(jsonOut);
+						const downloadAnchorNode = document.createElement('a');
+						downloadAnchorNode.setAttribute('href', dataStr);
+						downloadAnchorNode.setAttribute('download', `${currentMethod}_result.json`);
+						document.body.appendChild(downloadAnchorNode);
+						downloadAnchorNode.click();
+						downloadAnchorNode.remove();
+					}}
+				>
+					Download JSON Result
+				</button>
+			</div>
+		</div>
 	</div>
 
 	{#if resultsCompleted}

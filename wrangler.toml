@@ -5,7 +5,6 @@ compatibility_date = "2024-02-24"
 # Set environment variables
 [vars]
 ENVIRONMENT = "production"
-DATABASE_URL = ":memory:"
 
 # Configure workers_dev to false if you're using a custom domain
 workers_dev = true
