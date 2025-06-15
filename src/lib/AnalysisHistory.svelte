@@ -9,6 +9,7 @@
   export let onSelectAnalysis = (id) => {}; // Callback when analysis is selected
   export let filterByCurrentFile = false; // Whether to show only analyses for the current file
   export let compact = false; // Whether to use compact view
+  export let redirectToResults = false; // Whether to redirect to Results tab when selecting an analysis
   
   // Define sortedAnalyses variable first
   let sortedAnalyses = [];
@@ -56,12 +57,30 @@
   function handleSelect(event) {
     const { analysisId } = event.detail;
     onSelectAnalysis(analysisId);
+    
+    // If redirectToResults is true, switch to Results tab
+    if (redirectToResults) {
+      // Use custom event to communicate with parent
+      dispatchEvent(new CustomEvent('switchTab', { 
+        detail: { tabName: 'results', analysisId },
+        bubbles: true 
+      }));
+    }
   }
   
   // Handle view action
   function handleView(event) {
     const { analysisId } = event.detail;
     onSelectAnalysis(analysisId);
+    
+    // If redirectToResults is true, switch to Results tab
+    if (redirectToResults) {
+      // Use custom event to communicate with parent
+      dispatchEvent(new CustomEvent('switchTab', { 
+        detail: { tabName: 'results', analysisId },
+        bubbles: true 
+      }));
+    }
   }
   
   // Handle export action
