@@ -80,9 +80,8 @@
       <div 
         class="flex h-10 w-10 items-center justify-center rounded-full font-bold transition-all duration-premium"
         class:bg-brand-royal={getStepState('data') === 'active'}
-        class:text-white={getStepState('data') === 'active'}
+        class:text-white={getStepState('data') === 'active' || getStepState('data') === 'completed'}
         class:bg-accent-copper={getStepState('data') === 'completed'}
-        class:text-white={getStepState('data') === 'completed'}
         class:bg-text-silver={getStepState('data') === 'available'}
         class:text-text-rich={getStepState('data') === 'available'}
         class:bg-border-platinum={getStepState('data') === 'disabled'}
@@ -124,9 +123,8 @@
       <div 
         class="flex h-10 w-10 items-center justify-center rounded-full font-bold transition-all duration-premium"
         class:bg-brand-royal={getStepState('analyze') === 'active'}
-        class:text-white={getStepState('analyze') === 'active'}
+        class:text-white={getStepState('analyze') === 'active' || getStepState('analyze') === 'completed'}
         class:bg-accent-copper={getStepState('analyze') === 'completed'}
-        class:text-white={getStepState('analyze') === 'completed'}
         class:bg-text-silver={getStepState('analyze') === 'available'}
         class:text-text-rich={getStepState('analyze') === 'available'}
         class:bg-border-platinum={getStepState('analyze') === 'disabled'}
@@ -170,9 +168,8 @@
       <div 
         class="flex h-10 w-10 items-center justify-center rounded-full font-bold transition-all duration-premium"
         class:bg-brand-royal={getStepState('results') === 'active'}
-        class:text-white={getStepState('results') === 'active'}
+        class:text-white={getStepState('results') === 'active' || getStepState('results') === 'completed'}
         class:bg-accent-copper={getStepState('results') === 'completed'}
-        class:text-white={getStepState('results') === 'completed'}
         class:bg-text-silver={getStepState('results') === 'available'}
         class:text-text-rich={getStepState('results') === 'available'}
         class:bg-border-platinum={getStepState('results') === 'disabled'}
