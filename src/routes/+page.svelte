@@ -14,7 +14,7 @@
 	import DataTab from '../lib/DataTab.svelte';
 	import AnalyzeTab from '../lib/AnalyzeTab.svelte';
 	import ResultsTab from '../lib/ResultsTab.svelte';
-import PremiumTabNavigation from '../lib/PremiumTabNavigation.svelte';
+	import PremiumTabNavigation from '../lib/PremiumTabNavigation.svelte';
 
 	// Import HyPhy dependencies
 	import dataReader from '../data/datareader.bf?raw';
@@ -722,76 +722,22 @@ import PremiumTabNavigation from '../lib/PremiumTabNavigation.svelte';
 
 <svelte:window on:switchTab={handleSwitchTab} />
 
-<div class="container mx-auto p-8">
+<div class="container mx-auto p-premium-xl bg-brand-ghost min-h-screen">
 	{#if loading}
 		<div class="flex h-screen flex-col items-center justify-center">
-			<div class="loader mb-4"></div>
-			<p class="text-xl">Loading HyPhy...</p>
+			<div class="loader mb-premium-md"></div>
+			<p class="text-premium-header font-semibold text-brand-royal">Loading HyPhy...</p>
 		</div>
 	{:else}
-		<div class="pb-8">
+		<div class="pb-premium-xl">
 			<h1 class="text-premium-headline font-bold tracking-premium-tight text-text-rich mb-premium-xl">Sequence Analysis Platform</h1>
 			
 			<!-- Main Tabbed Interface -->
-			<div class="mb-premium-xl">
-				<div class="bg-brand-ghost rounded-premium p-premium-xs">
-				<div class="flex">
-					<button
-						class="relative border-b-2 px-6 py-3 font-medium transition-colors"
-						class:border-blue-500={activeTab === 'data'}
-						class:text-blue-600={activeTab === 'data'}
-						class:border-transparent={activeTab !== 'data'}
-						class:text-gray-500={activeTab !== 'data'}
-						on:click={() => activeTab = 'data'}
-					>
-						<span class="flex items-center">
-							<svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-								<path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-								<path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
-							</svg>
-							Data
-						</span>
-						<span class="absolute bottom-0 right-0 left-0 h-0.5 bg-blue-500" class:hidden={activeTab !== 'data'}></span>
-					</button>
-					<button
-						class="relative border-b-2 px-6 py-3 font-medium transition-colors"
-						class:border-blue-500={activeTab === 'analyze'}
-						class:text-blue-600={activeTab === 'analyze'}
-						class:border-transparent={activeTab !== 'analyze'}
-						class:text-gray-500={activeTab !== 'analyze'}
-						on:click={() => activeTab = 'analyze'}
-					>
-						<span class="flex items-center">
-							<svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-								<path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm1 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V7zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1v-2z" clip-rule="evenodd" />
-							</svg>
-							Analyze
-						</span>
-						{#if $activeAnalysisProgress.id && $activeAnalysisProgress.status !== 'completed'}
-							<span class="ml-2 inline-flex animate-pulse items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-								Running
-							</span>
-						{/if}
-						<span class="absolute bottom-0 right-0 left-0 h-0.5 bg-blue-500" class:hidden={activeTab !== 'analyze'}></span>
-					</button>
-					<button
-						class="relative border-b-2 px-6 py-3 font-medium transition-colors"
-						class:border-blue-500={activeTab === 'results'}
-						class:text-blue-600={activeTab === 'results'}
-						class:border-transparent={activeTab !== 'results'}
-						class:text-gray-500={activeTab !== 'results'}
-						on:click={() => activeTab = 'results'}
-					>
-						<span class="flex items-center">
-							<svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-								<path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0V8z" clip-rule="evenodd" />
-							</svg>
-							Results
-						</span>
-						<span class="absolute bottom-0 right-0 left-0 h-0.5 bg-blue-500" class:hidden={activeTab !== 'results'}></span>
-					</button>
-				</div>
-			</div>
+			<PremiumTabNavigation 
+				{activeTab} 
+				showRunningIndicator={$activeAnalysisProgress.id && $activeAnalysisProgress.status !== 'completed'}
+				onChange={(tab) => activeTab = tab}
+			/>
 			
 			<!-- Tab Content with Progressive Enhancement -->
 			{#if activeTab === 'data'}
@@ -828,50 +774,53 @@ import PremiumTabNavigation from '../lib/PremiumTabNavigation.svelte';
 			{/if}
 			
 			<!-- Visual Flow Indicators -->
-			<div class="mt-8 flex items-center justify-center">
+			<div class="mt-premium-xl flex items-center justify-center">
 				<div class="flex items-center">
 					<div 
 						class="flex h-10 w-10 items-center justify-center rounded-full font-bold"
-						class:bg-blue-500={activeTab === 'data'}
+						class:bg-brand-royal={activeTab === 'data'}
 						class:text-white={activeTab === 'data'}
-						class:bg-gray-200={activeTab !== 'data'}
+						class:bg-border-platinum={activeTab !== 'data'}
+						class:text-text-slate={activeTab !== 'data'}
 					>
 						1
 					</div>
-					<div class="w-16 h-1 bg-gray-200">
+					<div class="w-16 h-1 bg-border-platinum">
 						<div 
-							class="h-full bg-blue-500 transition-all duration-300" 
+							class="h-full bg-brand-gradient transition-all duration-premium" 
 							style="width: {activeTab === 'data' ? '0%' : activeTab === 'analyze' ? '100%' : '100%'}"
 						></div>
 					</div>
 					<div 
 						class="flex h-10 w-10 items-center justify-center rounded-full font-bold"
-						class:bg-blue-500={activeTab === 'analyze'}
+						class:bg-brand-royal={activeTab === 'analyze'}
 						class:text-white={activeTab === 'analyze'}
-						class:bg-gray-200={activeTab !== 'analyze'}
+						class:bg-border-platinum={activeTab !== 'analyze'}
+						class:text-text-slate={activeTab !== 'analyze'}
 					>
 						2
 					</div>
-					<div class="w-16 h-1 bg-gray-200">
+					<div class="w-16 h-1 bg-border-platinum">
 						<div 
-							class="h-full bg-blue-500 transition-all duration-300" 
+							class="h-full bg-brand-gradient transition-all duration-premium" 
 							style="width: {activeTab === 'results' ? '100%' : '0%'}"
 						></div>
 					</div>
 					<div 
 						class="flex h-10 w-10 items-center justify-center rounded-full font-bold"
-						class:bg-blue-500={activeTab === 'results'}
+						class:bg-brand-royal={activeTab === 'results'}
 						class:text-white={activeTab === 'results'}
-						class:bg-gray-200={activeTab !== 'results'}
+						class:bg-border-platinum={activeTab !== 'results'}
+						class:text-text-slate={activeTab !== 'results'}
 					>
 						3
 					</div>
 				</div>
 			</div>
-			<div class="mt-2 flex items-center justify-center text-sm text-gray-500">
-				<span class="mx-5 text-center {activeTab === 'data' ? 'font-semibold text-blue-600' : ''}">Prepare Data</span>
-				<span class="mx-9 text-center {activeTab === 'analyze' ? 'font-semibold text-blue-600' : ''}">Run Analysis</span>
-				<span class="mx-5 text-center {activeTab === 'results' ? 'font-semibold text-blue-600' : ''}">View Results</span>
+			<div class="mt-premium-sm flex items-center justify-center text-premium-meta">
+				<span class="mx-5 text-center {activeTab === 'data' ? 'font-semibold text-brand-royal' : 'text-text-slate'}">Prepare Data</span>
+				<span class="mx-9 text-center {activeTab === 'analyze' ? 'font-semibold text-brand-royal' : 'text-text-slate'}">Run Analysis</span>
+				<span class="mx-5 text-center {activeTab === 'results' ? 'font-semibold text-brand-royal' : 'text-text-slate'}">View Results</span>
 			</div>
 		</div>
 	{/if}
@@ -879,12 +828,12 @@ import PremiumTabNavigation from '../lib/PremiumTabNavigation.svelte';
 
 <style>
 	.loader {
-		border: 16px solid #f3f3f3;
-		border-top: 16px solid #3498db;
+		border: 16px solid var(--tw-border-platinum, #f1f5f9);
+		border-top: 16px solid var(--tw-brand-royal, #7c3aed);
 		border-radius: 50%;
 		width: 120px;
 		height: 120px;
-		animation: spin 2s linear infinite;
+		animation: spin 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 	}
 
 	@keyframes spin {

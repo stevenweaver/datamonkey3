@@ -227,11 +227,11 @@
 	// Function to get badge color based on tag
 	function getBadgeColor(tag) {
 		switch(tag) {
-			case "recommended": return "bg-green-100 text-green-800 border-green-200";
-			case "basic": return "bg-blue-100 text-blue-800 border-blue-200";
-			case "advanced": return "bg-purple-100 text-purple-800 border-purple-200";
-			case "specialized": return "bg-orange-100 text-orange-800 border-orange-200";
-			default: return "bg-gray-100 text-gray-800 border-gray-200";
+			case "recommended": return "bg-accent-copper text-white border-accent-copper";
+			case "basic": return "bg-brand-muted text-white border-brand-muted";
+			case "advanced": return "bg-brand-deep text-white border-brand-deep";
+			case "specialized": return "bg-accent-warm text-white border-accent-warm";
+			default: return "bg-text-silver text-white border-text-silver";
 		}
 	}
 	
@@ -248,20 +248,20 @@
 	}
 </script>
 
-<div class="method-selector bg-white p-6 rounded-lg shadow-md">
+<div class="method-selector bg-white p-premium-xl rounded-premium shadow-premium">
 	<!-- Header and Controls -->
-	<div class="mb-6 flex flex-col gap-4">
+	<div class="mb-premium-xl flex flex-col gap-premium-md">
 		<div class="flex items-center justify-between">
-			<h3 class="text-xl font-bold">Analysis Methods</h3>
+			<h3 class="text-premium-header font-semibold text-text-rich">Analysis Methods</h3>
 			
 			<!-- Method selection counter -->
 			{#if $selectedMethods.length > 0}
-				<div class="flex items-center gap-2">
-					<span class="text-sm font-medium text-indigo-700">
+				<div class="flex items-center gap-premium-sm">
+					<span class="text-premium-meta font-medium text-brand-royal">
 						{$selectedMethods.length} method{$selectedMethods.length > 1 ? 's' : ''} selected
 					</span>
 					<button 
-						class="text-sm text-gray-500 hover:text-gray-700"
+						class="text-premium-meta text-text-silver hover:text-brand-royal transition-all duration-premium"
 						on:click={clearSelection}
 					>
 						Clear
@@ -271,31 +271,31 @@
 		</div>
 		
 		<!-- Search and filtering -->
-		<div class="flex gap-4">
+		<div class="flex gap-premium-md">
 			<div class="relative flex-1">
 				<input 
 					type="text" 
 					placeholder="Search methods..." 
 					bind:value={searchQuery} 
-					class="w-full rounded-md border border-gray-300 pl-10 py-2 pr-3 text-sm"
+					class="w-full rounded-premium-sm border border-border-platinum pl-10 py-premium-sm px-premium-md text-premium-body"
 				/>
-				<svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+				<svg class="absolute left-3 top-2.5 h-5 w-5 text-text-silver" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
 				</svg>
 			</div>
 			
 			<!-- Category selector -->
-			<div class="flex gap-2">
+			<div class="flex gap-premium-sm">
 				{#each Object.keys(METHOD_CATEGORIES) as category}
 					<button 
-						class="text-sm px-3 py-1 rounded-full {selectedCategory === category ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+						class="text-premium-meta px-premium-md py-premium-xs rounded-premium-xl font-medium tracking-premium-wide transition-all duration-premium {selectedCategory === category ? 'bg-brand-royal text-white' : 'bg-brand-whisper text-text-slate hover:bg-brand-ghost hover:text-brand-royal'}"
 						on:click={() => { selectedCategory = category; showAllMethods = false; }}
 					>
 						{METHOD_CATEGORIES[category].name.split(' ')[0]}
 					</button>
 				{/each}
 				<button 
-					class="text-sm px-3 py-1 rounded-full {showAllMethods ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+					class="text-premium-meta px-premium-md py-premium-xs rounded-premium-xl font-medium tracking-premium-wide transition-all duration-premium {showAllMethods ? 'bg-brand-royal text-white' : 'bg-brand-whisper text-text-slate hover:bg-brand-ghost hover:text-brand-royal'}"
 					on:click={() => showAllMethods = true}
 				>
 					All
@@ -306,23 +306,23 @@
 	
 	<!-- Category description -->
 	{#if !showAllMethods && !searchQuery}
-		<div class="mb-4 rounded-md bg-gray-50 p-3 text-sm text-gray-600">
+		<div class="mb-premium-md rounded-premium bg-brand-whisper p-premium-md text-premium-body text-text-slate">
 			<p>{METHOD_CATEGORIES[selectedCategory].description}</p>
 		</div>
 	{/if}
 	
 	<!-- Method cards -->
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-premium-md">
 		{#each filteredMethods as [key, method]}
 			{@const methodInfo = getMethodInfo(key)}
 			{@const isSelected = $selectedMethods.includes(key)}
 			<div
-				class="relative flex flex-col rounded-lg border {isSelected ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-gray-200'} bg-white p-4 shadow-sm transition-all hover:shadow-md"
+				class="relative flex flex-col rounded-premium border {isSelected ? 'border-brand-royal ring-2 ring-brand-muted' : 'border-border-platinum'} bg-white p-premium-md shadow-premium transition-all duration-premium hover:shadow-premium-hover"
 				on:click={() => toggleMethodSelection(key)}
 			>
 				<!-- Selection indicator -->
 				{#if isSelected}
-					<div class="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-white">
+					<div class="absolute right-premium-sm top-premium-sm flex h-6 w-6 items-center justify-center rounded-full bg-brand-royal text-white">
 						<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
 							<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
 						</svg>
@@ -330,41 +330,41 @@
 				{/if}
 				
 				<!-- Method header -->
-				<div class="mb-2 flex items-start justify-between">
+				<div class="mb-premium-sm flex items-start justify-between">
 					<div>
-						<h4 class="font-bold text-gray-900">{methodInfo.name}</h4>
-						<p class="text-xs text-gray-500">{methodInfo.fullName}</p>
+						<h4 class="text-premium-title font-semibold text-text-rich">{methodInfo.name}</h4>
+						<p class="text-premium-caption text-text-silver">{methodInfo.fullName}</p>
 					</div>
 					{#if methodInfo.tag}
-						<span class="ml-2 rounded-full border px-2 py-0.5 text-xs font-medium {getBadgeColor(methodInfo.tag)}">
+						<span class="ml-premium-sm rounded-premium-xl border px-premium-sm py-0.5 text-premium-caption font-medium tracking-premium-badge {getBadgeColor(methodInfo.tag)}">
 							{methodInfo.tag}
 						</span>
 					{/if}
 				</div>
 				
 				<!-- Method info -->
-				<div class="mb-4 flex-1">
-					<p class="text-sm text-gray-700">{methodInfo.shortDescription || method.description.substring(0, 100)}</p>
+				<div class="mb-premium-md flex-1">
+					<p class="text-premium-body text-text-slate">{methodInfo.shortDescription || method.description.substring(0, 100)}</p>
 					
-					<div class="mt-2 flex flex-wrap gap-2">
-						<span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600">
+					<div class="mt-premium-sm flex flex-wrap gap-premium-sm">
+						<span class="inline-flex items-center rounded-premium-sm bg-brand-whisper px-premium-sm py-premium-xs text-premium-caption text-text-slate">
 							{getSpeedIndicator(methodInfo.speed)}
 						</span>
 					</div>
 				</div>
 				
 				<!-- Action buttons -->
-				<div class="mt-auto flex gap-2">
+				<div class="mt-auto flex gap-premium-sm">
 					{#if method.options && method.options.length > 0 && onConfigureMethod}
 						<button 
-							class="flex-1 rounded bg-white border border-indigo-600 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
+							class="flex-1 rounded-premium-sm bg-white border border-brand-royal px-premium-md py-premium-sm text-premium-body font-medium text-brand-royal hover:bg-brand-whisper transition-all duration-premium"
 							on:click|stopPropagation={() => configureMethodHandler(key)}
 						>
 							Configure
 						</button>
 					{/if}
 					<button 
-						class="flex-1 rounded bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+						class="flex-1 rounded-premium-sm bg-brand-gradient px-premium-md py-premium-sm text-premium-body font-medium text-white hover:bg-brand-deep transition-all duration-premium shadow-sm hover:shadow transform hover:scale-[0.98] active:scale-[0.96]"
 						on:click|stopPropagation={() => runMethodHandler(key)}
 					>
 						Run
@@ -376,23 +376,23 @@
 	
 	<!-- Action panel for selected methods -->
 	{#if $selectedMethods.length > 0}
-		<div class="mt-6 rounded-lg bg-gray-50 p-4 shadow-sm">
+		<div class="mt-premium-xl rounded-premium bg-brand-whisper p-premium-md shadow-premium">
 			<div class="flex items-center justify-between">
 				<div>
-					<h4 class="font-medium">Selected Methods ({$selectedMethods.length})</h4>
-					<p class="text-sm text-gray-500">
+					<h4 class="text-premium-body font-semibold text-text-rich">Selected Methods ({$selectedMethods.length})</h4>
+					<p class="text-premium-meta text-text-slate">
 						{$selectedMethods.map(m => METHOD_INFO[m]?.name || m.toUpperCase()).join(', ')}
 					</p>
 				</div>
-				<div class="flex gap-2">
+				<div class="flex gap-premium-sm">
 					<button 
-						class="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+						class="rounded-premium-sm border border-border-platinum bg-white px-premium-md py-premium-sm text-premium-body font-medium text-text-slate hover:bg-brand-whisper transition-all duration-premium"
 						on:click={clearSelection}
 					>
 						Clear
 					</button>
 					<button 
-						class="rounded bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+						class="rounded-premium-sm bg-brand-gradient px-premium-md py-premium-sm text-premium-body font-medium text-white hover:bg-brand-deep transition-all duration-premium shadow-sm hover:shadow transform hover:scale-[0.98] active:scale-[0.96]"
 						on:click={runSelectedMethods}
 						disabled={$selectedMethods.length === 0}
 					>
@@ -404,52 +404,52 @@
 	{/if}
 	
 	<!-- Help me choose wizard (simplified version) -->
-	<div class="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
-		<h4 class="font-medium">Need help choosing?</h4>
-		<p class="mb-3 text-sm text-gray-600">
+	<div class="mt-premium-xl rounded-premium border border-border-platinum bg-brand-whisper p-premium-md">
+		<h4 class="text-premium-body font-semibold text-text-rich">Need help choosing?</h4>
+		<p class="mb-premium-md text-premium-meta text-text-slate">
 			Not sure which method to use? Here are some common scenarios:
 		</p>
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-premium-md text-premium-meta">
 			<button 
-				class="rounded bg-white p-2 text-left shadow-sm hover:bg-gray-50"
+				class="rounded-premium bg-white p-premium-sm text-left shadow-premium hover:bg-brand-whisper transition-all duration-premium"
 				on:click={() => { 
 					selectedCategory = "RECOMMENDED"; 
 					showAllMethods = false; 
 					searchQuery = "";
 				}}
 			>
-				<span class="font-medium">Detection of selection at individual sites</span>
-				<span class="block text-gray-500">Use FEL or MEME</span>
+				<span class="font-medium text-text-rich">Detection of selection at individual sites</span>
+				<span class="block text-text-slate">Use FEL or MEME</span>
 			</button>
 			<button 
-				class="rounded bg-white p-2 text-left shadow-sm hover:bg-gray-50"
+				class="rounded-premium bg-white p-premium-sm text-left shadow-premium hover:bg-brand-whisper transition-all duration-premium"
 				on:click={() => { 
 					showAllMethods = false; 
 					searchQuery = "gard";
 				}}
 			>
-				<span class="font-medium">Detection of recombination</span>
-				<span class="block text-gray-500">Use GARD</span>
+				<span class="font-medium text-text-rich">Detection of recombination</span>
+				<span class="block text-text-slate">Use GARD</span>
 			</button>
 			<button 
-				class="rounded bg-white p-2 text-left shadow-sm hover:bg-gray-50"
+				class="rounded-premium bg-white p-premium-sm text-left shadow-premium hover:bg-brand-whisper transition-all duration-premium"
 				on:click={() => { 
 					showAllMethods = false; 
 					searchQuery = "absrel";
 				}}
 			>
-				<span class="font-medium">Detection of selection on specific branches</span>
-				<span class="block text-gray-500">Use aBSREL</span>
+				<span class="font-medium text-text-rich">Detection of selection on specific branches</span>
+				<span class="block text-text-slate">Use aBSREL</span>
 			</button>
 			<button 
-				class="rounded bg-white p-2 text-left shadow-sm hover:bg-gray-50"
+				class="rounded-premium bg-white p-premium-sm text-left shadow-premium hover:bg-brand-whisper transition-all duration-premium"
 				on:click={() => { 
 					showAllMethods = false; 
 					searchQuery = "busted";
 				}}
 			>
-				<span class="font-medium">Gene-wide tests for selection</span>
-				<span class="block text-gray-500">Use BUSTED</span>
+				<span class="font-medium text-text-rich">Gene-wide tests for selection</span>
+				<span class="block text-text-slate">Use BUSTED</span>
 			</button>
 		</div>
 	</div>
