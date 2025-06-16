@@ -63,17 +63,17 @@
     
     // Define file type categories
     const fileTypes = {
-      fasta: { icon: 'M10 10L4 14v-8l6 4zm2-4v8l6-4-6-4z', color: 'bg-green-100 text-green-600' },
-      fastq: { icon: 'M10 10L4 14v-8l6 4zm2-4v8l6-4-6-4z', color: 'bg-green-100 text-green-600' },
-      nex: { icon: 'M10 10L4 14v-8l6 4zm2-4v8l6-4-6-4z', color: 'bg-green-100 text-green-600' },
-      nexus: { icon: 'M10 10L4 14v-8l6 4zm2-4v8l6-4-6-4z', color: 'bg-green-100 text-green-600' },
-      phy: { icon: 'M10 10L4 14v-8l6 4zm2-4v8l6-4-6-4z', color: 'bg-green-100 text-green-600' },
-      phylip: { icon: 'M10 10L4 14v-8l6 4zm2-4v8l6-4-6-4z', color: 'bg-green-100 text-green-600' },
-      txt: { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: 'bg-gray-100 text-gray-600' },
-      csv: { icon: 'M4 4v16l6-4.5V16l6 4.5V4a1 1 0 00-1-1H5a1 1 0 00-1 1z', color: 'bg-yellow-100 text-yellow-600' },
-      tsv: { icon: 'M4 4v16l6-4.5V16l6 4.5V4a1 1 0 00-1-1H5a1 1 0 00-1 1z', color: 'bg-yellow-100 text-yellow-600' },
-      json: { icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z', color: 'bg-purple-100 text-purple-600' },
-      xml: { icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z', color: 'bg-purple-100 text-purple-600' }
+      fasta: { icon: 'M10 10L4 14v-8l6 4zm2-4v8l6-4-6-4z', color: 'bg-accent-cream text-accent-copper' },
+      fastq: { icon: 'M10 10L4 14v-8l6 4zm2-4v8l6-4-6-4z', color: 'bg-accent-cream text-accent-copper' },
+      nex: { icon: 'M10 10L4 14v-8l6 4zm2-4v8l6-4-6-4z', color: 'bg-accent-cream text-accent-copper' },
+      nexus: { icon: 'M10 10L4 14v-8l6 4zm2-4v8l6-4-6-4z', color: 'bg-accent-cream text-accent-copper' },
+      phy: { icon: 'M10 10L4 14v-8l6 4zm2-4v8l6-4-6-4z', color: 'bg-accent-cream text-accent-copper' },
+      phylip: { icon: 'M10 10L4 14v-8l6 4zm2-4v8l6-4-6-4z', color: 'bg-accent-cream text-accent-copper' },
+      txt: { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: 'bg-brand-whisper text-text-slate' },
+      csv: { icon: 'M4 4v16l6-4.5V16l6 4.5V4a1 1 0 00-1-1H5a1 1 0 00-1 1z', color: 'bg-accent-cream text-accent-warm' },
+      tsv: { icon: 'M4 4v16l6-4.5V16l6 4.5V4a1 1 0 00-1-1H5a1 1 0 00-1 1z', color: 'bg-accent-cream text-accent-warm' },
+      json: { icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z', color: 'bg-brand-whisper text-brand-deep' },
+      xml: { icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z', color: 'bg-brand-whisper text-brand-deep' }
     };
     
     // Check if the file extension is in our defined types
@@ -84,7 +84,7 @@
     // Default file icon
     return {
       icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-      color: 'bg-blue-100 text-blue-500'
+      color: 'bg-brand-whisper text-brand-royal'
     };
   }
   
@@ -175,18 +175,19 @@
 </script>
 
 <div 
-  class="file-card mb-2 overflow-hidden rounded-lg border bg-white shadow-sm transition-all duration-200 hover:shadow-md"
-  class:border-blue-500={isActive}
-  class:shadow-blue-100={isActive}
+  class="file-card mb-premium-sm overflow-hidden rounded-premium border bg-white shadow-premium transition-all duration-premium hover:shadow-premium-hover"
+  class:border-brand-royal={isActive}
+  class:ring-1={isActive}
+  class:ring-brand-muted={isActive}
 >
   <div 
-    class="cursor-pointer p-3"
+    class="cursor-pointer p-premium-md"
     on:click={selectFile}
   >
     <div class="flex items-center justify-between">
       <div class="flex items-center">
         <!-- File icon based on type -->
-        <div class="mr-3 flex h-10 w-10 items-center justify-center rounded-md {fileTypeInfo.color}">
+        <div class="mr-premium-md flex h-10 w-10 items-center justify-center rounded-premium-sm {fileTypeInfo.color}">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={fileTypeInfo.icon} />
           </svg>
@@ -195,10 +196,10 @@
         <!-- File info -->
         <div class="flex-grow overflow-hidden">
           <div class="flex items-center">
-            <h3 class="truncate font-medium">{file.filename || 'Unnamed File'}</h3>
-            <span class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{fileTypeLabel}</span>
+            <h3 class="truncate text-premium-body font-medium text-text-rich">{file.filename || 'Unnamed File'}</h3>
+            <span class="ml-premium-sm rounded-premium-xl bg-brand-whisper px-premium-sm py-0.5 text-premium-caption text-text-slate">{fileTypeLabel}</span>
           </div>
-          <div class="flex items-center text-xs text-gray-500">
+          <div class="flex items-center text-premium-caption text-text-silver">
             <span>{formatFileSize(file.size)}</span>
             <span class="mx-1">•</span>
             <span title={formatDate(file.createdAt)}>{timeAgo}</span>
@@ -207,10 +208,10 @@
       </div>
       
       <!-- Actions -->
-      <div class="ml-2 flex items-center">
+      <div class="ml-premium-sm flex items-center">
         <button
           on:click={toggleDetails}
-          class="ml-1 rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          class="ml-1 rounded-premium-sm p-1 text-text-slate hover:bg-brand-whisper hover:text-brand-royal transition-all duration-premium"
           title={showDetails ? 'Hide details' : 'Show details'}
         >
           {#if showDetails}
@@ -226,7 +227,7 @@
         
         <button
           on:click={deleteFile}
-          class="ml-1 rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-red-500"
+          class="ml-1 rounded-premium-sm p-1 text-text-slate hover:bg-brand-whisper hover:text-accent-warm transition-all duration-premium"
           title="Delete file"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -238,12 +239,12 @@
     
     <!-- Details panel (conditional) -->
     {#if showDetails}
-      <div class="details-panel mt-3 rounded-md bg-gray-50 p-3">
+      <div class="details-panel mt-premium-md rounded-premium bg-brand-whisper p-premium-md">
         <!-- File preview, if available -->
         {#if preview}
-          <div class="mb-3">
-            <h4 class="mb-1 text-sm font-medium">Preview</h4>
-            <div class="preview-content max-h-28 overflow-y-auto rounded border border-gray-200 bg-white p-2 text-xs">
+          <div class="mb-premium-md">
+            <h4 class="mb-premium-xs text-premium-meta font-medium text-text-rich">Preview</h4>
+            <div class="preview-content max-h-28 overflow-y-auto rounded-premium border border-border-platinum bg-white p-premium-sm text-premium-caption">
               <pre class="whitespace-pre-wrap">{preview}</pre>
             </div>
           </div>
@@ -251,33 +252,33 @@
         
         <!-- File metadata -->
         <div class="metadata">
-          <h4 class="mb-1 text-sm font-medium">File Details</h4>
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div class="text-gray-500">File Name:</div>
-            <div class="truncate font-medium">{file.filename}</div>
+          <h4 class="mb-premium-xs text-premium-meta font-medium text-text-rich">File Details</h4>
+          <div class="grid grid-cols-2 gap-premium-sm text-premium-caption">
+            <div class="text-text-slate">File Name:</div>
+            <div class="truncate font-medium text-text-rich">{file.filename}</div>
             
-            <div class="text-gray-500">File Type:</div>
-            <div class="font-medium">{fileTypeLabel}</div>
+            <div class="text-text-slate">File Type:</div>
+            <div class="font-medium text-text-rich">{fileTypeLabel}</div>
             
-            <div class="text-gray-500">Size:</div>
-            <div class="font-medium">{formatFileSize(file.size)}</div>
+            <div class="text-text-slate">Size:</div>
+            <div class="font-medium text-text-rich">{formatFileSize(file.size)}</div>
             
-            <div class="text-gray-500">MIME Type:</div>
-            <div class="font-medium">{file.contentType || 'Unknown'}</div>
+            <div class="text-text-slate">MIME Type:</div>
+            <div class="font-medium text-text-rich">{file.contentType || 'Unknown'}</div>
             
-            <div class="text-gray-500">Upload Date:</div>
-            <div class="font-medium">{formatDate(file.createdAt)}</div>
+            <div class="text-text-slate">Upload Date:</div>
+            <div class="font-medium text-text-rich">{formatDate(file.createdAt)}</div>
             
-            <div class="text-gray-500">ID:</div>
-            <div class="font-mono text-[10px] opacity-70">{file.id}</div>
+            <div class="text-text-slate">ID:</div>
+            <div class="font-mono text-[10px] text-text-silver opacity-70">{file.id}</div>
           </div>
         </div>
         
         <!-- File actions -->
-        <div class="mt-3 flex justify-end">
+        <div class="mt-premium-md flex justify-end">
           <button
             on:click={selectFile}
-            class="flex items-center rounded-md bg-blue-500 px-2 py-1 text-xs text-white hover:bg-blue-600"
+            class="flex items-center rounded-premium-sm bg-brand-gradient px-premium-sm py-premium-xs text-premium-caption font-medium text-white hover:bg-brand-deep transition-all duration-premium shadow-sm"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />

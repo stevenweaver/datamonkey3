@@ -23,12 +23,12 @@
 </script>
 
 <div class="data-tab">
-  <div class="mb-8">
-    <h2 class="mb-4 text-xl font-bold">Data Input</h2>
+  <div class="mb-premium-xl">
+    <h2 class="text-premium-header font-semibold text-text-rich mb-premium-md">Data Input</h2>
     
-    <div class="flex flex-wrap gap-4">
+    <div class="flex flex-wrap gap-premium-md">
       <div class="min-w-[300px] flex-grow">
-        <label for="file-upload" class="mb-1 block font-medium">Upload Sequence File:</label>
+        <label for="file-upload" class="mb-premium-xs block text-premium-body font-medium text-text-slate">Upload Sequence File:</label>
         <input id="file-upload" type="file" on:change={handleFileUpload} class="file-input w-full" />
       </div>
       
@@ -49,48 +49,48 @@
   </div>
   
   <!-- File Management Section -->
-  <div class="mb-8">
+  <div class="mb-premium-xl">
     <FileManager onSelectFile={handleFileUpload} />
   </div>
   
   <!-- File Information Section -->
   {#if hasFileMetrics}
-    <div class="mb-8">
-      <h2 class="mb-4 text-xl font-bold">Sequence Data Information</h2>
-      <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+    <div class="mb-premium-xl">
+      <h2 class="text-premium-header font-semibold text-text-rich mb-premium-md">Sequence Data Information</h2>
+      <div class="rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium">
         <DataReaderResults {fileMetricsJSON} />
       </div>
     </div>
     
     <!-- Sequence Warnings Section (if any) -->
     {#if warnings && warnings.length > 0}
-      <div class="mb-8">
-        <h2 class="mb-4 text-xl font-bold">Sequence Warnings</h2>
-        <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 shadow-sm">
+      <div class="mb-premium-xl">
+        <h2 class="text-premium-header font-semibold text-text-rich mb-premium-md">Sequence Warnings</h2>
+        <div class="rounded-premium border border-accent-cream bg-accent-pearl p-premium-lg shadow-premium">
           <SequenceWarnings warnings={warnings} />
         </div>
       </div>
     {/if}
     
     <!-- Export Section -->
-    <div class="mb-8">
-      <h2 class="mb-4 text-xl font-bold">Export Data</h2>
-      <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+    <div class="mb-premium-xl">
+      <h2 class="text-premium-header font-semibold text-text-rich mb-premium-md">Export Data</h2>
+      <div class="rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium">
         <FastaExport {fileMetricsJSON} />
       </div>
     </div>
   {:else}
-    <div class="my-12 rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-      <p class="text-lg text-gray-600">Upload or select a file to view sequence data information</p>
+    <div class="my-premium-xl rounded-premium border border-border-platinum bg-brand-whisper p-premium-xl text-center">
+      <p class="text-premium-body text-text-slate">Upload or select a file to view sequence data information</p>
     </div>
   {/if}
 </div>
 
 <style>
   .file-input {
-    border: 1px solid #e2e8f0;
-    padding: 0.5rem;
-    border-radius: 0.25rem;
+    border: 1px solid var(--tw-border-platinum, #f1f5f9);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
     background-color: white;
   }
 </style>

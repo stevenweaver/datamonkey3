@@ -35,17 +35,17 @@
 
 <div class="analyze-tab">
   <!-- Analysis Progress Bar (always visible at top) -->
-  <div class="mb-6">
+  <div class="mb-premium-xl">
     <EnhancedAnalysisProgress />
   </div>
   
   <!-- Quick Analysis Section (expanded by default) -->
-  <div class="mb-6 rounded-lg border border-gray-200 bg-white shadow-sm">
+  <div class="mb-premium-xl rounded-premium border border-border-platinum bg-white shadow-premium">
     <div 
-      class="flex cursor-pointer items-center justify-between rounded-t-lg bg-gray-50 p-4 transition-colors hover:bg-gray-100"
+      class="flex cursor-pointer items-center justify-between rounded-t-premium bg-brand-whisper p-premium-md transition-all duration-premium hover:bg-brand-ghost"
       on:click={() => toggleSection('quick')}
     >
-      <h2 class="text-xl font-bold">Quick Analysis</h2>
+      <h2 class="text-premium-header font-semibold text-text-rich">Quick Analysis</h2>
       <div class="flex items-center">
         {#if $currentFile}
           <button 
@@ -53,14 +53,14 @@
               e.stopPropagation();
               toggleStdOut();
             }} 
-            class="mr-4 rounded bg-gray-500 px-3 py-1 text-white hover:bg-gray-600 text-sm"
+            class="mr-premium-md rounded-premium-sm bg-brand-royal px-premium-md py-premium-xs text-white text-premium-meta font-medium hover:bg-brand-deep transition-all duration-premium"
           >
             {isStdOutVisible ? 'Hide Console' : 'Show Console'}
           </button>
         {/if}
         <svg 
           xmlns="http://www.w3.org/2000/svg" 
-          class="h-6 w-6 transition-transform" 
+          class="h-6 w-6 transition-transform duration-premium text-brand-royal" 
           class:rotate-180={expandedSection === 'quick'}
           fill="none" 
           viewBox="0 0 24 24" 
@@ -72,9 +72,9 @@
     </div>
     
     {#if expandedSection === 'quick'}
-      <div class="p-4">
+      <div class="p-premium-lg">
         {#if $currentFile}
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-premium-md">
             <!-- Method selection cards -->
             <div class="md:col-span-2">
               <MethodSelector 
@@ -87,18 +87,18 @@
             <!-- Console output (conditionally shown) -->
             {#if isStdOutVisible}
               <div class="md:col-span-2">
-                <h3 class="text-md font-semibold mb-2">Console Output</h3>
-                <pre class="code-output h-48 overflow-auto rounded bg-black p-3 text-white text-opacity-90 text-sm">{hyphyOut}</pre>
+                <h3 class="text-premium-title font-semibold mb-premium-sm text-text-rich">Console Output</h3>
+                <pre class="code-output h-48 overflow-auto rounded-premium bg-text-rich p-premium-md text-white text-opacity-90 text-premium-meta">{hyphyOut}</pre>
               </div>
             {/if}
           </div>
         {:else if $persistentFileStore && $persistentFileStore.files && $persistentFileStore.files.length > 0}
-          <div class="rounded border border-gray-200 bg-gray-50 p-6 text-center">
-            <p class="text-lg text-gray-600">Select a file from the list to run analyses</p>
+          <div class="rounded-premium border border-border-platinum bg-brand-whisper p-premium-xl text-center">
+            <p class="text-premium-body text-text-slate">Select a file from the list to run analyses</p>
           </div>
         {:else}
-          <div class="rounded border border-gray-200 bg-gray-50 p-6 text-center">
-            <p class="text-lg text-gray-600">Upload a file in the Data tab to run analyses</p>
+          <div class="rounded-premium border border-border-platinum bg-brand-whisper p-premium-xl text-center">
+            <p class="text-premium-body text-text-slate">Upload a file in the Data tab to run analyses</p>
           </div>
         {/if}
       </div>
@@ -106,15 +106,15 @@
   </div>
   
   <!-- Advanced Options Section (collapsible) -->
-  <div class="mb-6 rounded-lg border border-gray-200 bg-white shadow-sm">
+  <div class="mb-premium-xl rounded-premium border border-border-platinum bg-white shadow-premium">
     <div 
-      class="flex cursor-pointer items-center justify-between rounded-t-lg bg-gray-50 p-4 transition-colors hover:bg-gray-100"
+      class="flex cursor-pointer items-center justify-between rounded-t-premium bg-brand-whisper p-premium-md transition-all duration-premium hover:bg-brand-ghost"
       on:click={() => toggleSection('advanced')}
     >
-      <h2 class="text-xl font-bold">Advanced Options</h2>
+      <h2 class="text-premium-header font-semibold text-text-rich">Advanced Options</h2>
       <svg 
         xmlns="http://www.w3.org/2000/svg" 
-        class="h-6 w-6 transition-transform" 
+        class="h-6 w-6 transition-transform duration-premium text-brand-royal" 
         class:rotate-180={expandedSection === 'advanced'}
         fill="none" 
         viewBox="0 0 24 24" 
@@ -125,12 +125,12 @@
     </div>
     
     {#if expandedSection === 'advanced'}
-      <div class="p-4">
+      <div class="p-premium-lg">
         {#if $currentFile}
           <MethodOptionsTab {runMethod} {selectedMethod} />
         {:else}
-          <div class="rounded border border-gray-200 bg-gray-50 p-6 text-center">
-            <p class="text-lg text-gray-600">Upload or select a file to configure advanced options</p>
+          <div class="rounded-premium border border-border-platinum bg-brand-whisper p-premium-xl text-center">
+            <p class="text-premium-body text-text-slate">Upload or select a file to configure advanced options</p>
           </div>
         {/if}
       </div>
@@ -138,15 +138,15 @@
   </div>
   
   <!-- Analysis History Section (collapsible) -->
-  <div class="mb-6 rounded-lg border border-gray-200 bg-white shadow-sm">
+  <div class="mb-premium-xl rounded-premium border border-border-platinum bg-white shadow-premium">
     <div 
-      class="flex cursor-pointer items-center justify-between rounded-t-lg bg-gray-50 p-4 transition-colors hover:bg-gray-100"
+      class="flex cursor-pointer items-center justify-between rounded-t-premium bg-brand-whisper p-premium-md transition-all duration-premium hover:bg-brand-ghost"
       on:click={() => toggleSection('history')}
     >
-      <h2 class="text-xl font-bold">Recent Analyses</h2>
+      <h2 class="text-premium-header font-semibold text-text-rich">Recent Analyses</h2>
       <svg 
         xmlns="http://www.w3.org/2000/svg" 
-        class="h-6 w-6 transition-transform" 
+        class="h-6 w-6 transition-transform duration-premium text-brand-royal" 
         class:rotate-180={expandedSection === 'history'}
         fill="none" 
         viewBox="0 0 24 24" 
@@ -157,7 +157,7 @@
     </div>
     
     {#if expandedSection === 'history'}
-      <div class="p-4">
+      <div class="p-premium-lg">
         <AnalysisHistory 
           filterByCurrentFile={!showAllHistory && !!$currentFile} 
           onSelectAnalysis={selectAnalysis}

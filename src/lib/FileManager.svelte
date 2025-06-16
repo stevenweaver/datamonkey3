@@ -197,15 +197,15 @@
 </script>
 
 <div class="file-manager">
-  <div class="mb-4">
-    <div class="flex justify-between items-center mb-2">
-      <h2 class="text-xl font-bold">Saved Files</h2>
+  <div class="mb-premium-md">
+    <div class="flex justify-between items-center mb-premium-sm">
+      <h2 class="text-premium-header font-semibold text-text-rich">Saved Files</h2>
       
       <!-- Clear All Files button -->
       {#if $persistentFileStore.files.length > 0}
         <button
           on:click={clearAllFiles}
-          class="flex items-center rounded bg-red-500 px-2 py-1 text-sm text-white hover:bg-red-600"
+          class="flex items-center rounded-premium-sm bg-accent-warm px-premium-sm py-premium-xs text-premium-meta font-medium text-white hover:bg-accent-copper transition-all duration-premium"
           title="Delete all files and their analyses"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -216,48 +216,51 @@
       {/if}
     </div>
     
-    <div class="mb-2 flex flex-wrap items-center gap-2">
+    <div class="mb-premium-sm flex flex-wrap items-center gap-premium-sm">
       <!-- Search input -->
       <div class="relative flex-grow">
         <input 
           type="text"
           placeholder="Search files..."
           bind:value={filterText}
-          class="w-full rounded-md border border-gray-300 pl-8 pr-2 py-1 text-sm"
+          class="w-full rounded-premium-sm border border-border-platinum pl-8 pr-2 py-premium-xs text-premium-meta"
         />
-        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-text-silver" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
       
       <!-- Sort options -->
-      <div class="flex rounded-md border border-gray-300 text-sm">
+      <div class="flex rounded-premium-sm border border-border-platinum text-premium-meta overflow-hidden">
         <button 
-          class="px-2 py-1 transition-colors"
-          class:bg-blue-500={sortBy === 'name'}
+          class="px-premium-sm py-premium-xs transition-all duration-premium"
+          class:bg-brand-royal={sortBy === 'name'}
           class:text-white={sortBy === 'name'}
-          class:hover:bg-gray-100={sortBy !== 'name'}
-          class:hover:text-gray-900={sortBy !== 'name'}
+          class:text-text-slate={sortBy !== 'name'}
+          class:hover:bg-brand-whisper={sortBy !== 'name'}
+          class:hover:text-brand-royal={sortBy !== 'name'}
           on:click={() => changeSorting('name')}
         >
           Name {sortBy === 'name' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
         </button>
         <button 
-          class="border-l border-gray-300 px-2 py-1 transition-colors"
-          class:bg-blue-500={sortBy === 'size'}
+          class="border-l border-border-platinum px-premium-sm py-premium-xs transition-all duration-premium"
+          class:bg-brand-royal={sortBy === 'size'}
           class:text-white={sortBy === 'size'}
-          class:hover:bg-gray-100={sortBy !== 'size'}
-          class:hover:text-gray-900={sortBy !== 'size'}
+          class:text-text-slate={sortBy !== 'size'}
+          class:hover:bg-brand-whisper={sortBy !== 'size'}
+          class:hover:text-brand-royal={sortBy !== 'size'}
           on:click={() => changeSorting('size')}
         >
           Size {sortBy === 'size' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
         </button>
         <button 
-          class="border-l border-gray-300 px-2 py-1 transition-colors"
-          class:bg-blue-500={sortBy === 'date'}
+          class="border-l border-border-platinum px-premium-sm py-premium-xs transition-all duration-premium"
+          class:bg-brand-royal={sortBy === 'date'}
           class:text-white={sortBy === 'date'}
-          class:hover:bg-gray-100={sortBy !== 'date'}
-          class:hover:text-gray-900={sortBy !== 'date'}
+          class:text-text-slate={sortBy !== 'date'}
+          class:hover:bg-brand-whisper={sortBy !== 'date'}
+          class:hover:text-brand-royal={sortBy !== 'date'}
           on:click={() => changeSorting('date')}
         >
           Date {sortBy === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
@@ -267,17 +270,17 @@
   </div>
   
   <!-- File list -->
-  <div class="files-container max-h-96 overflow-y-auto">
+  <div class="files-container max-h-96 overflow-y-auto rounded-premium border border-border-platinum">
     {#if isLoading}
-      <div class="flex items-center justify-center p-4 text-gray-500">
-        <svg class="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <div class="flex items-center justify-center p-premium-md text-text-slate">
+        <svg class="mr-premium-sm h-5 w-5 animate-pulse-premium text-brand-royal" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        Loading files...
+        <span class="text-premium-body">Loading files...</span>
       </div>
     {:else if filteredFiles.length === 0}
-      <p class="p-4 text-center text-gray-500">
+      <p class="p-premium-md text-center text-premium-body text-text-slate">
         {filterText ? 'No matching files found.' : 'No files saved yet. Upload a file to get started.'}
       </p>
     {:else}
