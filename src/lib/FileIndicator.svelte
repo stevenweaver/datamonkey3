@@ -29,7 +29,7 @@
 </script>
 
 {#if $currentFile}
-  <div class="file-indicator mb-premium-lg rounded-premium border border-accent-cream bg-accent-pearl p-premium-md">
+  <div class="file-indicator mb-premium-lg rounded-premium border-2 border-accent-warm bg-accent-pearl p-premium-md shadow-premium">
     <div class="flex flex-wrap items-center justify-between">
       <div class="flex items-center">
         <div class="mr-premium-md flex h-10 w-10 items-center justify-center rounded-premium bg-accent-copper text-white">
@@ -38,8 +38,9 @@
           </svg>
         </div>
         <div>
-          <div class="text-premium-title font-semibold text-text-rich">
-            Currently Analyzing: {$currentFile.name}
+          <div>
+            <span class="text-premium-meta text-text-slate">Currently Analyzing:</span> 
+            <span class="text-premium-header font-bold text-brand-royal ml-premium-xs">{$currentFile.name}</span>
           </div>
           <div class="text-premium-meta text-text-slate flex flex-wrap items-center gap-premium-sm">
             {#if $fileMetricsStore?.FILE_INFO}
