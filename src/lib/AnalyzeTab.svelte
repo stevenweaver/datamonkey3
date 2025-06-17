@@ -7,6 +7,7 @@
   import MethodOptionsTab from './MethodOptionsTab.svelte';
   import EnhancedAnalysisProgress from './EnhancedAnalysisProgress.svelte';
   import AnalysisHistory from './AnalysisHistory.svelte';
+  import FileIndicator from './FileIndicator.svelte';
   
   // Props
   export let methodConfig = {};
@@ -38,6 +39,9 @@
   <div class="mb-premium-xl">
     <EnhancedAnalysisProgress />
   </div>
+  
+  <!-- File Indicator (visible when a file is selected) -->
+  <FileIndicator />
   
   <!-- Quick Analysis Section (expanded by default) -->
   <div class="mb-premium-xl rounded-premium border border-border-platinum bg-white shadow-premium">
