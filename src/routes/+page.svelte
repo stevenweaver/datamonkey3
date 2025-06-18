@@ -15,6 +15,7 @@
 	import AnalyzeTab from '../lib/AnalyzeTab.svelte';
 	import ResultsTab from '../lib/ResultsTab.svelte';
 	import PremiumTabNavigation from '../lib/PremiumTabNavigation.svelte';
+import SmartTabNavigation from '../lib/SmartTabNavigation.svelte';
 	import StepNavigation from '../lib/StepNavigation.svelte';
 
 	// Import HyPhy dependencies
@@ -733,8 +734,8 @@
 		<div class="pb-premium-xl">
 			<h1 class="text-premium-headline font-bold tracking-premium-tight text-text-rich mb-premium-xl">Sequence Analysis Platform</h1>
 			
-			<!-- Main Tabbed Interface -->
-			<PremiumTabNavigation 
+			<!-- Main Tabbed Interface with Smart Navigation -->
+			<SmartTabNavigation 
 				{activeTab} 
 				showRunningIndicator={$activeAnalysisProgress.id && $activeAnalysisProgress.status !== 'completed'}
 				onChange={(tab) => activeTab = tab}
