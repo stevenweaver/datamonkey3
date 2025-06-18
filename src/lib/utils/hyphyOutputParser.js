@@ -575,7 +575,8 @@ export function mapToUIState(output) {
   };
 }
 
-export default {
+// Export a named object for components that import it as a named import
+export const hyphyOutputParser = {
   parseHyPhyOutput,
   detectPhase,
   extractProgress,
@@ -590,3 +591,6 @@ export default {
   formatHyPhyOutputAsMarkdown,
   mapToUIState
 };
+
+// Export as default for components that import it as a default import
+export default hyphyOutputParser;
