@@ -65,6 +65,18 @@
       treeGenerationProgress = 0;
       errorMessage = '';
       
+      // =========================================================
+      // TODO: IMPLEMENTATION REQUIRED
+      // =========================================================
+      // This is currently a simulation for UI demonstration only.
+      // Real implementation needs to:
+      // 1. Connect to HyPhy or other phylogenetic software
+      // 2. Generate actual NJ or ML tree based on selected options
+      // 3. Handle bootstrapping if requested
+      // 4. Update treeStore with the generated tree data
+      // 5. Provide actual progress updates during computation
+      // =========================================================
+      
       // Simulate tree generation progress
       const progressInterval = setInterval(() => {
         if (treeGenerationProgress < 95) {
@@ -72,15 +84,13 @@
         }
       }, 300);
       
-      // In a real implementation, this would call the actual tree inference method
-      // For now, we'll simulate a delay and use existing NJ tree if available
+      // Simulate delay for demonstration purposes
       await new Promise(resolve => setTimeout(resolve, 3000));
       
       clearInterval(progressInterval);
       treeGenerationProgress = 100;
       
-      // In a real implementation, this would update the tree store with the newly generated tree
-      // For demonstration, we'll assume it's successful if we have file metrics
+      // Simulate successful tree generation if we have file metrics
       if ($fileMetricsStore && $fileMetricsStore.FILE_INFO && $fileMetricsStore.FILE_INFO.nj) {
         treeStatus = STATUS.COMPLETE;
         onTreeGenerated();
@@ -147,6 +157,16 @@
   <h2 class="text-premium-header font-semibold text-text-rich mb-premium-md">
     <span class="mr-premium-xs">🌳</span> Phylogenetic Tree
   </h2>
+  
+  <!-- Disclaimer banner -->
+  <div class="mb-premium-md p-premium-sm rounded-premium bg-amber-50 border border-amber-200">
+    <p class="text-premium-caption text-amber-800 flex items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+      </svg>
+      <span><strong>Development Preview:</strong> The tree inference functionality is currently simulated for UI demonstration purposes. Backend implementation coming soon.</span>
+    </p>
+  </div>
   
   <div class="rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium">
     {#if !$currentFile}
