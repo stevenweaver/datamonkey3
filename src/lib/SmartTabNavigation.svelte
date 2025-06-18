@@ -54,10 +54,17 @@
         title="Manage sequence data"
       >
         <span class="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
-          </svg>
+          <div 
+            class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full mr-2 border"
+            class:bg-brand-royal={activeTab === 'data'}
+            class:text-white={activeTab === 'data'}
+            class:border-brand-royal={activeTab === 'data'}
+            class:bg-white={activeTab !== 'data'}
+            class:text-text-rich={activeTab !== 'data'}
+            class:border-text-slate={activeTab !== 'data'}
+          >
+            <span class="text-sm font-bold">1</span>
+          </div>
           Data
         </span>
         {#if activeTab === 'data'}
@@ -80,9 +87,20 @@
         aria-disabled={isAnalyzeDisabled}
       >
         <span class="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm1 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V7zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1v-2z" clip-rule="evenodd" />
-          </svg>
+          <div 
+            class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full mr-2 border"
+            class:bg-brand-royal={activeTab === 'analyze' && !isAnalyzeDisabled}
+            class:text-white={activeTab === 'analyze' && !isAnalyzeDisabled}
+            class:border-brand-royal={activeTab === 'analyze' && !isAnalyzeDisabled}
+            class:bg-white={activeTab !== 'analyze' && !isAnalyzeDisabled}
+            class:text-text-rich={activeTab !== 'analyze' && !isAnalyzeDisabled}
+            class:border-text-slate={activeTab !== 'analyze' && !isAnalyzeDisabled}
+            class:bg-gray-100={isAnalyzeDisabled}
+            class:text-text-silver={isAnalyzeDisabled}
+            class:border-gray-200={isAnalyzeDisabled}
+          >
+            <span class="text-sm font-bold">2</span>
+          </div>
           Analyze
         </span>
         {#if showRunningIndicator && !isAnalyzeDisabled}
@@ -110,9 +128,20 @@
         aria-disabled={isResultsDisabled}
       >
         <span class="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0V8z" clip-rule="evenodd" />
-          </svg>
+          <div 
+            class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full mr-2 border"
+            class:bg-brand-royal={activeTab === 'results' && !isResultsDisabled}
+            class:text-white={activeTab === 'results' && !isResultsDisabled}
+            class:border-brand-royal={activeTab === 'results' && !isResultsDisabled}
+            class:bg-white={activeTab !== 'results' && !isResultsDisabled}
+            class:text-text-rich={activeTab !== 'results' && !isResultsDisabled}
+            class:border-text-slate={activeTab !== 'results' && !isResultsDisabled}
+            class:bg-gray-100={isResultsDisabled}
+            class:text-text-silver={isResultsDisabled}
+            class:border-gray-200={isResultsDisabled}
+          >
+            <span class="text-sm font-bold">3</span>
+          </div>
           Results
         </span>
         {#if activeTab === 'results' && !isResultsDisabled}

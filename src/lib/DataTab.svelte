@@ -8,6 +8,7 @@
   import FileManager from './FileManager.svelte';
   import ErrorHandler from './ErrorHandler.svelte';
   import DemoFileSelector from './DemoFileSelector.svelte';
+  import TabNavigation from './TabNavigation.svelte';
   
   // Props
   export let handleFileUpload = () => {};
@@ -16,6 +17,10 @@
   export let fileMetricsJSON = null;
   export let handleValidated = () => {};
   export let handleUseRepaired = () => {};
+  
+  // Tab navigation
+  export let activeTab = 'data';
+  export let onChange = (tab) => {};
   
   // Computed props
   $: hasFileMetrics = !!fileMetricsJSON && Object.keys(fileMetricsJSON).length > 0;
@@ -84,6 +89,9 @@
       <p class="text-premium-body text-text-slate">Upload or select a file to view sequence data information</p>
     </div>
   {/if}
+  
+  <!-- Tab Navigation -->
+  <TabNavigation {activeTab} onChange={onChange} />
 </div>
 
 <style>

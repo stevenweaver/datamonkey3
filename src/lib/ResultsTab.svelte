@@ -6,6 +6,7 @@
   import AnalysisHistory from './AnalysisHistory.svelte';
   import AnalysisCompare from './AnalysisCompare.svelte';
   import BatchExport from './BatchExport.svelte';
+  import TabNavigation from './TabNavigation.svelte';
   
   // Props
   export let selectedAnalysisId = null;
@@ -13,6 +14,10 @@
   export let showAllHistory = false;
   export let showBatchExport = false;
   export let toggleBatchExport = () => {};
+  
+  // Tab navigation
+  export let activeTab = 'results';
+  export let onChange = (tab) => {};
   
   // Local state
   let viewMode = 'single'; // 'single' or 'compare'
@@ -100,4 +105,9 @@
       <AnalysisCompare />
     </div>
   {/if}
+  
+  <!-- Tab Navigation -->
+  <div class="mt-premium-xl">
+    <TabNavigation {activeTab} onChange={onChange} />
+  </div>
 </div>

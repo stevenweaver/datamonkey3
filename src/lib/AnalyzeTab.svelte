@@ -8,6 +8,7 @@
   import EnhancedAnalysisProgress from './EnhancedAnalysisProgress.svelte';
   import AnalysisHistory from './AnalysisHistory.svelte';
   import FileIndicator from './FileIndicator.svelte';
+  import TabNavigation from './TabNavigation.svelte';
   
   // Props
   export let methodConfig = {};
@@ -18,6 +19,10 @@
   export let toggleStdOut = () => {};
   export let showAllHistory = false;
   export let selectAnalysis = () => {};
+  
+  // Tab navigation
+  export let activeTab = 'analyze';
+  export let onChange = (tab) => {};
   
   // Local state
   let expandedSection = 'quick'; // 'quick', 'advanced', 'history'
@@ -170,6 +175,9 @@
       </div>
     {/if}
   </div>
+  
+  <!-- Tab Navigation -->
+  <TabNavigation {activeTab} onChange={onChange} />
 </div>
 
 <style>
