@@ -1,7 +1,7 @@
 <script>
-  import AnalysisProgress from '../../lib/AnalysisProgress.svelte';
-  import EnhancedAnalysisProgress from '../../lib/EnhancedAnalysisProgress.svelte';
-  import AnalysisProgressRams from '../../lib/AnalysisProgressRams.svelte';
+  import AnalysisProgress from '../../../lib/AnalysisProgress.svelte';
+  import EnhancedAnalysisProgress from '../../../lib/EnhancedAnalysisProgress.svelte';
+  import AnalysisProgressRams from '../../../lib/AnalysisProgressRams.svelte';
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   
@@ -20,7 +20,7 @@
   };
   
   // Override the imported store
-  import { activeAnalysisProgress } from '../../stores/analyses';
+  import { activeAnalysisProgress } from '../../../stores/analyses';
   $: activeAnalysisProgress.set($mockActiveAnalysisProgress);
   
   // Phases for the demo
