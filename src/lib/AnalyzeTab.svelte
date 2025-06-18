@@ -3,12 +3,14 @@
   import { currentFile } from '../stores/fileInfo';
   import { persistentFileStore } from '../stores/fileInfo';
   import { analysisStore, activeAnalysisProgress } from '../stores/analyses';
+  import { treeStore } from '../stores/tree';
   import MethodSelector from './MethodSelector.svelte';
   import MethodOptionsTab from './MethodOptionsTab.svelte';
   import EnhancedAnalysisProgress from './EnhancedAnalysisProgress.svelte';
   import AnalysisHistory from './AnalysisHistory.svelte';
   import FileIndicator from './FileIndicator.svelte';
   import TabNavigation from './TabNavigation.svelte';
+  import TreePrompt from './TreePrompt.svelte';
   
   // Props
   export let methodConfig = {};
@@ -26,6 +28,15 @@
   
   // Local state
   let expandedSection = 'quick'; // 'quick', 'advanced', 'history'
+  
+  // Tree detection
+  $: hasTree = $treeStore && ($treeStore.nj || $treeStore.usertree);
+  
+  // Handle tree generation prompt
+  function handleGenerateTreeClick() {
+    // Navigate to the Data tab
+    onChange('data');
+  }
   
   // Toggle section expansion
   function toggleSection(section) {
@@ -47,6 +58,9 @@
   
   <!-- File Indicator (visible when a file is selected) -->
   <FileIndicator />
+  
+  <!-- Tree Prompt (shown if no tree is available) -->
+  <TreePrompt onGenerateClick={handleGenerateTreeClick} />
   
   <!-- Quick Analysis Section (expanded by default) -->
   <div class="mb-premium-xl rounded-premium border border-border-platinum bg-white shadow-premium">

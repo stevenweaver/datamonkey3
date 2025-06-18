@@ -1,6 +1,7 @@
 <script>
   import { currentFile } from '../stores/fileInfo';
   import { analysisStore } from '../stores/analyses';
+  import { treeStore } from '../stores/tree';
   import TabNavButton from './TabNavButton.svelte';
   
   // Props
@@ -10,9 +11,10 @@
   // State tracking
   $: hasFile = !!$currentFile;
   $: hasAnalyses = $analysisStore?.analyses?.length > 0;
+  $: hasTree = $treeStore && ($treeStore.nj || $treeStore.usertree);
   
   // Button configs based on current tab
-  $: navConfig = getNavConfig(activeTab, hasFile, hasAnalyses);
+  $: navConfig = getNavConfig(activeTab, hasFile, hasAnalyses, hasTree);
   
   // Helper function to get step number based on tab name
   function getStepNumber(tabName) {
@@ -24,8 +26,21 @@
     }
   }
   
+  // Handle tree warning when moving to analyze tab
+  function handleToAnalyzeTab() {
+    if (!hasTree && hasFile) {
+      if (confirm('A phylogenetic tree is required for analysis. Do you want to generate a tree first?')) {
+        // Stay on data tab to generate tree
+        return;
+      }
+    }
+    
+    // Proceed to analyze tab
+    onChange('analyze');
+  }
+  
   // Helper to get navigation configuration based on active tab
-  function getNavConfig(tab, hasFile, hasAnalyses) {
+  function getNavConfig(tab, hasFile, hasAnalyses, hasTree) {
     switch(tab) {
       case 'data':
         return {
@@ -33,8 +48,9 @@
           forward: {
             label: 'Analyze',
             disabled: !hasFile,
-            tooltip: !hasFile ? 'Upload or select a file first' : 'Continue to analysis',
-            onClick: () => onChange('analyze'),
+            tooltip: !hasFile ? 'Upload or select a file first' : 
+                    !hasTree ? 'Generate a phylogenetic tree first' : 'Continue to analysis',
+            onClick: () => handleToAnalyzeTab(),
             step: 2 // Step 2 for Analyze
           }
         };

@@ -1,0 +1,37 @@
+<script>
+  import { treeStore } from '../stores/tree';
+  
+  // Props
+  export let onGenerateClick = () => {};
+  
+  // Reactive variables
+  $: hasAnyTree = $treeStore && ($treeStore.nj || $treeStore.usertree);
+</script>
+
+{#if !hasAnyTree}
+  <div class="mb-premium-lg p-premium-md rounded-premium bg-accent-pearl border border-accent-copper">
+    <div class="flex items-start">
+      <div class="flex-shrink-0 mr-premium-md">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-accent-copper" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-premium-title font-semibold text-text-rich mb-premium-xs">Phylogenetic Tree Required</h3>
+        <p class="text-premium-body text-text-slate mb-premium-sm">
+          A phylogenetic tree is required for evolutionary analysis. Please generate a tree before proceeding.
+        </p>
+        <button
+          type="button"
+          on:click={onGenerateClick}
+          class="inline-flex items-center rounded-premium-sm bg-brand-gradient px-premium-md py-premium-sm text-premium-body font-medium text-white hover:bg-brand-deep transition-all duration-premium shadow-sm hover:shadow transform hover:scale-[0.98] active:scale-[0.96]"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="mr-premium-xs h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+          Generate Tree Now
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
