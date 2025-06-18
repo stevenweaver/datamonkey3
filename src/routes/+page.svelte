@@ -751,6 +751,8 @@ import SmartTabNavigation from '../lib/SmartTabNavigation.svelte';
 					{fileMetricsJSON}
 					{handleValidated}
 					{handleUseRepaired}
+					{activeTab}
+					onChange={(tab) => activeTab = tab}
 				/>
 			{:else if activeTab === 'analyze'}
 				<!-- Analyze Tab -->
@@ -763,6 +765,8 @@ import SmartTabNavigation from '../lib/SmartTabNavigation.svelte';
 					{toggleStdOut}
 					{showAllHistory}
 					{selectAnalysis}
+					{activeTab}
+					onChange={(tab) => activeTab = tab}
 				/>
 			{:else if activeTab === 'results'}
 				<!-- Results Tab -->
@@ -772,11 +776,11 @@ import SmartTabNavigation from '../lib/SmartTabNavigation.svelte';
 					{showAllHistory}
 					{showBatchExport}
 					{toggleBatchExport}
+					{activeTab}
+					onChange={(tab) => activeTab = tab}
 				/>
 			{/if}
 			
-			<!-- Interactive Step Navigation -->
-			<StepNavigation {activeTab} onChange={(tab) => activeTab = tab} />
 		</div>
 	{/if}
 </div>

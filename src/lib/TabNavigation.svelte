@@ -1,0 +1,110 @@
+<script>
+  import { currentFile } from '../stores/fileInfo';
+  import { analysisStore } from '../stores/analyses';
+  import TabNavButton from './TabNavButton.svelte';
+  
+  // Props
+  export let activeTab = 'data';
+  export let onChange = (tabName) => {};
+  
+  // State tracking
+  $: hasFile = !!$currentFile;
+  $: hasAnalyses = $analysisStore?.analyses?.length > 0;
+  
+  // Button configs based on current tab
+  $: navConfig = getNavConfig(activeTab, hasFile, hasAnalyses);
+  
+  // Helper function to get step number based on tab name
+  function getStepNumber(tabName) {
+    switch(tabName) {
+      case 'data': return 1;
+      case 'analyze': return 2;
+      case 'results': return 3;
+      default: return null;
+    }
+  }
+  
+  // Helper to get navigation configuration based on active tab
+  function getNavConfig(tab, hasFile, hasAnalyses) {
+    switch(tab) {
+      case 'data':
+        return {
+          back: null,
+          forward: {
+            label: 'Analyze',
+            disabled: !hasFile,
+            tooltip: !hasFile ? 'Upload or select a file first' : 'Continue to analysis',
+            onClick: () => onChange('analyze'),
+            step: 2 // Step 2 for Analyze
+          }
+        };
+      
+      case 'analyze':
+        return {
+          back: {
+            label: 'Data',
+            disabled: false,
+            tooltip: 'Back to data selection',
+            onClick: () => onChange('data'),
+            step: 1 // Step 1 for Data
+          },
+          forward: {
+            label: 'Results',
+            disabled: !hasAnalyses,
+            tooltip: !hasAnalyses ? 'Run an analysis first' : 'View analysis results',
+            onClick: () => onChange('results'),
+            step: 3 // Step 3 for Results
+          }
+        };
+      
+      case 'results':
+        return {
+          back: {
+            label: 'Analyze',
+            disabled: false,
+            tooltip: 'Back to analysis',
+            onClick: () => onChange('analyze'),
+            step: 2 // Step 2 for Analyze
+          },
+          forward: {
+            label: 'New Analysis',
+            disabled: false,
+            tooltip: 'Start a new analysis with different data',
+            onClick: () => onChange('data'),
+            step: 1 // Step 1 for Data
+          }
+        };
+      
+      default:
+        return { back: null, forward: null };
+    }
+  }
+</script>
+
+<div class="mt-premium-xl flex justify-between">
+  <div>
+    {#if navConfig.back}
+      <TabNavButton
+        direction="back"
+        label={navConfig.back.label}
+        disabled={navConfig.back.disabled}
+        tooltip={navConfig.back.tooltip}
+        onClick={navConfig.back.onClick}
+        step={navConfig.back.step}
+      />
+    {/if}
+  </div>
+  
+  <div>
+    {#if navConfig.forward}
+      <TabNavButton
+        direction="forward"
+        label={navConfig.forward.label}
+        disabled={navConfig.forward.disabled}
+        tooltip={navConfig.forward.tooltip}
+        onClick={navConfig.forward.onClick}
+        step={navConfig.forward.step}
+      />
+    {/if}
+  </div>
+</div>
