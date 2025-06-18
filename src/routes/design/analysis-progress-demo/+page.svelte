@@ -5,23 +5,34 @@
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   
-  // Create a mock analysis progress store for demo purposes
-  const mockActiveAnalysisProgress = writable({
-    id: 'demo-analysis',
-    status: 'initializing',
-    progress: 0,
-    message: 'Initializing analysis...',
-    logs: []
+  // Create a mock analysis store for demo purposes
+  const mockAnalysisStore = writable({
+    analyses: [],
+    currentAnalysisId: null,
+    isLoading: false,
+    error: null,
+    activeAnalysis: {
+      id: 'demo-analysis',
+      status: 'initializing',
+      progress: 0,
+      message: 'Initializing analysis...',
+      logs: []
+    }
   });
   
-  // Mock the analyses store with our mock progress
-  const mockAnalysisStore = {
-    subscribe: mockActiveAnalysisProgress.subscribe
-  };
-  
   // Override the imported store
-  import { activeAnalysisProgress } from '../../../stores/analyses';
-  $: activeAnalysisProgress.set($mockActiveAnalysisProgress);
+  import { analysisStore } from '../../../stores/analyses';
+  
+  // Override the store's subscribe method for the demo
+  const originalSubscribe = analysisStore.subscribe;
+  analysisStore.subscribe = mockAnalysisStore.subscribe;
+  
+  // Restore the original subscribe on component destroy
+  onMount(() => {
+    return () => {
+      analysisStore.subscribe = originalSubscribe;
+    };
+  });
   
   // Phases for the demo
   const phases = [
@@ -115,12 +126,15 @@
   
   // Update the analysis progress store
   function updateAnalysisProgress(status, progress, message) {
-    mockActiveAnalysisProgress.update(ap => ({
-      ...ap,
-      status,
-      progress: Math.round(progress),
-      message,
-      logs: [...logs]
+    mockAnalysisStore.update(state => ({
+      ...state,
+      activeAnalysis: {
+        ...state.activeAnalysis,
+        status,
+        progress: Math.round(progress),
+        message,
+        logs: [...logs]
+      }
     }));
   }
   
