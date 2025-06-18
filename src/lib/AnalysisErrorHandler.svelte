@@ -5,7 +5,7 @@
   import { hyPhyAnalysisRunner } from './services/HyPhyAnalysisRunner';
   
   // Props
-  export let analysisId = null;
+  export const analysisId = null; // Changed to export const since it's not used internally
   export let onRetry = () => {};
   export let onDismiss = () => {};
   
@@ -187,6 +187,26 @@
   function handleDismiss() {
     onDismiss();
   }
+  
+  /**
+   * Handle selecting a recovery option
+   * @param {Object} option - The selected option
+   */
+  function handleSelectOption(option) {
+    selectedRecoveryOption = option;
+  }
+  
+  /**
+   * Handle keyboard selection for accessibility
+   * @param {KeyboardEvent} event - The keyboard event
+   * @param {Object} option - The option to select
+   */
+  function handleKeyDown(event, option) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      selectedRecoveryOption = option;
+    }
+  }
 </script>
 
 {#if error}
@@ -197,7 +217,7 @@
     <div class="border-b border-red-100 bg-red-50 p-4">
       <div class="flex items-start">
         <div class="flex-shrink-0">
-          <svg class="h-6 w-6 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+          <svg class="h-6 w-6 text-red-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
           </svg>
         </div>
@@ -232,28 +252,40 @@
       
       <div class="space-y-3">
         {#each recoveryOptions as option}
-          <div 
-            class="flex cursor-pointer items-start rounded-md border p-3 transition-colors"
+          <!-- Using button instead of div for accessibility -->
+          <button 
+            class="flex w-full cursor-pointer items-start rounded-md border p-3 text-left transition-colors"
             class:border-blue-300={selectedRecoveryOption === option}
             class:bg-blue-50={selectedRecoveryOption === option}
             class:border-gray-200={selectedRecoveryOption !== option}
             class:hover:border-blue-200={selectedRecoveryOption !== option}
-            on:click={() => selectedRecoveryOption = option}
+            on:click={() => handleSelectOption(option)}
+            role="radio"
+            aria-checked={selectedRecoveryOption === option}
+            aria-labelledby={`option-label-${option.id}`}
           >
-            <input 
-              type="radio" 
-              name="recovery-option" 
-              value={option.id} 
-              checked={selectedRecoveryOption === option}
-              class="mt-0.5 h-4 w-4 cursor-pointer text-blue-600"
-            />
+            <span class="mt-0.5 flex h-4 w-4 items-center justify-center">
+              <input 
+                type="radio" 
+                name="recovery-option" 
+                id={`option-${option.id}`}
+                value={option.id} 
+                checked={selectedRecoveryOption === option}
+                class="h-4 w-4 cursor-pointer text-blue-600"
+                aria-labelledby={`option-label-${option.id}`}
+              />
+            </span>
             <div class="ml-3">
-              <label class="block text-sm font-medium text-gray-700 cursor-pointer">
+              <label 
+                id={`option-label-${option.id}`}
+                for={`option-${option.id}`}
+                class="block text-sm font-medium text-gray-700 cursor-pointer"
+              >
                 {option.label}
               </label>
               <p class="text-xs text-gray-500">{option.description}</p>
             </div>
-          </div>
+          </button>
         {/each}
       </div>
       
