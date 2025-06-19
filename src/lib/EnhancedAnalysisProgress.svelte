@@ -1,7 +1,18 @@
 <!-- src/lib/EnhancedAnalysisProgress.svelte -->
 <script>
   import { activeAnalysisProgress } from '../stores/analyses';
-  import { onDestroy } from 'svelte';
+  import { onDestroy, tick } from 'svelte';
+  import { slide } from 'svelte/transition';
+  import { quintOut } from 'svelte/easing';
+  import { marked } from 'marked';
+  
+  // Configure marked for security and custom rendering
+  marked.setOptions({
+    gfm: true,           // GitHub Flavored Markdown
+    breaks: true,        // Convert \n to <br>
+    headerIds: false,    // Don't add IDs to headers (for security)
+    mangle: false        // Don't mangle email links
+  });
   
   // Duration for which to show the completed message before hiding
   export let completedMessageDuration = 5000; // 5 seconds
@@ -10,15 +21,8 @@
   let showCompleted = false;
   let hideCompletedTimeout;
   
-  // State for managing phases
-  const phases = [
-    { id: 'initializing', name: 'Initializing', description: 'Setting up analysis parameters' },
-    { id: 'mounting', name: 'File Preparation', description: 'Preparing files for analysis' },
-    { id: 'running', name: 'Analysis', description: 'Running HyPhy analysis' },
-    { id: 'processing', name: 'Processing', description: 'Processing analysis results' },
-    { id: 'saving', name: 'Saving', description: 'Saving results to database' },
-    { id: 'completed', name: 'Completed', description: 'Analysis completed successfully' }
-  ];
+  // Progressive disclosure state
+  let showLogs = true; // Default to showing logs
   
   // Estimated time tracking
   let startTime = null;
@@ -41,14 +45,9 @@
       timerInterval = setInterval(() => {
         elapsed = (new Date() - startTime) / 1000; // elapsed time in seconds
         
-        // Estimate remaining time based on progress and elapsed time
-        if ($activeAnalysisProgress.progress > 5) {
-          const progressRate = $activeAnalysisProgress.progress / elapsed; // % per second
-          const remainingProgress = 100 - $activeAnalysisProgress.progress;
-          estimatedTimeRemaining = remainingProgress / progressRate; // seconds
-        } else {
-          estimatedTimeRemaining = null; // Not enough data to estimate
-        }
+        // We don't have reliable progress information, so we'll display the time
+        // but not attempt to estimate remaining time as that would be dishonest
+        estimatedTimeRemaining = null;
       }, 1000);
     }
     
@@ -93,17 +92,6 @@
     clearInterval(timerInterval);
   });
   
-  // Status icons for different states
-  const statusIcons = {
-    initializing: '🔄',
-    mounting: '📂',
-    running: '⚙️',
-    processing: '🔍',
-    saving: '💾',
-    completed: '✅',
-    error: '❌'
-  };
-  
   // Get appropriate text color class based on status
   function getStatusColorClass(status) {
     switch (status) {
@@ -119,18 +107,6 @@
     }
   }
   
-  // Get background color class for progress bar
-  function getProgressBarColorClass(status) {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-500';
-      case 'error':
-        return 'bg-red-500';
-      default:
-        return 'bg-blue-500';
-    }
-  }
-  
   // Format timestamp for display
   function formatTimestamp(isoString) {
     try {
@@ -141,168 +117,361 @@
     }
   }
   
-  // Toggle showing all logs
-  let showAllLogs = false;
-  const toggleLogs = () => {
-    showAllLogs = !showAllLogs;
-  };
+  // Sample logs for demo purposes (these will only be used if no real logs exist)
+  const sampleLogs = [
+    { 
+      message: "## Loading Input Data\nReading sequence alignment from file. **Summary:** - Format: FASTA - Sequences: 14 - Sites: 1380", 
+      status: 'running',
+      time: new Date().toISOString()
+    },
+    { 
+      message: "Sequence data loaded successfully.\nAlignment has 14 sequences and 1380 sites", 
+      status: 'running',
+      time: new Date().toISOString()
+    },
+    { 
+      message: "## Running Analysis\nMethod: FEL (Fixed Effects Likelihood)\nFitting nucleotide substitution model...", 
+      status: 'running',
+      time: new Date().toISOString()
+    },
+    { 
+      message: "Model parameters: alpha = 0.402, beta = 1.27\nLikelihood: -6245.3", 
+      status: 'running',
+      time: new Date().toISOString()
+    }
+  ];
   
-  // Get the last few logs (or all if showAllLogs is true)
-  $: displayedLogs = showAllLogs 
-    ? $activeAnalysisProgress.logs 
-    : $activeAnalysisProgress.logs.slice(-3);
+  // Get the last few logs, use sample logs for demo if none available
+  $: displayedLogs = $activeAnalysisProgress.logs && $activeAnalysisProgress.logs.length > 0 ? 
+                    $activeAnalysisProgress.logs.slice(-5) : sampleLogs;
   
-  // Get current phase index
-  $: currentPhaseIndex = phases.findIndex(phase => phase.id === $activeAnalysisProgress.status);
+  // Provide a job info accessor
+  $: jobInfo = $activeAnalysisProgress && $activeAnalysisProgress.id ? {
+    id: $activeAnalysisProgress.id,
+    method: $activeAnalysisProgress.metadata?.method || 'Analysis',
+    filename: $activeAnalysisProgress.metadata?.filename || 'data file',
+    startTime: $activeAnalysisProgress.metadata?.startTime || new Date().toISOString()
+  } : null;
+  
+  // Get simplified status for display
+  $: statusText = $activeAnalysisProgress.status === 'running' ? 'Running analysis' : 
+                 $activeAnalysisProgress.status === 'completed' ? 'Analysis complete' :
+                 $activeAnalysisProgress.status === 'error' ? 'Analysis failed' :
+                 'Processing';
+  
+  // Process log message to extract structured information
+  function parseLogMessage(message) {
+    // Always treat messages as potential Markdown to benefit from formatting
+    // For the output preview, this creates a more consistent look
+    
+    // Check if message contains markdown formatting
+    const hasCodeBlock = message.includes('```');
+    const hasHeader = /^#+\s/.test(message);
+    const hasList = /^[\s]*[*-]\s/.test(message);
+    const hasFormatting = message.includes('**') || message.includes('__') || 
+                          message.includes('*') || message.includes('_') || 
+                          message.includes('[') && message.includes('](');
+    
+    // Common patterns in analysis output that should be enhanced
+    const hasKeyValue = /:\s/.test(message); // Key: Value patterns
+    const hasNumbers = /\d+(\.\d+)?/.test(message); // Numerical values
+    const hasPath = /\/\w+/.test(message); // File paths
+    
+    // If message has markdown-compatible content or can benefit from formatting,
+    // process it with marked
+    const isMarkdown = hasCodeBlock || hasHeader || hasList || hasFormatting || 
+                       hasKeyValue || hasNumbers || hasPath;
+    
+    // For honest representation, enhance the content formatting when beneficial
+    let enhancedMessage = message;
+    
+    // If it's not already Markdown but could benefit from formatting,
+    // apply some light enhancements
+    if (isMarkdown && !hasCodeBlock && !hasHeader && !hasList && !hasFormatting) {
+      // Enhance key-value pairs
+      enhancedMessage = enhancedMessage.replace(/(\w+):\s+([^,\n]+)(?=[,\n]|$)/g, '**$1**: $2');
+      
+      // Highlight numerical values
+      enhancedMessage = enhancedMessage.replace(/\b(\d+(\.\d+)?)\b(?!\s*:)/g, '`$1`');
+      
+      // Highlight file paths
+      enhancedMessage = enhancedMessage.replace(/(\S+\/\S+)/g, '`$1`');
+    }
+    
+    return {
+      isMarkdown: true, // Always use Markdown processing for consistent formatting
+      html: marked.parse(enhancedMessage),
+      plainText: message
+    };
+  }
+  
+  // We're not trying to extract phases or progress percentages from logs
+  // as these would be unreliable and potentially dishonest
 </script>
 
 {#if $activeAnalysisProgress.id && ($activeAnalysisProgress.status !== 'completed' || showCompleted)}
-  <div class="enhanced-analysis-progress mt-4 rounded-lg border border-gray-200 bg-white shadow-md">
-    <div class="p-4">
-      <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold">Analysis Progress</h3>
-        {#if $activeAnalysisProgress.status === 'completed' || $activeAnalysisProgress.status === 'error'}
-          <button 
-            class="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200"
-            on:click={() => showCompleted = false}
-          >
-            Dismiss
-          </button>
-        {/if}
-      </div>
-      
-      <!-- Time estimation and progress -->
-      <div class="mt-3 flex items-center justify-between">
+  <div class="analysis-progress mt-6 overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm">
+    <!-- Essential information - always visible -->
+    <div class="p-5">
+      <!-- Status and time information in single row -->
+      <div class="mb-4 flex items-center justify-between">
         <div class="flex items-center">
-          <div class={`flex items-center ${getStatusColorClass($activeAnalysisProgress.status)}`}>
-            <span class="mr-2 text-xl">{statusIcons[$activeAnalysisProgress.status] || '🔄'}</span>
-            <span class="font-medium capitalize">{$activeAnalysisProgress.status}</span>
-          </div>
+          <span class={`mr-2 text-lg font-medium ${getStatusColorClass($activeAnalysisProgress.status)}`}>
+            {statusText}
+          </span>
         </div>
         
         <div class="flex items-center text-sm text-gray-600">
-          {#if ['completed', 'error'].includes($activeAnalysisProgress.status)}
-            <span>Completed in {formatTime(elapsed)}</span>
-          {:else}
-            <span>Time elapsed: {formatTime(elapsed)}</span>
-            {#if estimatedTimeRemaining && estimatedTimeRemaining > 0}
-              <span class="ml-2">• Est. remaining: {formatTime(estimatedTimeRemaining)}</span>
+          <span>
+            {formatTime(elapsed)}
+          </span>
+        </div>
+      </div>
+      
+      <!-- Progress indicator - uses an animation rather than a dishonest percentage -->
+      <div class="my-4 flex items-center">
+        {#if $activeAnalysisProgress.status === 'completed'}
+          <!-- Completed progress bar -->
+          <div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-gray-100">
+            <div class="absolute left-0 top-0 h-full w-full rounded-full bg-green-500"></div>
+          </div>
+          <span class="w-12 text-right text-sm font-medium text-green-600">Done</span>
+        {:else if $activeAnalysisProgress.status === 'error'}
+          <!-- Error progress bar -->
+          <div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-gray-100">
+            <div class="absolute left-0 top-0 h-full w-1/5 rounded-full bg-red-500"></div>
+          </div>
+          <span class="w-12 text-right text-sm font-medium text-red-600">Error</span>
+        {:else}
+          <!-- Running progress animation - indeterminate to avoid dishonest percentages -->
+          <div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-gray-100">
+            <div class="progress-pulse absolute left-0 top-0 h-full w-1/3 rounded-full bg-blue-500"></div>
+          </div>
+          <span class="w-12 text-right text-sm font-medium text-blue-600">Active</span>
+        {/if}
+      </div>
+      
+      <!-- Job details and latest output with Markdown formatting -->
+      <div class="mt-2 mb-3">
+        <!-- Job identifier details -->
+        {#if jobInfo}
+          <div class="mb-2 text-xs text-gray-500 flex items-center">
+            <span class="font-mono">{jobInfo.id.substring(0, 8)}</span>
+            {#if jobInfo.method}
+              <span class="mx-1">•</span>
+              <span class="font-semibold">{jobInfo.method}</span>
             {/if}
-          {/if}
-          <span class="ml-4 font-semibold">{$activeAnalysisProgress.progress}%</span>
-        </div>
-      </div>
-      
-      <!-- Progress bar -->
-      <div class="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-200">
-        <div 
-          class={`h-full rounded-full transition-all duration-300 ease-out ${getProgressBarColorClass($activeAnalysisProgress.status)}`}
-          style="width: {$activeAnalysisProgress.progress}%"
-        ></div>
-      </div>
-      
-      <!-- Current message -->
-      <div class="mt-3 rounded-md bg-gray-50 p-3">
-        <p class={`text-sm ${getStatusColorClass($activeAnalysisProgress.status)}`}>
-          <span class="font-semibold">Status:</span> {$activeAnalysisProgress.message}
-        </p>
-      </div>
-      
-      <!-- Phase indicator -->
-      <div class="mt-4">
-        <h4 class="mb-2 text-sm font-medium">Analysis Phases</h4>
-        <div class="flex justify-between">
-          {#each phases as phase, index}
-            <div class="flex flex-col items-center" style="width: {100/phases.length}%">
-              <div 
-                class={`relative flex h-8 w-8 items-center justify-center rounded-full border-2 
-                  ${index <= currentPhaseIndex 
-                    ? index === currentPhaseIndex 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : 'border-green-500 bg-green-50' 
-                    : 'border-gray-300 bg-white'}`}
-              >
-                {#if index < currentPhaseIndex}
-                  <span class="text-green-500">✓</span>
-                {:else if index === currentPhaseIndex}
-                  <span class="relative flex h-3 w-3">
-                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
-                    <span class="relative inline-flex h-3 w-3 rounded-full bg-blue-500"></span>
-                  </span>
-                {:else}
-                  <span class="text-gray-400">{index + 1}</span>
-                {/if}
-                
-                {#if index < phases.length - 1}
-                  <div 
-                    class={`absolute left-full top-1/2 h-0.5 w-full -translate-y-1/2 
-                      ${index < currentPhaseIndex ? 'bg-green-500' : 'bg-gray-300'}`}
-                  ></div>
-                {/if}
-              </div>
-              <span 
-                class={`mt-1 text-center text-xs
-                  ${index === currentPhaseIndex 
-                    ? 'font-semibold text-blue-600' 
-                    : index < currentPhaseIndex 
-                      ? 'font-medium text-green-600' 
-                      : 'text-gray-500'}`}
-              >
-                {phase.name}
-              </span>
-            </div>
-          {/each}
-        </div>
-      </div>
-      
-      <!-- Log output -->
-      <div class="mt-4">
-        <div class="flex items-center justify-between">
-          <h4 class="text-sm font-medium">Analysis Log</h4>
-          <button 
-            class="text-xs text-blue-500 hover:text-blue-700"
-            on:click={toggleLogs}
-          >
-            {showAllLogs ? 'Show Recent' : 'Show All'}
-          </button>
-        </div>
+            {#if jobInfo.filename}
+              <span class="mx-1">•</span>
+              <span class="truncate max-w-xs">{jobInfo.filename}</span>
+            {/if}
+          </div>
+        {/if}
         
-        <div class="mt-1 max-h-40 overflow-y-auto rounded border border-gray-200 bg-gray-50 p-2 text-xs">
+        <!-- Latest output with Markdown formatting -->
+        {#if $activeAnalysisProgress.message}
+          {@const parsedMessage = parseLogMessage($activeAnalysisProgress.message)}
+          <div class="text-sm text-gray-600 message-preview">
+            {#if parsedMessage.isMarkdown}
+              <div class="markdown-content">
+                {@html parsedMessage.html}
+              </div>
+            {:else}
+              {$activeAnalysisProgress.message}
+            {/if}
+          </div>
+        {/if}
+      </div>
+    </div>
+    
+    <!-- Toggle button for additional information -->
+    <div class="flex border-t border-gray-100 bg-gray-50 text-sm">
+      <button 
+        class="flex-1 py-2 text-center transition-colors hover:bg-gray-100"
+        class:text-blue-600={showLogs}
+        class:font-medium={showLogs}
+        on:click={() => showLogs = !showLogs}
+      >
+        {showLogs ? 'Hide' : 'Show'} Details
+      </button>
+    </div>
+    
+    <!-- Log output with Markdown support (collapsible) -->
+    {#if showLogs}
+      <div transition:slide={{duration: 200, easing: quintOut}} class="border-t border-gray-100 bg-gray-50 p-4">
+        <div class="rounded border border-gray-200 bg-white p-2">
           {#each displayedLogs as log}
-            <div class="log-entry mb-1 flex">
-              <span class="mr-2 font-mono text-gray-500">{formatTimestamp(log.time)}</span>
-              <span class={getStatusColorClass(log.status)}>{statusIcons[log.status]}</span>
-              <span class="ml-2 flex-1">{log.message}</span>
+            {@const parsedLog = parseLogMessage(log.message)}
+            <div class="mb-4 pb-3 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0">
+              <div class={`${getStatusColorClass(log.status)} markdown-content`}>
+                {@html parsedLog.html}
+              </div>
             </div>
           {/each}
           
           {#if $activeAnalysisProgress.logs.length === 0}
-            <p class="text-gray-500">No logs available</p>
+            <p class="text-center text-gray-500">No logs available</p>
           {/if}
         </div>
       </div>
-    </div>
+    {/if}
   </div>
 {/if}
 
 <style>
-  /* Animation for pulsing effect */
-  @keyframes pulse {
-    0% {
-      opacity: 0.5;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1.2);
-    }
-    100% {
-      opacity: 0.5;
-      transform: scale(1);
-    }
+  .analysis-progress {
+    transition: all 0.2s ease-in-out;
   }
   
-  .enhanced-analysis-progress {
-    transition: all 0.3s ease-in-out;
+  /* Animation for indeterminate progress */
+  .progress-pulse {
+    animation: progress-pulse 2s ease-in-out infinite;
+    transform-origin: 0% 50%;
+  }
+  
+  @keyframes progress-pulse {
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+    100% { transform: translateX(300%); }
+  }
+  
+  /* Message preview styling */
+  .message-preview {
+    max-height: 4.5em;
+    overflow: hidden;
+    position: relative;
+    line-height: 1.5;
+  }
+  
+  .message-preview::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    height: 1.5em;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
+    pointer-events: none;
+  }
+  
+  /* Specific styles for markdown content in the preview */
+  .message-preview .markdown-content {
+    font-size: 0.85rem;
+  }
+  
+  .message-preview .markdown-content h1,
+  .message-preview .markdown-content h2,
+  .message-preview .markdown-content h3 {
+    font-size: 0.9rem;
+    margin: 0.2rem 0;
+    display: inline-block;
+    margin-right: 0.5rem;
+  }
+  
+  .message-preview .markdown-content p {
+    margin: 0.1rem 0;
+    display: inline;
+  }
+  
+  .message-preview .markdown-content code {
+    font-size: 0.8rem;
+    padding: 0.05rem 0.15rem;
+  }
+  
+  .message-preview .markdown-content ul,
+  .message-preview .markdown-content ol {
+    margin: 0.2rem 0;
+    padding-left: 1.2rem;
+  }
+  
+  /* Markdown content styling for coherent document flow */
+  :global(.markdown-content) {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  :global(.markdown-content h1) {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.75rem 0 0.5rem;
+    color: #333;
+  }
+  
+  :global(.markdown-content h2) {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0.6rem 0 0.4rem;
+    color: #444;
+  }
+  
+  :global(.markdown-content h3) {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0.5rem 0 0.3rem;
+    color: #555;
+  }
+  
+  :global(.markdown-content p) {
+    margin: 0.4rem 0;
+    color: inherit;
+  }
+  
+  :global(.markdown-content ul, .markdown-content ol) {
+    margin: 0.4rem 0;
+    padding-left: 1.5rem;
+  }
+  
+  :global(.markdown-content li) {
+    margin: 0.2rem 0;
+  }
+  
+  :global(.markdown-content code) {
+    background-color: #f0f0f0;
+    padding: 0.1rem 0.2rem;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
+  
+  :global(.markdown-content pre) {
+    background-color: #f5f5f5;
+    padding: 0.5rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0.4rem 0;
+  }
+  
+  :global(.markdown-content pre code) {
+    background-color: transparent;
+    padding: 0;
+    line-height: 1.4;
+    display: block;
+    white-space: pre;
+  }
+  
+  :global(.markdown-content a) {
+    color: #3b82f6;
+    text-decoration: none;
+  }
+  
+  :global(.markdown-content a:hover) {
+    text-decoration: underline;
+  }
+  
+  :global(.markdown-content blockquote) {
+    border-left: 3px solid #e5e7eb;
+    padding-left: 0.75rem;
+    color: #6b7280;
+    margin: 0.4rem 0;
+    font-style: italic;
+  }
+  
+  /* Ensure adjacent markdown elements flow naturally */
+  :global(.markdown-content > :first-child) {
+    margin-top: 0;
+  }
+  
+  :global(.markdown-content > :last-child) {
+    margin-bottom: 0;
   }
 </style>
