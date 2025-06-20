@@ -1,14 +1,19 @@
 <script>
-  import { onMount } from 'svelte';
-  import { writable } from 'svelte/store';
   import AnalysisProgress from '../../../lib/AnalysisProgress.svelte';
+  import EnhancedAnalysisProgress from '../../../lib/EnhancedAnalysisProgress.svelte';
   import AnalysisProgressRams from '../../../lib/AnalysisProgressRams.svelte';
   import AnalysisErrorHandler from '../../../lib/AnalysisErrorHandler.svelte';
-  import EnhancedAnalysisProgress from '../../../lib/EnhancedAnalysisProgress.svelte';
-  import { hyphyOutputParser } from '../../../lib/utils/hyphyOutputParser.js';
+  import { writable } from 'svelte/store';
+  import { onMount } from 'svelte';
+  import { marked } from 'marked';
+  import { hyphyOutputParser } from '../../../lib/utils/hyphyOutputParser';
   
-  // Mock analysis store to simulate the real app store
+  // Create a mock analysis store for demo purposes
   const mockAnalysisStore = writable({
+    analyses: [],
+    currentAnalysisId: null,
+    isLoading: false,
+    error: null,
     activeAnalysis: {
       id: 'demo-analysis',
       status: 'initializing',
@@ -18,71 +23,76 @@
     }
   });
   
-  // Mock the activeAnalysisProgress store to feed our component
-  const activeAnalysisProgress = {
-    subscribe: mockAnalysisStore.subscribe,
-    update: mockAnalysisStore.update
-  };
-  
-  // Override the store module during this demo
+  // Override the imported store
   import { analysisStore } from '../../../stores/analyses';
-  analysisStore.activeAnalysisProgress = activeAnalysisProgress;
   
-  // Demo phases
+  // Override the store's subscribe method for the demo
+  const originalSubscribe = analysisStore.subscribe;
+  analysisStore.subscribe = mockAnalysisStore.subscribe;
+  
+  // Restore the original subscribe on component destroy
+  onMount(() => {
+    return () => {
+      analysisStore.subscribe = originalSubscribe;
+    };
+  });
+  
+  // Phases for the demo
   const phases = [
     { 
       id: 'initializing', 
-      message: 'Initializing HyPhy analysis...', 
-      duration: 1500
-    },
-    { 
-      id: 'mounting', 
-      message: 'Loading sequence data into memory...', 
+      name: 'Initializing', 
+      message: '## Initializing HyPhy Analysis\n\n**Method:** FEL (Fixed Effects Likelihood)\n\nPreparing analysis parameters and loading required modules.', 
       duration: 2000 
     },
     { 
+      id: 'mounting', 
+      name: 'File Preparation', 
+      message: '## Loading Input Data\n\nReading sequence alignment from file.\n\n**Summary:**\n- Format: FASTA\n- Sequences: 14\n- Sites: 1380\n\n```\nSequence data loaded successfully\nAlignment has 14 sequences and 1380 sites\n```', 
+      duration: 3000 
+    },
+    { 
       id: 'running', 
-      message: 'Running FEL analysis on 120 sequences...', 
-      duration: 8000
+      message: '## Running FEL Analysis\n\n**Model:** GY94_3x4\n\nFitting nucleotide substitution model to alignment.\n\n```\nOptimizing branch lengths under the nucleotide model\nComputing site likelihoods\nTesting for selection at each site\n```\n\n**Progress:** 50%', 
+      duration: 10000 
     },
     { 
       id: 'processing', 
-      message: 'Processing results and computing statistics...', 
-      duration: 3000
+      message: '## Processing Results\n\n**Progress:** 85%\n\nCompiling selection analysis results across all sites.\n\n### Selection Summary\n\n- Total sites: 459\n- Sites under positive selection: 3\n- Sites under negative selection: 42\n- Neutral sites: 414', 
+      duration: 3000 
     },
     { 
       id: 'saving', 
-      message: 'Saving results to cache...', 
-      duration: 1500
+      message: '## Saving Results\n\n**Progress:** 98%\n\nFormatting and writing results to output files.', 
+      duration: 2000 
     },
     { 
       id: 'completed', 
-      message: 'Analysis completed successfully! Found 3 sites under positive selection.', 
-      duration: 0
+      message: '## Analysis Complete\n\n**Summary:**\n- Method: FEL\n- Sites analyzed: 459\n- Positively selected sites: 3\n- p-value threshold: 0.05\n\nResults are ready to view.', 
+      duration: 0 
     }
   ];
-  
-  // Error scenarios for demo
+
+  // Error scenarios for the demo
   const errorScenarios = [
     {
+      id: 'convergence',
+      title: 'Convergence Error',
+      message: '## Analysis Error\n\n❌ **Error:** Failed to optimize likelihood function\n\n```\nIteration limit reached before convergence.\nLast change in log likelihood: 0.00012\nTry increasing the maximum number of iterations.\n```'
+    },
+    {
+      id: 'memory',
       title: 'Memory Error',
-      message: 'Error: The analysis ran out of memory. Try using a smaller dataset or a different method.'
+      message: '## Analysis Error\n\n❌ **Error:** Insufficient memory to complete analysis\n\n```\nCould not allocate memory for codon frequency estimation.\nRequired: 4.2GB, Available: 2.1GB\n```'
     },
     {
-      title: 'Convergence Failure',
-      message: 'Error: The likelihood optimization failed to converge after 100 iterations.'
-    },
-    {
-      title: 'Invalid Input',
-      message: 'Error: The input alignment contains stop codons at sites 42, 156, and 302.'
-    },
-    {
-      title: 'Execution Timeout',
-      message: 'Error: The analysis exceeded the maximum allowed execution time (600 seconds).'
+      id: 'data',
+      title: 'Data Format Error',
+      message: '## Analysis Error\n\n❌ **Error:** Invalid data format in alignment\n\n```\nInvalid character found at position 324 in sequence "seq_ABC123".\nExpected nucleotide character, found: X\n```'
     }
   ];
   
-  // Demo state
+  // Variables to control demo
   let currentPhaseIndex = 0;
   let progress = 0;
   let runningInterval;
@@ -133,8 +143,9 @@ Results summary:
   
   // Start the demo progression
   function startDemo() {
+    if (demoRunning) return;
+    
     demoRunning = true;
-    clearInterval(runningInterval);
     currentPhaseIndex = 0;
     progress = 0;
     logs = [];
@@ -182,24 +193,33 @@ Results summary:
       setTimeout(() => {
         if (!demoRunning) return;
         
+        // Process this output chunk to get the UI state
+        const parsedOutput = hyphyOutputParser.mapToUIState(output);
+        
         // Calculate progress based on the current step
         const stepProgress = Math.round(((index + 1) / sampleRealOutput.length) * 100);
         
-        // Determine status based on content
-        let status = 'running';
-        if (index === 0) status = 'initializing';
-        else if (index === sampleRealOutput.length - 1) status = 'completed';
-        else if (index >= sampleRealOutput.length - 2) status = 'processing';
-        
         // Create a log entry with Markdown formatting
-        addLog(status, output);
+        addLog(
+          parsedOutput.status || 'running', 
+          output
+        );
         
         // Update the analysis progress in the store
-        updateAnalysisProgress(status, stepProgress, output);
+        updateAnalysisProgress(
+          parsedOutput.status || 'running',
+          parsedOutput.progress || stepProgress,
+          parsedOutput.message || output
+        );
         
         // If this is the last step, mark as completed
         if (index === sampleRealOutput.length - 1) {
           demoRunning = false;
+          
+          // Delay slightly before marking as complete
+          setTimeout(() => {
+            updateAnalysisProgress('completed', 100, 'Analysis completed successfully');
+          }, 500);
         }
       }, timeOffset);
       
@@ -261,17 +281,17 @@ Results summary:
   
   // Progress through a single phase
   function progressPhase() {
-    if (!demoRunning || currentPhaseIndex >= phases.length) {
-      demoRunning = currentPhaseIndex < phases.length;
-      return;
-    }
-    
     const phase = phases[currentPhaseIndex];
-    const phaseDuration = phase.duration;
-    const startProgress = currentPhaseIndex === 0 ? 0 : Math.round((currentPhaseIndex / phases.length) * 100);
-    const endProgress = Math.round(((currentPhaseIndex + 1) / phases.length) * 100);
+    const startProgress = currentPhaseIndex > 0 
+      ? (currentPhaseIndex / phases.length) * 100
+      : 0;
+    const endProgress = ((currentPhaseIndex + 1) / phases.length) * 100;
     const progressIncrement = (endProgress - startProgress) / 10; // 10 steps per phase
+    
     let phaseProgress = 0;
+    
+    // Clear any existing interval
+    clearInterval(runningInterval);
     
     // Set up a new interval for this phase
     runningInterval = setInterval(() => {
@@ -286,24 +306,23 @@ Results summary:
       // Update the progress store
       updateAnalysisProgress(phase.id, progress, phase.message);
       
-      // If we've reached the end of this phase, move to the next
+      // If we've reached the end of this phase
       if (progress >= endProgress) {
         clearInterval(runningInterval);
+        
+        // Move to the next phase or complete
         currentPhaseIndex++;
-        
-        // If this was the last phase, we're done
-        if (currentPhaseIndex >= phases.length) {
+        if (currentPhaseIndex < phases.length) {
+          // Add a log for the new phase
+          addLog(phases[currentPhaseIndex].id, phases[currentPhaseIndex].message);
+          // Start the next phase
+          progressPhase();
+        } else {
+          // Demo is complete
           demoRunning = false;
-          return;
         }
-        
-        // Otherwise, start the next phase
-        const nextPhase = phases[currentPhaseIndex];
-        addLog(nextPhase.id, nextPhase.message);
-        updateAnalysisProgress(nextPhase.id, progress, nextPhase.message);
-        progressPhase();
       }
-    }, phaseDuration / 10); // 10 steps per phase
+    }, phase.duration / 10);
   }
   
   // Update the analysis progress store
@@ -365,8 +384,8 @@ Results summary:
 </script>
 
 <div class="min-h-screen bg-gray-50 p-8">
-  <div class="container mx-auto">
-    <h1 class="mb-2 text-3xl font-bold text-gray-900">Analysis Progress Demo</h1>
+  <div class="mx-auto max-w-4xl">
+    <h1 class="mb-2 text-3xl font-bold">Analysis Progress Component</h1>
     <p class="mb-8 text-gray-600">A comparison of the original and redesigned components based on Dieter Rams' principles.</p>
     
     <!-- Demo controls -->
@@ -450,45 +469,44 @@ Results summary:
       </div>
     </div>
     
-    <!-- Component selector tabs -->
-    <div class="mb-6 flex rounded-lg bg-white shadow-sm overflow-hidden">
-      <button
-        class="flex-1 px-4 py-3 text-sm font-medium transition-colors"
-        class:bg-brand-royal={selectedTab === 'original'}
-        class:text-white={selectedTab === 'original'}
-        class:bg-white={selectedTab !== 'original'}
-        class:text-gray-700={selectedTab !== 'original'}
-        class:hover:bg-gray-50={selectedTab !== 'original'}
-        on:click={() => selectedTab = 'original'}
-      >
-        Original
-      </button>
-      <button
-        class="flex-1 px-4 py-3 text-sm font-medium transition-colors"
-        class:bg-brand-royal={selectedTab === 'enhanced'}
-        class:text-white={selectedTab === 'enhanced'}
-        class:bg-white={selectedTab !== 'enhanced'}
-        class:text-gray-700={selectedTab !== 'enhanced'}
-        class:hover:bg-gray-50={selectedTab !== 'enhanced'}
-        on:click={() => selectedTab = 'enhanced'}
-      >
-        Enhanced
-      </button>
-      <button
-        class="flex-1 px-4 py-3 text-sm font-medium transition-colors"
-        class:bg-brand-royal={selectedTab === 'rams'}
-        class:text-white={selectedTab === 'rams'}
-        class:bg-white={selectedTab !== 'rams'}
-        class:text-gray-700={selectedTab !== 'rams'}
-        class:hover:bg-gray-50={selectedTab !== 'rams'}
-        on:click={() => selectedTab = 'rams'}
-      >
-        Dieter Rams
-      </button>
+    <!-- Component tabs -->
+    <div class="mb-4">
+      <div class="flex border-b">
+        <button 
+          class="border-b-2 px-4 py-2 text-sm font-medium"
+          class:border-blue-600={selectedTab === 'original'} 
+          class:text-blue-600={selectedTab === 'original'}
+          class:border-transparent={selectedTab !== 'original'} 
+          class:text-gray-500={selectedTab !== 'original'}
+          on:click={() => selectedTab = 'original'}
+        >
+          Original
+        </button>
+        <button 
+          class="border-b-2 px-4 py-2 text-sm font-medium"
+          class:border-blue-600={selectedTab === 'enhanced'} 
+          class:text-blue-600={selectedTab === 'enhanced'}
+          class:border-transparent={selectedTab !== 'enhanced'} 
+          class:text-gray-500={selectedTab !== 'enhanced'}
+          on:click={() => selectedTab = 'enhanced'}
+        >
+          Enhanced
+        </button>
+        <button 
+          class="border-b-2 px-4 py-2 text-sm font-medium"
+          class:border-blue-600={selectedTab === 'rams'} 
+          class:text-blue-600={selectedTab === 'rams'}
+          class:border-transparent={selectedTab !== 'rams'} 
+          class:text-gray-500={selectedTab !== 'rams'}
+          on:click={() => selectedTab = 'rams'}
+        >
+          Dieter Rams Redesign
+        </button>
+      </div>
     </div>
     
     <!-- Component display -->
-    <div class="mb-8">
+    <div class="mb-16">
       {#if selectedTab === 'original'}
         <div class="mb-4">
           <h3 class="text-lg font-medium">Original Component</h3>
@@ -509,14 +527,7 @@ Results summary:
           <h3 class="text-lg font-medium">Enhanced Component</h3>
           <p class="text-sm text-gray-600">An enhanced version with more detailed information and phase visualization.</p>
         </div>
-        <!-- This component might not exist yet -->
-        {#if typeof EnhancedAnalysisProgress !== 'undefined'}
-          <EnhancedAnalysisProgress />
-        {:else}
-          <div class="rounded-lg border border-gray-200 bg-white p-4">
-            <p class="text-gray-500">Enhanced component not implemented yet.</p>
-          </div>
-        {/if}
+        <EnhancedAnalysisProgress />
         
         <!-- Error handler (if showing error) -->
         {#if showError}
@@ -531,7 +542,7 @@ Results summary:
           <h3 class="text-lg font-medium">Dieter Rams Redesign</h3>
           <p class="text-sm text-gray-600">A minimalist redesign following Dieter Rams' principles of good design.</p>
         </div>
-        <AnalysisProgressRams {enableMarkdown} />
+        <AnalysisProgressRams />
         
         <!-- Error handler (if showing error) -->
         {#if showError}
@@ -544,13 +555,18 @@ Results summary:
       {/if}
     </div>
     
-    <!-- Design principles -->
-    <div class="rounded-lg border border-gray-200 bg-white p-6">
-      <h2 class="mb-4 text-xl font-bold text-gray-900">Dieter Rams Design Principles</h2>
+    <!-- Design principles section -->
+    <div class="rounded-lg bg-white p-6 shadow-sm">
+      <h2 class="mb-4 text-xl font-bold">Dieter Rams' Design Principles Applied</h2>
       
       <div class="mb-6">
         <h3 class="mb-2 text-lg font-medium">Good Design Is As Little Design As Possible</h3>
-        <p class="text-gray-600">The redesigned component focuses only on essential elements, removing unnecessary decorations and focusing on clarity and function.</p>
+        <p class="text-gray-600">The redesign focuses on essential information and reduces visual noise. It presents only what users need to know at first glance.</p>
+      </div>
+      
+      <div class="mb-6">
+        <h3 class="mb-2 text-lg font-medium">Good Design Makes a Product Understandable</h3>
+        <p class="text-gray-600">Information is organized in a clear hierarchy, with the most important status and progress indicators immediately visible.</p>
       </div>
       
       <div class="mb-6">

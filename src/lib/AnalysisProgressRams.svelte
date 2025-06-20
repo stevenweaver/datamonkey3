@@ -2,36 +2,87 @@
   import { activeAnalysisProgress } from '../stores/analyses';
   import { onDestroy } from 'svelte';
   import { slide } from 'svelte/transition';
+  import { quintOut } from 'svelte/easing';
   
   // Duration for which to show the completed message before hiding
   export let completedMessageDuration = 5000; // 5 seconds
-  export let enableMarkdown = true; // Option to enable markdown rendering
-  
-  // Simple markdown renderer for log messages
-  function renderMarkdown(text) {
-    // This is a very simple implementation
-    // In a production app, use a proper markdown library
-    
-    if (!text) return '';
-    
-    // Handle code blocks
-    let formatted = text.replace(/```([\s\S]*?)```/g, '<pre class="p-2 my-1 bg-gray-700 text-gray-100 overflow-x-auto rounded">$1</pre>');
-    
-    // Handle bold text
-    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
-    // Handle emphasis
-    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    
-    // Replace newlines with <br>
-    formatted = formatted.replace(/\n/g, '<br>');
-    
-    return formatted;
-  }
   
   // Auto-hide completed progress after a delay
   let showCompleted = false;
   let hideCompletedTimeout;
+  
+  // Progressive disclosure states
+  let showPhases = false;
+  let showLogs = false;
+  
+  // State for managing phases
+  const phases = [
+    { id: 'initializing', name: 'Initialize' },
+    { id: 'mounting', name: 'Prepare' },
+    { id: 'running', name: 'Analyze' },
+    { id: 'processing', name: 'Process' },
+    { id: 'saving', name: 'Save' },
+    { id: 'completed', name: 'Complete' }
+  ];
+  
+  // Estimated time tracking
+  let startTime = null;
+  let elapsed = 0;
+  let estimatedTimeRemaining = null;
+  let timerInterval;
+  
+  // When active analysis progress changes, update timer
+  $: if ($activeAnalysisProgress.id) {
+    // If we have a new analysis or state changed to running, start/reset the timer
+    if (!startTime || 
+        ($activeAnalysisProgress.status === 'running' && ['initializing', 'mounting'].includes(previousStatus))) {
+      startTime = new Date();
+      elapsed = 0;
+      
+      // Clear any existing interval
+      if (timerInterval) clearInterval(timerInterval);
+      
+      // Start a new timer interval
+      timerInterval = setInterval(() => {
+        elapsed = (new Date() - startTime) / 1000; // elapsed time in seconds
+        
+        // Estimate remaining time based on progress and elapsed time
+        if ($activeAnalysisProgress.progress > 5) {
+          const progressRate = $activeAnalysisProgress.progress / elapsed; // % per second
+          const remainingProgress = 100 - $activeAnalysisProgress.progress;
+          estimatedTimeRemaining = remainingProgress / progressRate; // seconds
+        } else {
+          estimatedTimeRemaining = null; // Not enough data to estimate
+        }
+      }, 1000);
+    }
+    
+    // If analysis is completed or errored, clear the interval
+    if (['completed', 'error'].includes($activeAnalysisProgress.status)) {
+      clearInterval(timerInterval);
+    }
+  } else {
+    // If no active analysis, clear the timer
+    clearInterval(timerInterval);
+    startTime = null;
+    elapsed = 0;
+    estimatedTimeRemaining = null;
+  }
+  
+  // Format time for display (converts seconds to mm:ss)
+  function formatTime(seconds) {
+    if (!seconds && seconds !== 0) return '--:--';
+    
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  
+  // Track previous status to detect changes
+  let previousStatus = null;
+  $: {
+    previousStatus = $activeAnalysisProgress.status;
+  }
   
   $: if ($activeAnalysisProgress.status === 'completed' || $activeAnalysisProgress.status === 'error') {
     showCompleted = true;
@@ -41,16 +92,29 @@
     }, completedMessageDuration);
   }
   
-  // Clean up timeout on component destruction
+  // Clean up timeout and interval on component destruction
   onDestroy(() => {
     clearTimeout(hideCompletedTimeout);
+    clearInterval(timerInterval);
   });
   
-  // Show/hide detailed logs
-  let showDetails = false;
+  // Get appropriate text color class based on status
+  function getStatusColorClass(status) {
+    switch (status) {
+      case 'completed':
+        return 'text-green-600';
+      case 'error':
+        return 'text-red-600';
+      case 'running':
+      case 'processing':
+        return 'text-blue-600';
+      default:
+        return 'text-gray-700';
+    }
+  }
   
   // Format timestamp for display
-  function formatTime(isoString) {
+  function formatTimestamp(isoString) {
     try {
       const date = new Date(isoString);
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -59,136 +123,154 @@
     }
   }
   
-  // Get appropriate text color based on status
-  function getStatusColor(status) {
-    switch (status) {
-      case 'completed':
-        return '#34D399'; // Green
-      case 'error':
-        return '#EF4444'; // Red
-      case 'running':
-      case 'processing':
-        return '#3B82F6'; // Blue
-      default:
-        return '#6B7280'; // Gray
-    }
-  }
+  // Get the last few logs
+  $: displayedLogs = $activeAnalysisProgress.logs.slice(-5);
   
-  // Get status text based on the current status
-  function getStatusText(status) {
-    switch (status) {
-      case 'initializing':
-        return 'Initializing';
-      case 'mounting':
-        return 'Loading Data';
-      case 'running':
-        return 'Running';
-      case 'processing':
-        return 'Processing';
-      case 'saving':
-        return 'Saving Results';
-      case 'completed':
-        return 'Complete';
-      case 'error':
-        return 'Error';
-      default:
-        return 'Processing';
-    }
-  }
+  // Get current phase index
+  $: currentPhaseIndex = phases.findIndex(phase => phase.id === $activeAnalysisProgress.status);
   
-  // Determine if we should animate the progress bar
-  $: isActive = $activeAnalysisProgress.status !== 'completed' && 
-                $activeAnalysisProgress.status !== 'error';
+  // Get simplified status for display
+  $: statusText = $activeAnalysisProgress.status === 'running' ? 'Running analysis' : 
+                 $activeAnalysisProgress.status === 'completed' ? 'Analysis complete' :
+                 $activeAnalysisProgress.status === 'error' ? 'Analysis failed' :
+                 `${phases.find(p => p.id === $activeAnalysisProgress.status)?.name || 'Processing'}`;
 </script>
 
 {#if $activeAnalysisProgress.id && ($activeAnalysisProgress.status !== 'completed' || showCompleted)}
-  <div 
-    class="analysis-progress mt-4 overflow-hidden rounded-md bg-white transition-all"
-    class:shadow-sm={isActive}
-    transition:slide={{ duration: 300 }}
-  >
-    <!-- Status Bar -->
-    <div class="flex h-12 items-center justify-between p-3">
-      <!-- Status and message -->
-      <div class="flex items-center">
-        <div 
-          class="mr-3 h-2.5 w-2.5 rounded-full transition-colors" 
-          style="background-color: {getStatusColor($activeAnalysisProgress.status)}"
-        ></div>
-        <span class="font-medium">
-          {getStatusText($activeAnalysisProgress.status)}
-          {#if isActive}
-            <span class="ml-2 text-xs text-gray-500">{$activeAnalysisProgress.progress}%</span>
-          {/if}
-        </span>
+  <div class="analysis-progress mt-6 overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm">
+    <!-- Essential information - always visible -->
+    <div class="p-5">
+      <!-- Status and time information in single row -->
+      <div class="mb-4 flex items-center justify-between">
+        <div class="flex items-center">
+          <span class={`mr-2 text-lg font-medium ${getStatusColorClass($activeAnalysisProgress.status)}`}>
+            {statusText}
+          </span>
+        </div>
+        
+        <div class="flex items-center text-sm text-gray-600">
+          <span>
+            {formatTime(elapsed)}
+            {#if estimatedTimeRemaining && estimatedTimeRemaining > 0}
+              <span class="mx-1 text-gray-400">•</span>
+              <span>{formatTime(estimatedTimeRemaining)} remaining</span>
+            {/if}
+          </span>
+        </div>
       </div>
       
-      <!-- Controls -->
-      <div class="flex items-center space-x-2">
-        <button 
-          class="rounded p-1 text-xs text-gray-400 transition-colors hover:text-gray-700"
-          on:click={() => showDetails = !showDetails}
-          aria-label={showDetails ? 'Hide details' : 'Show details'}
-        >
-          {showDetails ? '△' : '▽'}
-        </button>
-        
-        {#if $activeAnalysisProgress.status === 'completed' || $activeAnalysisProgress.status === 'error'}
-          <button 
-            class="rounded p-1 text-xs text-gray-400 transition-colors hover:text-gray-700"
-            on:click={() => showCompleted = false}
-            aria-label="Dismiss"
-          >
-            ×
-          </button>
-        {/if}
+      <!-- Progress bar - more prominent -->
+      <div class="my-4 flex items-center">
+        <div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-gray-100">
+          <div 
+            class="absolute left-0 top-0 h-full rounded-full transition-all duration-300 ease-out"
+            class:bg-blue-500={$activeAnalysisProgress.status !== 'completed' && $activeAnalysisProgress.status !== 'error'}
+            class:bg-green-500={$activeAnalysisProgress.status === 'completed'}
+            class:bg-red-500={$activeAnalysisProgress.status === 'error'}
+            style="width: {$activeAnalysisProgress.progress}%"
+          ></div>
+        </div>
+        <span class="w-12 text-right text-sm font-medium">{$activeAnalysisProgress.progress}%</span>
       </div>
+      
+      <!-- Current operation - brief description -->
+      <p class="text-sm text-gray-600">
+        {$activeAnalysisProgress.message}
+      </p>
     </div>
     
-    <!-- Progress bar -->
-    {#if isActive}
-      <div class="h-1 w-full overflow-hidden bg-gray-100">
-        <div 
-          class="h-full transition-all duration-300 ease-out"
-          style="
-            background-color: {getStatusColor($activeAnalysisProgress.status)};
-            width: {$activeAnalysisProgress.progress}%;
-          "
-        ></div>
+    <!-- Toggle buttons for additional information -->
+    <div class="flex border-t border-gray-100 bg-gray-50 text-sm">
+      <button 
+        class="flex-1 py-2 text-center transition-colors hover:bg-gray-100"
+        class:text-blue-600={showPhases}
+        class:font-medium={showPhases}
+        on:click={() => showPhases = !showPhases}
+      >
+        {showPhases ? 'Hide' : 'Show'} Phases
+      </button>
+      
+      <div class="h-6 w-px self-center bg-gray-200"></div>
+      
+      <button 
+        class="flex-1 py-2 text-center transition-colors hover:bg-gray-100"
+        class:text-blue-600={showLogs}
+        class:font-medium={showLogs}
+        on:click={() => showLogs = !showLogs}
+      >
+        {showLogs ? 'Hide' : 'Show'} Details
+      </button>
+    </div>
+    
+    <!-- Phase indicator (collapsible) -->
+    {#if showPhases}
+      <div transition:slide={{duration: 200, easing: quintOut}} class="border-t border-gray-100 bg-white p-4">
+        <div class="flex items-center justify-between">
+          {#each phases as phase, index}
+            <div class="flex flex-col items-center" style="width: {100/phases.length}%">
+              <div 
+                class={`flex h-6 w-6 items-center justify-center rounded-full
+                  ${index <= currentPhaseIndex 
+                    ? index === currentPhaseIndex 
+                      ? 'bg-blue-100 ring-2 ring-blue-500' 
+                      : 'bg-green-100 text-green-600' 
+                    : 'bg-gray-100 text-gray-400'}`}
+              >
+                {#if index < currentPhaseIndex}
+                  <svg class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                {:else if index === currentPhaseIndex}
+                  <div class="h-2 w-2 rounded-full bg-blue-500"></div>
+                {:else}
+                  <div class="h-2 w-2 rounded-full bg-gray-300"></div>
+                {/if}
+                
+                {#if index < phases.length - 1}
+                  <div 
+                    class={`absolute left-[calc(100%+2px)] top-1/2 h-px w-[calc(100%-12px)] -translate-y-1/2 
+                      ${index < currentPhaseIndex ? 'bg-green-500' : 'bg-gray-200'}`}
+                  ></div>
+                {/if}
+              </div>
+              <span 
+                class={`mt-2 text-center text-xs
+                  ${index === currentPhaseIndex 
+                    ? 'font-medium text-blue-600' 
+                    : index < currentPhaseIndex 
+                      ? 'text-green-600' 
+                      : 'text-gray-500'}`}
+              >
+                {phase.name}
+              </span>
+            </div>
+          {/each}
+        </div>
       </div>
     {/if}
     
-    <!-- Message -->
-    <div class="border-t border-gray-100 px-3 py-2">
-      <p class="text-sm text-gray-700">{$activeAnalysisProgress.message}</p>
-    </div>
-    
-    <!-- Detailed view -->
-    {#if showDetails}
-      <div class="border-t border-gray-100 p-3">
-        <h4 class="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Log</h4>
-        
-        <div class="max-h-40 overflow-y-auto rounded bg-gray-50 p-2 text-xs">
-          {#each $activeAnalysisProgress.logs as log}
-            <div class="mb-1.5 flex">
-              <span class="mr-2 whitespace-nowrap font-mono text-gray-400">{formatTime(log.time)}</span>
-              <div
-                class="mr-1.5 h-2 w-2 mt-1.5 flex-shrink-0 rounded-full"
-                style="background-color: {getStatusColor(log.status)}"
-              ></div>
-              {#if enableMarkdown && log.message.includes('```') || log.message.includes('**')}
-                <div class="log-message flex-1">
-                  {@html renderMarkdown(log.message)}
-                </div>
-              {:else}
-                <span class="flex-1 font-mono">{log.message}</span>
-              {/if}
+    <!-- Log output (collapsible) -->
+    {#if showLogs}
+      <div transition:slide={{duration: 200, easing: quintOut}} class="border-t border-gray-100 bg-gray-50 p-4">
+        <div class="rounded border border-gray-200 bg-white p-2 text-xs">
+          {#each displayedLogs as log}
+            <div class="mb-2 flex">
+              <span class="mr-2 font-mono text-gray-400">{formatTimestamp(log.time)}</span>
+              <span class={`${getStatusColorClass(log.status)} flex-1`}>{log.message}</span>
             </div>
-          {:else}
-            <p class="text-gray-500">No logs available</p>
           {/each}
+          
+          {#if $activeAnalysisProgress.logs.length === 0}
+            <p class="text-center text-gray-500">No logs available</p>
+          {/if}
         </div>
       </div>
     {/if}
   </div>
 {/if}
+
+<style>
+  .analysis-progress {
+    transition: all 0.2s ease-in-out;
+  }
+</style>
