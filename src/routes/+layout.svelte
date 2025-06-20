@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import MultiAnalysisMonitor from '../lib/MultiAnalysisMonitor.svelte';
 	let { children } = $props();
 </script>
 
@@ -54,6 +55,9 @@
 			</ul>
 		</div>
 	</nav>
+
+	<!-- Global Analysis Monitor -->
+	<MultiAnalysisMonitor />
 
 	<main class="flex-grow container mx-auto p-premium-xl">
 		{@render children()}

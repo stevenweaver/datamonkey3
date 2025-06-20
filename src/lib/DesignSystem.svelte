@@ -271,6 +271,16 @@
     <div class="bg-white p-premium-xl rounded-premium shadow-premium">
       <h3 class="text-premium-title font-semibold text-text-rich mb-premium-lg">Progress Indicators</h3>
       
+      <div class="mb-premium-lg flex gap-premium-md">
+        <a href="/design/analysis-progress-demo" class="bg-brand-gradient text-white text-premium-body font-semibold py-[10px] px-[16px] rounded-premium-sm tracking-premium-wide shadow-sm hover:bg-brand-deep transition-all duration-premium inline-block">
+          View Analysis Progress Demo
+        </a>
+        
+        <a href="/design/multi-analysis-demo" class="bg-brand-gradient text-white text-premium-body font-semibold py-[10px] px-[16px] rounded-premium-sm tracking-premium-wide shadow-sm hover:bg-brand-deep transition-all duration-premium inline-block">
+          View Multi-Analysis Monitor
+        </a>
+      </div>
+      
       <div class="mb-premium-xl">
         <div class="h-[8px] bg-brand-whisper rounded overflow-hidden">
           <div class="h-full w-3/4 bg-brand-gradient rounded"></div>
