@@ -497,7 +497,9 @@ import SmartTabNavigation from '../lib/SmartTabNavigation.svelte';
 			// For selections, this is already done
 			let fileId;
 			if (!event.isSelection) {
-				fileId = await persistentFileStore.uploadFile(file);
+				// Pass any metadata from demo files
+				const metadata = event.isDemo ? event.metadata : {};
+				fileId = await persistentFileStore.uploadFile(file, metadata);
 			} else {
 				fileId = event.fileId;
 			}
@@ -691,11 +693,16 @@ import SmartTabNavigation from '../lib/SmartTabNavigation.svelte';
 	
 	// Handle demo file selection
 	function handleDemoFileSelect(event) {
-		const { file } = event.detail;
+		const { file, metadata } = event.detail;
 		
 		if (file) {
 			// Process the demo file
-			handleFileUpload({ target: { files: [file] } });
+			handleFileUpload({ 
+				target: { files: [file] },
+				isSelection: false,
+				isDemo: true,
+				metadata
+			});
 		}
 	}
 

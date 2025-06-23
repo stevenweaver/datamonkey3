@@ -40,20 +40,71 @@ function createPersistentFileStore() {
 			update(state => ({ ...state, isLoading: true, error: null }));
 			
 			try {
-				// Save file to IndexedDB
-				const fileId = await fileStorage.saveFile(file);
+				// Check if a file with the same name already exists
+				let existingFileId = null;
+				
+				update(state => {
+					// Check current state for a file with the same name
+					const existing = state.files.find(f => f.filename === file.name);
+					if (existing) {
+						existingFileId = existing.id;
+					}
+					return state;
+				});
+				
+				let fileId;
+				
+				if (existingFileId) {
+					// Update existing file with new content
+					console.log(`File with name ${file.name} already exists. Updating content.`);
+					
+					// Read existing file to preserve metadata
+					const existingFileRecord = await fileStorage.getFile(existingFileId);
+					
+					// Convert new file to ArrayBuffer
+					const arrayBuffer = await file.arrayBuffer();
+					
+					// Update existing file with new content but preserve metadata
+					const updatedFile = {
+						...existingFileRecord,
+						content: arrayBuffer,
+						size: file.size,
+						type: file.type,
+						updatedAt: new Date().getTime()
+					};
+					
+					// Save updated file
+					await fileStorage.updateFile(existingFileId, updatedFile);
+					fileId = existingFileId;
+				} else {
+					// Save as new file
+					fileId = await fileStorage.saveFile(file);
+				}
 				
 				// Get the file metadata (without content)
 				const fileRecord = await fileStorage.getFile(fileId);
 				const { content, ...fileMetadata } = fileRecord;
 				
 				// Update file list and set current file
-				update(state => ({
-					...state,
-					files: [...state.files, fileMetadata],
-					currentFileId: fileId,
-					isLoading: false
-				}));
+				update(state => {
+					// If the file existed, replace it in the list
+					if (existingFileId) {
+						return {
+							...state,
+							files: state.files.map(f => f.id === fileId ? fileMetadata : f),
+							currentFileId: fileId,
+							isLoading: false
+						};
+					} else {
+						// Otherwise add it to the list
+						return {
+							...state,
+							files: [...state.files, fileMetadata],
+							currentFileId: fileId,
+							isLoading: false
+						};
+					}
+				});
 				
 				// Return the file ID for reference
 				return fileId;

@@ -36,8 +36,11 @@
       // Create a File object from the content
       const file = new File([content], fileName, { type: 'application/octet-stream' });
       
+      // Add metadata to indicate this is a demo file
+      const metadata = { isDemo: true, source: 'demoSelector' };
+      
       // Dispatch the file to the parent component
-      dispatch('selectFile', { file });
+      dispatch('selectFile', { file, metadata });
       
     } catch (error) {
       console.error('Error loading demo file:', error);

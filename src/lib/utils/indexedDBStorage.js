@@ -60,6 +60,24 @@ export const fileStorage = {
   async saveFile(file, metadata = {}) {
     try {
       const db = await initDB();
+      
+      // Check if a file with the same name already exists
+      const existingFile = await this.findFileByName(file.name);
+      
+      // If file exists and we're not forcing a new save, update it
+      if (existingFile && !metadata.forceNew) {
+        // Update the existing file
+        return this.updateFile(existingFile.id, {
+          ...existingFile,
+          type: file.type,
+          size: file.size,
+          content: await file.arrayBuffer(),
+          updatedAt: new Date().getTime(),
+          ...metadata
+        });
+      }
+      
+      // Create new file
       const id = crypto.randomUUID();
       
       // Convert file to ArrayBuffer for storage
@@ -188,6 +206,73 @@ export const fileStorage = {
       });
     } catch (error) {
       console.error('Error in deleteFile:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Update an existing file in IndexedDB
+   * @param {string} id - The ID of the file to update
+   * @param {Object} fileData - The updated file data
+   * @returns {Promise<boolean>} - True if successful
+   */
+  async updateFile(id, fileData) {
+    try {
+      const db = await initDB();
+      
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([FILES_STORE], 'readwrite');
+        const store = transaction.objectStore(FILES_STORE);
+        const request = store.put(fileData); // put will update if the ID exists
+        
+        request.onsuccess = () => {
+          resolve(true);
+        };
+        
+        request.onerror = (event) => {
+          console.error('Error updating file:', event.target.error);
+          reject(event.target.error);
+        };
+      });
+    } catch (error) {
+      console.error('Error in updateFile:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Find a file by name in IndexedDB
+   * @param {string} filename - The name of the file to find
+   * @returns {Promise<Object|null>} - The file record or null if not found
+   */
+  async findFileByName(filename) {
+    try {
+      const db = await initDB();
+      
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([FILES_STORE], 'readonly');
+        const store = transaction.objectStore(FILES_STORE);
+        const index = store.index('filename');
+        const request = index.getAll(filename);
+        
+        request.onsuccess = (event) => {
+          const files = event.target.result;
+          // If multiple files with the same name exist, return the most recent one
+          if (files && files.length > 0) {
+            const sortedFiles = files.sort((a, b) => b.createdAt - a.createdAt);
+            resolve(sortedFiles[0]);
+          } else {
+            resolve(null);
+          }
+        };
+        
+        request.onerror = (event) => {
+          console.error('Error finding file by name:', event.target.error);
+          reject(event.target.error);
+        };
+      });
+    } catch (error) {
+      console.error('Error in findFileByName:', error);
       throw error;
     }
   },

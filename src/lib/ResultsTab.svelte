@@ -1,11 +1,12 @@
 <script>
   import { onMount } from 'svelte';
   import { analysisStore } from '../stores/analyses';
-  import { currentFile } from '../stores/fileInfo';
+  import { currentFile, fileMetricsStore } from '../stores/fileInfo';
   import AnalysisResultViewer from './AnalysisResultViewer.svelte';
   import AnalysisHistory from './AnalysisHistory.svelte';
   import AnalysisCompare from './AnalysisCompare.svelte';
   import BatchExport from './BatchExport.svelte';
+  import FastaExport from './FastaExport.svelte';
   import TabNavigation from './TabNavigation.svelte';
   
   // Props
@@ -57,23 +58,38 @@
       </button>
     </div>
     
-    <div class="flex items-center gap-premium-sm">
-      <button 
-        on:click={toggleBatchExport} 
-        class="rounded-premium-sm bg-accent-copper px-premium-md py-premium-sm text-white text-premium-body font-medium hover:bg-accent-warm transition-all duration-premium"
-      >
-        {showBatchExport ? 'Hide Batch Export' : 'Batch Export'}
-      </button>
-    </div>
+    <!-- Export toggle removed - now integrated into the export section below -->
   </div>
   
-  <!-- Batch Export (conditional) -->
-  {#if showBatchExport}
-    <div class="mb-premium-xl rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium">
-      <h2 class="text-premium-header font-semibold text-text-rich mb-premium-md">Batch Export</h2>
-      <BatchExport />
+  <!-- Export Options -->
+  <div class="mb-premium-xl rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium">
+    <h2 class="text-premium-header font-semibold text-text-rich mb-premium-md">Export Options</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-premium-lg">
+      <!-- Sequence Data Export (if file metrics available) -->
+      {#if $fileMetricsStore}
+        <div class="border-r border-border-platinum pr-premium-lg">
+          <h3 class="text-premium-title font-semibold mb-premium-sm">Sequence Data Export</h3>
+          <FastaExport fileMetricsJSON={$fileMetricsStore} />
+        </div>
+      {/if}
+      
+      <!-- Analysis Results Export -->
+      <div class={$fileMetricsStore ? '' : 'col-span-2'}>
+        <h3 class="text-premium-title font-semibold mb-premium-sm">Analysis Results Export</h3>
+        {#if showBatchExport}
+          <BatchExport />
+        {:else}
+          <button 
+            on:click={toggleBatchExport} 
+            class="bg-accent-copper hover:bg-accent-warm text-white font-medium py-2 px-4 rounded transition-colors"
+          >
+            Show Batch Export
+          </button>
+        {/if}
+      </div>
     </div>
-  {/if}
+  </div>
   
   <!-- Main content area -->
   {#if viewMode === 'single'}

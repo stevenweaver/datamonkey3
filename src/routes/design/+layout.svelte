@@ -14,18 +14,6 @@
         Overview
       </a>
       <a 
-        href="/design/analysis-progress-demo" 
-        class="px-4 py-2 bg-white rounded-md shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
-      >
-        Progress
-      </a>
-      <a 
-        href="/design/multi-analysis-demo" 
-        class="px-4 py-2 bg-white rounded-md shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
-      >
-        Multi-Analysis
-      </a>
-      <a 
         href="/design/analysis-status-demo" 
         class="px-4 py-2 bg-white rounded-md shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
       >

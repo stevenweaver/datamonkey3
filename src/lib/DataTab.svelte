@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import { fileMetricsStore, currentFile } from '../stores/fileInfo';
   import DataReaderResults from './dataReaderResults.svelte';
-  import FastaExport from './FastaExport.svelte';
   import FastaValidator from './FastaValidator.svelte';
   import SequenceWarnings from './SequenceWarnings.svelte';
   import FileManager from './FileManager.svelte';
@@ -85,13 +84,7 @@
       </div>
     {/if}
     
-    <!-- Export Section -->
-    <div class="mb-premium-xl">
-      <h2 class="text-premium-header font-semibold text-text-rich mb-premium-md">Export Data</h2>
-      <div class="rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium">
-        <FastaExport {fileMetricsJSON} />
-      </div>
-    </div>
+    <!-- Export functionality moved to Results tab for unified export experience -->
     
     <!-- Tree Inference Section -->
     <TreeInferenceSection onTreeGenerated={handleTreeGenerated} />

@@ -97,30 +97,4 @@
   }
 </script>
 
-<div class="mt-premium-xl flex justify-between">
-  <div>
-    {#if navConfig.back}
-      <TabNavButton
-        direction="back"
-        label={navConfig.back.label}
-        disabled={navConfig.back.disabled}
-        tooltip={navConfig.back.tooltip}
-        onClick={navConfig.back.onClick}
-        step={navConfig.back.step}
-      />
-    {/if}
-  </div>
-  
-  <div>
-    {#if navConfig.forward}
-      <TabNavButton
-        direction="forward"
-        label={navConfig.forward.label}
-        disabled={navConfig.forward.disabled}
-        tooltip={navConfig.forward.tooltip}
-        onClick={navConfig.forward.onClick}
-        step={navConfig.forward.step}
-      />
-    {/if}
-  </div>
-</div>
+<!-- Removed redundant bottom navigation buttons to consolidate navigation to the top tab bar -->
