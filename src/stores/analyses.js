@@ -8,13 +8,16 @@ function createAnalysisStore() {
 		currentAnalysisId: null,
 		isLoading: false,
 		error: null,
+		// Track a single active analysis for backward compatibility
 		activeAnalysis: {
 			id: null,
 			status: null, // 'initializing', 'mounting', 'running', 'processing', 'saving', 'completed', 'error'
 			progress: 0,
 			message: '',
 			logs: []
-		}
+		},
+		// Track multiple active analyses for the monitor
+		activeAnalysesList: []
 	});
 
 	return {
@@ -197,22 +200,58 @@ function createAnalysisStore() {
 		},
 		
 		// Start tracking analysis progress
-		startAnalysisProgress(analysisId, message = 'Initializing analysis...') {
-			update(state => ({
-				...state,
-				activeAnalysis: {
+		startAnalysisProgress(analysisId, message = 'Initializing analysis...', methodName = '', fileName = '') {
+			// Find the analysis in the store to get method and file information if not provided
+			let method = methodName;
+			let file = fileName;
+			
+			update(state => {
+				// Look up analysis details if not provided
+				if (!method || !file) {
+					const existingAnalysis = state.analyses.find(a => a.id === analysisId);
+					if (existingAnalysis) {
+						method = method || existingAnalysis.method;
+						file = file || existingAnalysis.fileName;
+					}
+				}
+				
+				// Create progress tracking object
+				const progressObj = {
 					id: analysisId,
 					status: 'initializing',
 					progress: 0,
 					message,
+					method,
+					fileName: file,
+					startTime: new Date().toISOString(),
 					logs: [{ time: new Date().toISOString(), message, status: 'initializing' }]
-				}
-			}));
+				};
+				
+				// Update the single active analysis (for backward compatibility)
+				const activeAnalysis = {
+					...progressObj
+				};
+				
+				// Add to the list of active analyses
+				// First remove any existing analysis with the same ID
+				const filteredList = state.activeAnalysesList.filter(a => a.id !== analysisId);
+				const activeAnalysesList = [...filteredList, progressObj];
+				
+				return {
+					...state,
+					activeAnalysis,
+					activeAnalysesList
+				};
+			});
 		},
 		
 		// Update analysis progress
 		updateAnalysisProgress(status, progress, message) {
 			update(state => {
+				// Get current active analysis (for backwards compatibility)
+				const analysisId = state.activeAnalysis.id;
+				if (!analysisId) return state; // No active analysis
+				
 				// Add the message to logs only if it's different from the last one
 				const logs = [...state.activeAnalysis.logs];
 				const lastLog = logs[logs.length - 1];
@@ -221,15 +260,32 @@ function createAnalysisStore() {
 					logs.push({ time: new Date().toISOString(), message, status });
 				}
 				
+				// Update the activeAnalysis (backwards compatibility)
+				const activeAnalysis = {
+					...state.activeAnalysis,
+					status,
+					progress: Math.min(Math.max(0, progress), 100), // Ensure progress is between 0-100
+					message,
+					logs
+				};
+				
+				// Update the analysis in the list of active analyses
+				const activeAnalysesList = state.activeAnalysesList.map(a => {
+					if (a.id !== analysisId) return a;
+					
+					return {
+						...a,
+						status,
+						progress: Math.min(Math.max(0, progress), 100),
+						message,
+						logs: [...logs] // Use the same logs object
+					};
+				});
+				
 				return {
 					...state,
-					activeAnalysis: {
-						...state.activeAnalysis,
-						status,
-						progress: Math.min(Math.max(0, progress), 100), // Ensure progress is between 0-100
-						message,
-						logs
-					}
+					activeAnalysis,
+					activeAnalysesList
 				};
 			});
 		},
@@ -238,32 +294,52 @@ function createAnalysisStore() {
 		async completeAnalysisProgress(success = true, message = success ? 'Analysis completed.' : 'Analysis failed.') {
 			const status = success ? 'completed' : 'error';
 			
-			update(state => {
-				const logs = [...state.activeAnalysis.logs];
-				logs.push({ time: new Date().toISOString(), message, status });
-				
-				return {
-					...state,
-					activeAnalysis: {
-						...state.activeAnalysis,
-						status,
-						progress: success ? 100 : state.activeAnalysis.progress,
-						message,
-						logs
-					}
-				};
-			});
-			
 			// Get the current state to access the active analysis ID
 			let currentState;
 			subscribe(state => {
 				currentState = state;
 			})();
 			
-			// If we have an active analysis ID, update its status in both client and server
-			if (currentState.activeAnalysis.id) {
-				const analysisId = currentState.activeAnalysis.id;
+			const analysisId = currentState?.activeAnalysis?.id;
+			if (!analysisId) return; // No active analysis
+			
+			update(state => {
+				const logs = [...state.activeAnalysis.logs];
+				logs.push({ time: new Date().toISOString(), message, status });
 				
+				// Update the activeAnalysis (backwards compatibility)
+				const activeAnalysis = {
+					...state.activeAnalysis,
+					status,
+					progress: success ? 100 : state.activeAnalysis.progress,
+					message,
+					logs,
+					completedAt: success ? new Date().toISOString() : undefined
+				};
+				
+				// Update the analysis in the list of active analyses
+				const activeAnalysesList = state.activeAnalysesList.map(a => {
+					if (a.id !== analysisId) return a;
+					
+					return {
+						...a,
+						status,
+						progress: success ? 100 : a.progress,
+						message,
+						logs: [...logs], // Use the same logs object
+						completedAt: success ? new Date().toISOString() : undefined
+					};
+				});
+				
+				return {
+					...state,
+					activeAnalysis,
+					activeAnalysesList
+				};
+			});
+			
+			// If we have an active analysis ID, update its status in both client and server
+			if (analysisId) {					
 				// Update IndexedDB
 				try {
 					const analysis = await analysisStorage.getAnalysis(analysisId);
@@ -313,6 +389,14 @@ function createAnalysisStore() {
 					console.error('Error updating analysis on server:', error);
 				}
 			}
+		},
+		
+		// Remove analysis from active list (for when user dismisses a completed analysis)
+		removeFromActiveAnalyses(analysisId) {
+			update(state => ({
+				...state,
+				activeAnalysesList: state.activeAnalysesList.filter(a => a.id !== analysisId)
+			}));
 		}
 	};
 }
@@ -336,8 +420,14 @@ export function getAnalysesForFile(fileId) {
 	);
 }
 
-// Derived store for the active analysis progress
+// Derived store for the active analysis progress (for backward compatibility)
 export const activeAnalysisProgress = derived(
 	analysisStore,
 	$analysisStore => $analysisStore.activeAnalysis
+);
+
+// Derived store for the list of active analyses
+export const activeAnalyses = derived(
+	analysisStore,
+	$analysisStore => $analysisStore.activeAnalysesList
 );

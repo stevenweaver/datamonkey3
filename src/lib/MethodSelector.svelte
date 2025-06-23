@@ -1,6 +1,7 @@
 <!-- src/lib/MethodSelector.svelte -->
 <script>
 	import { writable } from 'svelte/store';
+	import AnalysisProgressRams from './AnalysisProgressRams.svelte';
 	
 	export let methodConfig;
 	export let runMethod = [];
@@ -311,6 +312,11 @@
 		</div>
 	{/if}
 	
+	<!-- Analysis Progress -->
+	<div class="mb-premium-xl">
+		<AnalysisProgressRams />
+	</div>
+
 	<!-- Method cards -->
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-premium-md">
 		{#each filteredMethods as [key, method]}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import AnalysisStatusIndicator from '../lib/AnalysisStatusIndicator.svelte';
 	let { children } = $props();
 </script>
 
@@ -24,34 +25,39 @@
 				</span>
 			</a>
 			
-			<ul class="flex items-center space-x-premium-lg">
-				<li>
-					<a 
-						class="text-premium-brand font-medium text-text-rich hover:text-brand-royal transition-colors duration-premium"
-						href="/"
-					>
-						Home
-					</a>
-				</li>
-				<li>
-					<a 
-						class="text-premium-brand font-medium text-text-rich hover:text-brand-royal transition-colors duration-premium"
-						href="/design"
-					>
-						Design System
-					</a>
-				</li>
-				<li>
-					<a 
-						class="bg-brand-gradient text-white text-premium-body font-semibold py-[8px] px-[16px] rounded-premium-sm tracking-premium-wide shadow-sm hover:bg-brand-deep transition-all duration-premium"
-						href="https://github.com/stevenweaver/datamonkey3"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						GitHub
-					</a>
-				</li>
-			</ul>
+			<div class="flex items-center space-x-premium-lg">
+				<ul class="flex items-center space-x-premium-lg">
+					<li>
+						<a 
+							class="text-premium-brand font-medium text-text-rich hover:text-brand-royal transition-colors duration-premium"
+							href="/"
+						>
+							Home
+						</a>
+					</li>
+					<li>
+						<a 
+							class="text-premium-brand font-medium text-text-rich hover:text-brand-royal transition-colors duration-premium"
+							href="/design"
+						>
+							Design System
+						</a>
+					</li>
+					<li>
+						<a 
+							class="bg-brand-gradient text-white text-premium-body font-semibold py-[8px] px-[16px] rounded-premium-sm tracking-premium-wide shadow-sm hover:bg-brand-deep transition-all duration-premium"
+							href="https://github.com/stevenweaver/datamonkey3"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							GitHub
+						</a>
+					</li>
+				</ul>
+				
+				<!-- Analysis Status Indicator -->
+				<AnalysisStatusIndicator />
+			</div>
 		</div>
 	</nav>
 

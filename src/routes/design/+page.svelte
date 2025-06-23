@@ -5,7 +5,9 @@
   
   let demoLinks = [
     { name: 'Design System', path: '/design' },
-    { name: 'Analysis Progress Demo', path: '/design/analysis-progress-demo' }
+    { name: 'Analysis Progress Demo', path: '/design/analysis-progress-demo' },
+    { name: 'Multi-Analysis Demo', path: '/design/multi-analysis-demo' },
+    { name: 'Status Indicator Demo', path: '/design/analysis-status-demo' }
   ];
   
   function navigateTo(path) {
@@ -28,6 +30,8 @@
           <p class="mt-2 text-sm text-gray-600">
             {link.name === 'Design System' ? 'View the core design system components' : 
              link.name === 'Analysis Progress Demo' ? 'Compare original and Dieter Rams redesign' : 
+             link.name === 'Multi-Analysis Demo' ? 'Track multiple concurrent analyses' :
+             link.name === 'Status Indicator Demo' ? 'New streamlined status indicator in navbar' :
              'Demo description'}
           </p>
         </button>
