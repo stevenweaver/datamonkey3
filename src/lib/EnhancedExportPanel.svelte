@@ -4,6 +4,7 @@
   import { exportData, createShareableLink, copyToClipboard } from './utils/exportUtils';
   import { analysisStore } from '../stores/analyses';
   import { persistentFileStore } from '../stores/fileInfo';
+  import LogDownloader from './LogDownloader.svelte';
   
   // Props
   export let analysisId;
@@ -376,6 +377,9 @@
           {shareLinkCopied ? 'Link Copied!' : 'Copy Shareable Link'}
         </button>
         
+        <!-- Log Downloader dropdown -->
+        <LogDownloader {analysisId} />
+        
         {#if exportStatus}
           <span class="ml-2 self-center text-sm font-medium text-green-600">{exportStatus}</span>
         {/if}
@@ -389,6 +393,9 @@
           <span>
             <strong>Export tips:</strong> JSON format preserves all analysis details, while CSV is best for importing into 
             spreadsheet software. You can share your analysis with others by copying the shareable link.
+            <br /><br />
+            <strong>Technical users:</strong> For debugging and reproducibility, download the raw log files (stdout/stderr) 
+            using the "Download Logs" dropdown.
           </span>
         </p>
       </div>
