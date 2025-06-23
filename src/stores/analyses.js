@@ -344,9 +344,13 @@ function createAnalysisStore() {
 				try {
 					const analysis = await analysisStorage.getAnalysis(analysisId);
 					if (analysis) {
+						// Get current logs from the active analysis
+						const currentLogs = currentState.activeAnalysis.logs || [];
+						
 						await analysisStorage.saveAnalysis({
 							...analysis,
 							status,
+							logs: currentLogs, // Include logs from active analysis
 							completedAt: success ? new Date().getTime() : undefined
 						});
 						
@@ -355,7 +359,12 @@ function createAnalysisStore() {
 							...state,
 							analyses: state.analyses.map(a => 
 								a.id === analysisId 
-									? { ...a, status, completedAt: success ? new Date().getTime() : undefined }
+									? { 
+											...a, 
+											status, 
+											logs: currentLogs, // Include logs here too
+											completedAt: success ? new Date().getTime() : undefined 
+										}
 									: a
 							)
 						}));
@@ -374,6 +383,7 @@ function createAnalysisStore() {
 							},
 							body: JSON.stringify({
 								status,
+								logs: currentLogs, // Include logs in the server update
 								completedAt: success ? new Date().getTime() : undefined
 							})
 						})
