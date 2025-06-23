@@ -73,48 +73,107 @@
         throw new Error('Invalid log type');
       }
       
+      console.log('LogDownloader - Analysis:', analysis);
+      console.log('LogDownloader - Analysis Logs:', analysis.logs);
+      console.log('LogDownloader - Analysis Logs Type:', typeof analysis.logs);
+      console.log('LogDownloader - Analysis Logs Is Array:', Array.isArray(analysis.logs));
+      if (analysis.logs) {
+        console.log('LogDownloader - Analysis Logs Length:', Array.isArray(analysis.logs) ? analysis.logs.length : 'N/A');
+        if (Array.isArray(analysis.logs) && analysis.logs.length > 0) {
+          console.log('LogDownloader - First Log Entry:', analysis.logs[0]);
+        }
+      }
+      
       // Generate filename based on analysis method and timestamp
       const method = analysis.method.toUpperCase();
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
       const filename = `${method}_${timestamp}_${logInfo.filename}`;
       
+      // Try to get raw stdout from result
+      let rawStdout = '';
+      
+      // Check if we have a result with stdout
+      if (analysis.result) {
+        try {
+          // Try to parse the result if it's a string
+          const resultObj = typeof analysis.result === 'string' 
+            ? JSON.parse(analysis.result) 
+            : analysis.result;
+          
+          // Check if the parsed result has stdout
+          if (resultObj && resultObj.stdout) {
+            rawStdout = resultObj.stdout;
+            console.log('LogDownloader - Found raw stdout in result');
+          }
+        } catch (e) {
+          console.warn('LogDownloader - Failed to parse analysis result:', e);
+        }
+      }
+      
       // Get log content based on type
       switch (logType) {
         case 'stdout':
-          const stdoutContent = getStdoutFromLogs(analysis.logs);
-          content = stdoutContent || analysis.logs?.stdout || 'No standard output available';
+          // First try to use the raw stdout from the result
+          if (rawStdout) {
+            content = rawStdout;
+          } else {
+            // Fall back to logs if no raw stdout
+            const stdoutContent = getStdoutFromLogs(analysis.logs);
+            console.log('LogDownloader - Stdout Content:', stdoutContent);
+            content = stdoutContent || analysis.logs?.stdout || 'No standard output available';
+          }
           
           // Add header information if we have content
-          if (stdoutContent) {
+          if (content && content !== 'No standard output available') {
             content = `=== STANDARD OUTPUT FOR ${analysis.method?.toUpperCase() || 'ANALYSIS'} ===\n` +
                       `Started: ${formatTimestamp(analysis.startTime || analysis.logs[0]?.time)}\n\n` +
                       content;
           }
           break;
         case 'stderr':
+          // For stderr, we don't typically have raw stderr output, so just use the logs
           const stderrContent = getStderrFromLogs(analysis.logs);
+          console.log('LogDownloader - Stderr Content:', stderrContent);
           content = stderrContent || analysis.logs?.stderr || 'No error output available';
           
           // Add header information if we have content
-          if (stderrContent) {
+          if (content && content !== 'No error output available') {
             content = `=== STANDARD ERROR FOR ${analysis.method?.toUpperCase() || 'ANALYSIS'} ===\n` +
                       `Started: ${formatTimestamp(analysis.startTime || analysis.logs[0]?.time)}\n\n` +
                       content;
           }
           break;
         case 'combined':
-          const stdout = analysis.logs?.stdout || getStdoutFromLogs(analysis.logs) || 'No standard output available';
-          const stderr = analysis.logs?.stderr || getStderrFromLogs(analysis.logs) || 'No error output available';
+          // First try to use the raw stdout from the result
+          let stdout = '';
+          if (rawStdout) {
+            stdout = rawStdout;
+            console.log('LogDownloader - Using raw stdout for combined log');
+          } else {
+            stdout = analysis.logs?.stdout || getStdoutFromLogs(analysis.logs) || 'No standard output available';
+            console.log('LogDownloader - Using logs for stdout in combined log');
+          }
           
-          // If we have an analysis with logs, create a properly formatted execution log
+          const stderr = analysis.logs?.stderr || getStderrFromLogs(analysis.logs) || 'No error output available';
+          console.log('LogDownloader - Combined Stdout:', stdout.substring(0, 100) + '...');
+          console.log('LogDownloader - Combined Stderr:', stderr);
+          
+          // Create a properly formatted execution log
+          content = `=== EXECUTION LOG FOR ${analysis.method?.toUpperCase() || 'ANALYSIS'} ===\n`;
+          content += `Started: ${formatTimestamp(analysis.startTime || analysis.logs?.[0]?.time)}\n`;
+          if (analysis.completedAt) {
+            content += `Completed: ${formatTimestamp(analysis.completedAt)}\n`;
+          }
+          content += `Status: ${analysis.status || 'unknown'}\n\n`;
+          
+          // If we have raw stdout from the result, include it directly
+          if (rawStdout) {
+            content += `=== RAW HYPHY OUTPUT ===\n${rawStdout}\n\n`;
+          }
+          
+          // If we also have structured logs, include them
           if (analysis.logs && Array.isArray(analysis.logs) && analysis.logs.length > 0) {
-            // Format all logs in chronological order with timestamps
-            content = `=== EXECUTION LOG FOR ${analysis.method?.toUpperCase() || 'ANALYSIS'} ===\n`;
-            content += `Started: ${formatTimestamp(analysis.startTime || analysis.logs[0]?.time)}\n`;
-            if (analysis.completedAt) {
-              content += `Completed: ${formatTimestamp(analysis.completedAt)}\n`;
-            }
-            content += `Status: ${analysis.status || 'unknown'}\n\n`;
+            console.log('LogDownloader - Formatting array logs');
             content += `=== LOG ENTRIES (CHRONOLOGICAL ORDER) ===\n`;
             
             // Sort logs by timestamp and format them
@@ -126,9 +185,10 @@
               const timestamp = formatTimestamp(log.time);
               return `[${timestamp}] [${log.status || 'info'}] ${log.message}`;
             }).join('\n\n');
-          } else {
-            // Fallback to simple stdout/stderr separation
-            content = `=== STANDARD OUTPUT ===\n${stdout}\n\n=== STANDARD ERROR ===\n${stderr}`;
+          } else if (!rawStdout) {
+            console.log('LogDownloader - Fallback to stdout/stderr separation');
+            // If no raw stdout and no logs, provide the stdout/stderr fallback
+            content += `=== STANDARD OUTPUT ===\n${stdout}\n\n=== STANDARD ERROR ===\n${stderr}`;
           }
           break;
         default:
