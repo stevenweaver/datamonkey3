@@ -81,15 +81,55 @@
       // Get log content based on type
       switch (logType) {
         case 'stdout':
-          content = analysis.logs?.stdout || getStdoutFromLogs(analysis.logs) || 'No standard output available';
+          const stdoutContent = getStdoutFromLogs(analysis.logs);
+          content = stdoutContent || analysis.logs?.stdout || 'No standard output available';
+          
+          // Add header information if we have content
+          if (stdoutContent) {
+            content = `=== STANDARD OUTPUT FOR ${analysis.method?.toUpperCase() || 'ANALYSIS'} ===\n` +
+                      `Started: ${formatTimestamp(analysis.startTime || analysis.logs[0]?.time)}\n\n` +
+                      content;
+          }
           break;
         case 'stderr':
-          content = analysis.logs?.stderr || getStderrFromLogs(analysis.logs) || 'No error output available';
+          const stderrContent = getStderrFromLogs(analysis.logs);
+          content = stderrContent || analysis.logs?.stderr || 'No error output available';
+          
+          // Add header information if we have content
+          if (stderrContent) {
+            content = `=== STANDARD ERROR FOR ${analysis.method?.toUpperCase() || 'ANALYSIS'} ===\n` +
+                      `Started: ${formatTimestamp(analysis.startTime || analysis.logs[0]?.time)}\n\n` +
+                      content;
+          }
           break;
         case 'combined':
           const stdout = analysis.logs?.stdout || getStdoutFromLogs(analysis.logs) || 'No standard output available';
           const stderr = analysis.logs?.stderr || getStderrFromLogs(analysis.logs) || 'No error output available';
-          content = `=== STANDARD OUTPUT ===\n${stdout}\n\n=== STANDARD ERROR ===\n${stderr}`;
+          
+          // If we have an analysis with logs, create a properly formatted execution log
+          if (analysis.logs && Array.isArray(analysis.logs) && analysis.logs.length > 0) {
+            // Format all logs in chronological order with timestamps
+            content = `=== EXECUTION LOG FOR ${analysis.method?.toUpperCase() || 'ANALYSIS'} ===\n`;
+            content += `Started: ${formatTimestamp(analysis.startTime || analysis.logs[0]?.time)}\n`;
+            if (analysis.completedAt) {
+              content += `Completed: ${formatTimestamp(analysis.completedAt)}\n`;
+            }
+            content += `Status: ${analysis.status || 'unknown'}\n\n`;
+            content += `=== LOG ENTRIES (CHRONOLOGICAL ORDER) ===\n`;
+            
+            // Sort logs by timestamp and format them
+            const sortedLogs = [...analysis.logs].sort((a, b) => {
+              return new Date(a.time || 0) - new Date(b.time || 0);
+            });
+            
+            content += sortedLogs.map(log => {
+              const timestamp = formatTimestamp(log.time);
+              return `[${timestamp}] [${log.status || 'info'}] ${log.message}`;
+            }).join('\n\n');
+          } else {
+            // Fallback to simple stdout/stderr separation
+            content = `=== STANDARD OUTPUT ===\n${stdout}\n\n=== STANDARD ERROR ===\n${stderr}`;
+          }
           break;
         default:
           content = 'Invalid log type selected';
@@ -113,30 +153,66 @@
   
   // Extract stdout from analysis logs
   function getStdoutFromLogs(logs) {
-    if (!logs || !Array.isArray(logs)) return '';
+    if (!logs) return '';
     
-    // Filter logs that might be stdout entries
-    const stdoutLogs = logs.filter(log => 
-      log.status !== 'error' && 
-      log.status !== 'warning'
-    );
+    // Handle case where logs is an array (the normal case)
+    if (Array.isArray(logs)) {
+      // Filter logs that might be stdout entries (any non-error, non-warning logs)
+      const stdoutLogs = logs.filter(log => 
+        log.status !== 'error' && 
+        log.status !== 'warning'
+      );
+      
+      // Format logs with timestamps and messages for better readability
+      return stdoutLogs.map(log => {
+        const timestamp = formatTimestamp(log.time);
+        return `[${timestamp}] [${log.status || 'info'}] ${log.message}`;
+      }).join('\n\n');
+    }
     
-    // Join the messages
-    return stdoutLogs.map(log => log.message).join('\n');
+    // If logs.stdout exists directly (unlikely but handle it)
+    if (logs.stdout) {
+      return logs.stdout;
+    }
+    
+    return '';
   }
   
   // Extract stderr from analysis logs
   function getStderrFromLogs(logs) {
-    if (!logs || !Array.isArray(logs)) return '';
+    if (!logs) return '';
     
-    // Filter logs that might be stderr entries
-    const stderrLogs = logs.filter(log => 
-      log.status === 'error' || 
-      log.status === 'warning'
-    );
+    // Handle case where logs is an array (the normal case)
+    if (Array.isArray(logs)) {
+      // Filter logs that might be stderr entries (errors and warnings)
+      const stderrLogs = logs.filter(log => 
+        log.status === 'error' || 
+        log.status === 'warning'
+      );
+      
+      // Format logs with timestamps and messages for better readability
+      return stderrLogs.map(log => {
+        const timestamp = formatTimestamp(log.time);
+        return `[${timestamp}] [${log.status}] ${log.message}`;
+      }).join('\n\n');
+    }
     
-    // Join the messages
-    return stderrLogs.map(log => log.message).join('\n');
+    // If logs.stderr exists directly (unlikely but handle it)
+    if (logs.stderr) {
+      return logs.stderr;
+    }
+    
+    return '';
+  }
+  
+  // Format timestamp for logs
+  function formatTimestamp(isoString) {
+    try {
+      const date = new Date(isoString);
+      return date.toISOString().replace('T', ' ').substring(0, 19);
+    } catch (e) {
+      return new Date().toISOString().replace('T', ' ').substring(0, 19);
+    }
   }
   
   // Display status message with auto-clear
