@@ -154,7 +154,7 @@
   } : null;
   
   // Get simplified status for display
-  $: statusText = $activeAnalysisProgress.status === 'running' ? 'Running analysis' : 
+  $: statusText = $activeAnalysisProgress.status === 'running' ? 'Analysis in progress' : 
                  $activeAnalysisProgress.status === 'completed' ? 'Analysis complete' :
                  $activeAnalysisProgress.status === 'error' ? 'Analysis failed' :
                  'Processing';
@@ -247,7 +247,9 @@
           <div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-gray-100">
             <div class="progress-pulse absolute left-0 top-0 h-full w-1/3 rounded-full bg-blue-500"></div>
           </div>
-          <span class="w-12 text-right text-sm font-medium text-blue-600">Active</span>
+          <span class="w-12 text-right text-sm font-medium text-blue-600 flex items-center justify-end">
+            <span class="h-2 w-2 rounded-full bg-blue-500 pulse-animation mr-1"></span>
+          </span>
         {/if}
       </div>
       
@@ -333,6 +335,26 @@
     0% { transform: translateX(-100%); }
     50% { transform: translateX(100%); }
     100% { transform: translateX(300%); }
+  }
+  
+  /* Animation for the pulsing indicator */
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.05);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
   
   /* Message preview styling */
