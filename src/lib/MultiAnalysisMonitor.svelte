@@ -36,6 +36,18 @@
   $: {
     // Check for newly completed analyses
     if ($activeAnalyses) {
+      // Log analysis structure for debugging
+      console.log('Active analyses:', $activeAnalyses);
+      $activeAnalyses.forEach(analysis => {
+        console.log(`Analysis ID: ${analysis.id}, Status: ${analysis.status}`);
+        console.log('Logs structure:', analysis.logs);
+        if (analysis.logs) {
+          console.log('Logs type:', typeof analysis.logs);
+          console.log('Logs is array:', Array.isArray(analysis.logs));
+          console.log('Logs length:', Array.isArray(analysis.logs) ? analysis.logs.length : 'N/A');
+        }
+      });
+      
       const completedAnalyses = $activeAnalyses.filter(analysis => 
         analysis.status === 'completed' && !completedNotifications.includes(analysis.id)
       );
