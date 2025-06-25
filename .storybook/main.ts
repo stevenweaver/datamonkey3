@@ -3,7 +3,7 @@ import type { StorybookConfig } from '@storybook/sveltekit';
 const config: StorybookConfig = {
   "stories": [
     "../src/**/*.mdx",
-    "../src/**/*.stories.@(js|ts|svelte)"
+    "../src/**/*.stories.@(js|jsx|ts|tsx|svelte)"
   ],
 
   "addons": [
