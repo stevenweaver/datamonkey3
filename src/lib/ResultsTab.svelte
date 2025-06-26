@@ -108,9 +108,31 @@
         <h2 class="text-premium-header font-semibold text-text-rich mb-premium-md">Analysis Results</h2>
         {#if selectedAnalysisId}
           <AnalysisResultViewer analysisId={selectedAnalysisId} />
+        {:else if $analysisStore.analyses.filter(a => a.method !== 'datareader').length > 0}
+          <div class="flex flex-col items-center justify-center h-64 bg-brand-whisper rounded-premium text-center">
+            <div class="mb-premium-md">
+              <svg class="w-16 h-16 text-text-muted mx-auto mb-premium-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <h3 class="text-premium-title font-semibold text-text-rich mb-premium-xs">Select an Analysis</h3>
+              <p class="text-premium-body text-text-slate">Choose an analysis from the history to view detailed results</p>
+            </div>
+          </div>
         {:else}
-          <div class="flex items-center justify-center h-64 bg-brand-whisper rounded-premium">
-            <p class="text-premium-body text-text-slate">Select an analysis from the history to view results</p>
+          <div class="flex flex-col items-center justify-center h-64 bg-brand-whisper rounded-premium text-center">
+            <div class="mb-premium-md">
+              <svg class="w-16 h-16 text-text-muted mx-auto mb-premium-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <h3 class="text-premium-title font-semibold text-text-rich mb-premium-xs">No Analyses Yet</h3>
+              <p class="text-premium-body text-text-slate mb-premium-md">You haven't run any analyses yet. Get started by uploading a file and running an analysis method.</p>
+              <button 
+                on:click={() => onChange('analyze')}
+                class="bg-brand-royal hover:bg-brand-deep text-white font-medium py-premium-sm px-premium-md rounded-premium transition-colors"
+              >
+                Go to Analyze Tab
+              </button>
+            </div>
           </div>
         {/if}
       </div>
