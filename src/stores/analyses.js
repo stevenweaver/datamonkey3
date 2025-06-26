@@ -339,20 +339,23 @@ function createAnalysisStore() {
 			});
 			
 			// If we have an active analysis ID, update its status in both client and server
-			if (analysisId) {					
+			if (analysisId) {
+				// Get current logs and result from the active analysis
+				const currentLogs = currentState.activeAnalysis.logs || [];
+				const currentResult = currentState.activeAnalysis.result || null;
+				
 				// Update IndexedDB
 				try {
 					const analysis = await analysisStorage.getAnalysis(analysisId);
 					if (analysis) {
-						// Get current logs and result from the active analysis
-						const currentLogs = currentState.activeAnalysis.logs || [];
-						const currentResult = currentState.activeAnalysis.result || analysis.result;
+						// Use the saved result if no current result is available
+						const finalResult = currentResult || analysis.result;
 						
 						await analysisStorage.saveAnalysis({
 							...analysis,
 							status,
 							logs: currentLogs, // Include logs from active analysis
-							result: currentResult, // Ensure result is saved with raw stdout
+							result: finalResult, // Ensure result is saved with raw stdout
 							completedAt: success ? new Date().getTime() : undefined
 						});
 						
@@ -365,7 +368,7 @@ function createAnalysisStore() {
 											...a, 
 											status, 
 											logs: currentLogs, // Include logs here too
-											result: currentResult, // Include result with raw stdout here too
+											result: finalResult, // Include result with raw stdout here too
 											completedAt: success ? new Date().getTime() : undefined 
 										}
 									: a
