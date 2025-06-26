@@ -42,6 +42,11 @@
 		fileMetricsStore.subscribe((value) => (fileMetrics = value));
 		treeStore.subscribe((value) => (trees = value));
 
+		// Subscribe to aioli store to get the CLI object
+		aioliStore.subscribe((value) => {
+			cliObj = value;
+		});
+
 		methodConfig.options.forEach((option) => {
 			if (option.default !== undefined) {
 				formData[option.name] = option.default;
@@ -74,7 +79,15 @@
 		}
 
 		resultsCompleted = false;
-		await aioliStore.subscribe((value) => (cliObj = value));
+
+		// Check if cliObj is available
+		if (!cliObj) {
+			console.error(
+				'HyPhy CLI object is not initialized. Please wait for the application to load completely.'
+			);
+			isRunning = false;
+			return;
+		}
 
 		try {
 			let fullHyphyCommand = `hyphy LIBPATH=/shared/hyphy/ ${command} ${args.join(' ')}`;
@@ -104,7 +117,11 @@
 		</div>
 	{/if}
 
-	{#if isRunning}
+	{#if !cliObj}
+		<div class="mb-4 border-l-4 border-blue-500 bg-blue-100 p-4 text-blue-700">
+			<p>Loading HyPhy analysis environment...</p>
+		</div>
+	{:else if isRunning}
 		<div class="mb-4 border-l-4 border-yellow-500 bg-yellow-100 p-4 text-yellow-700">
 			<p>Job is running. Please wait...</p>
 		</div>
