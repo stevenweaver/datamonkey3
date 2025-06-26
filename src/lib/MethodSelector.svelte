@@ -194,18 +194,18 @@
 				const query = searchQuery.toLowerCase();
 				return key.toLowerCase().includes(query) || 
 					method.description.toLowerCase().includes(query) ||
-					(METHOD_INFO[key]?.fullName || "").toLowerCase().includes(query);
+					(METHOD_INFO[key.toLowerCase()]?.fullName || "").toLowerCase().includes(query);
 			}
 			
 			// Filter by selected category or show all
 			if (showAllMethods) return true;
 			
-			return METHOD_CATEGORIES[selectedCategory].methods.includes(key);
+			return METHOD_CATEGORIES[selectedCategory].methods.includes(key.toLowerCase());
 		})
 		.sort((a, b) => {
 			// Sort by recommended tag first, then alphabetically
-			const aInfo = METHOD_INFO[a[0]] || {};
-			const bInfo = METHOD_INFO[b[0]] || {};
+			const aInfo = METHOD_INFO[a[0].toLowerCase()] || {};
+			const bInfo = METHOD_INFO[b[0].toLowerCase()] || {};
 			
 			if (aInfo.tag === "recommended" && bInfo.tag !== "recommended") return -1;
 			if (aInfo.tag !== "recommended" && bInfo.tag === "recommended") return 1;
@@ -215,7 +215,7 @@
 
 	// Function to get method info if available
 	function getMethodInfo(key) {
-		return METHOD_INFO[key] || {
+		return METHOD_INFO[key.toLowerCase()] || {
 			name: key.toUpperCase(),
 			fullName: key,
 			shortDescription: "",
@@ -387,7 +387,7 @@
 				<div>
 					<h4 class="text-premium-body font-semibold text-text-rich">Selected Methods ({$selectedMethods.length})</h4>
 					<p class="text-premium-meta text-text-slate">
-						{$selectedMethods.map(m => METHOD_INFO[m]?.name || m.toUpperCase()).join(', ')}
+						{$selectedMethods.map(m => METHOD_INFO[m.toLowerCase()]?.name || m.toUpperCase()).join(', ')}
 					</p>
 				</div>
 				<div class="flex gap-premium-sm">
