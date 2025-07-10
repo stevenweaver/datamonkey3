@@ -18,6 +18,7 @@
 	let filterFile = 'all';
 	let availableMethods = ['all'];
 	let availableFiles = ['all'];
+	let fastaExportStatus = '';
 
 	// Available export formats
 	const exportFormats = [
@@ -205,14 +206,24 @@
 
 	// Export FASTA file with corrections
 	async function exportCorrectedFasta(analysisId) {
+		fastaExportStatus = 'Exporting FASTA...';
+
 		try {
 			const analysis = await analysisStore.getAnalysis(analysisId);
 			if (!analysis || analysis.method !== 'datareader') {
+				fastaExportStatus = 'Error: Not a datareader analysis';
+				setTimeout(() => {
+					fastaExportStatus = '';
+				}, 3000);
 				return false;
 			}
 
 			const file = files.find((f) => f.id === analysis.fileId);
 			if (!file) {
+				fastaExportStatus = 'Error: File not found';
+				setTimeout(() => {
+					fastaExportStatus = '';
+				}, 3000);
 				return false;
 			}
 
@@ -220,6 +231,10 @@
 				typeof analysis.result === 'string' ? JSON.parse(analysis.result) : analysis.result;
 
 			if (!result || !result.FILE_INFO) {
+				fastaExportStatus = 'Error: Analysis results incomplete';
+				setTimeout(() => {
+					fastaExportStatus = '';
+				}, 3000);
 				return false;
 			}
 
@@ -229,6 +244,10 @@
 				const fileRecord = await fileStorage.getFile(analysis.fileId);
 				if (!fileRecord || !fileRecord.content) {
 					console.error('File content not found');
+					fastaExportStatus = 'Error: File content not found';
+					setTimeout(() => {
+						fastaExportStatus = '';
+					}, 3000);
 					return false;
 				}
 
@@ -239,17 +258,34 @@
 					const fastaContent = toFastaFormat(sequences, { lineLength: 60 });
 					const filename = file.filename.replace(/\.[^/.]+$/, '') + '_exported.fasta';
 					exportData(fastaContent, filename, 'txt');
+
+					fastaExportStatus = `FASTA exported successfully (${sequences.length} sequences)`;
+					setTimeout(() => {
+						fastaExportStatus = '';
+					}, 3000);
 					return true;
 				} else {
 					console.error('No sequences found in file');
+					fastaExportStatus = 'Error: No sequences found in file';
+					setTimeout(() => {
+						fastaExportStatus = '';
+					}, 3000);
 					return false;
 				}
 			} catch (parseError) {
 				console.error('Error parsing FASTA content:', parseError);
+				fastaExportStatus = 'Error: Failed to parse FASTA content';
+				setTimeout(() => {
+					fastaExportStatus = '';
+				}, 3000);
 				return false;
 			}
 		} catch (error) {
 			console.error('Error exporting corrected FASTA:', error);
+			fastaExportStatus = `Error: ${error.message}`;
+			setTimeout(() => {
+				fastaExportStatus = '';
+			}, 3000);
 			return false;
 		}
 	}
@@ -332,6 +368,7 @@
 							<th class="w-20 p-2 text-left">Method</th>
 							<th class="p-2 text-left">File</th>
 							<th class="w-40 p-2 text-left">Date</th>
+							<th class="w-32 p-2 text-left">Actions</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -348,6 +385,19 @@
 								<td class="p-2 font-medium">{analysis.method.toUpperCase()}</td>
 								<td class="truncate p-2">{getFileName(analysis.fileId)}</td>
 								<td class="p-2 text-gray-600">{formatDate(analysis.createdAt)}</td>
+								<td class="p-2">
+									{#if analysis.method === 'datareader'}
+										<button
+											on:click|stopPropagation={() => exportCorrectedFasta(analysis.id)}
+											class="rounded bg-green-500 px-2 py-1 text-xs text-white hover:bg-green-600"
+											title="Export FASTA sequences from this analysis"
+										>
+											Export FASTA
+										</button>
+									{:else}
+										<span class="text-xs text-gray-400">N/A</span>
+									{/if}
+								</td>
 							</tr>
 						{/each}
 					</tbody>
@@ -407,6 +457,17 @@
 				class:text-red-600={exportStatus.includes('failed')}
 			>
 				{exportStatus}
+			</p>
+		{/if}
+
+		{#if fastaExportStatus}
+			<p
+				class="mt-2 text-sm"
+				class:text-green-600={fastaExportStatus.includes('successfully')}
+				class:text-blue-600={fastaExportStatus.includes('Exporting')}
+				class:text-red-600={fastaExportStatus.includes('Error')}
+			>
+				{fastaExportStatus}
 			</p>
 		{/if}
 	</div>
