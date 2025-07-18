@@ -54,10 +54,10 @@ npm run build
 
 ## Environment Configuration
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `VITE_HYPHY_EYE_URL` | URL for visualization service | `//vision.hyphy.org` |
-| `VITE_PAGES_URL` | URL for embedded visualization pages | `//localhost:3000/pages` (dev) |
+| Variable             | Purpose                              | Default                        |
+| -------------------- | ------------------------------------ | ------------------------------ |
+| `VITE_HYPHY_EYE_URL` | URL for visualization service        | `//vision.hyphy.org`           |
+| `VITE_PAGES_URL`     | URL for embedded visualization pages | `//localhost:3000/pages` (dev) |
 
 ## Technical Architecture
 

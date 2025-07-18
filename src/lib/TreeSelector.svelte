@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import PhyloTree from './phylotree.svelte';
-	
+
 	// Define tree methods with readable names and IDs
 	const TREE_METHODS = [
 		{ id: 'nj', name: 'Neighbor Joining' },
@@ -42,14 +42,14 @@
 			selectedTree = 'usertree';
 			onChange('usertree');
 		}
-		
+
 		// Handle custom tree initialization
 		if (selectedTree === 'custom') {
 			// If userTree prop is provided
 			if (userTree) {
 				customTreeInput = userTree;
 				trees.custom = userTree;
-			} 
+			}
 			// Or if usertree exists in trees object and we need to initialize custom
 			else if (trees.usertree && !trees.custom) {
 				customTreeInput = trees.usertree;
@@ -60,25 +60,30 @@
 
 	// Derived values
 	$: currentTreeString = trees[selectedTree] || '';
-	$: currentTreeMethod = TREE_METHODS.find(method => method.id === selectedTree) || TREE_METHODS[0];
+	$: currentTreeMethod =
+		TREE_METHODS.find((method) => method.id === selectedTree) || TREE_METHODS[0];
 	$: showCustomInput = selectedTree === 'custom';
 	$: showMLOptions = selectedTree === 'ml' && !trees.ml;
-	$: currentBranchSet = BRANCH_SETS.find(set => set.id === selectedBranchSet) || 
-		(parsed_tags.includes(selectedBranchSet) ? { id: selectedBranchSet, name: `Tag: ${selectedBranchSet}` } : BRANCH_SETS[0]);
+	$: currentBranchSet =
+		BRANCH_SETS.find((set) => set.id === selectedBranchSet) ||
+		(parsed_tags.includes(selectedBranchSet)
+			? { id: selectedBranchSet, name: `Tag: ${selectedBranchSet}` }
+			: BRANCH_SETS[0]);
 	$: showTreeViz = currentTreeString && !(showMLOptions && !trees.ml);
 	$: availableBranchSets = [
 		...BRANCH_SETS,
-		...parsed_tags.map(tag => ({ id: tag, name: `Tag: ${tag}` }))
-			.filter(set => !BRANCH_SETS.some(defaultSet => defaultSet.id === set.id))
+		...parsed_tags
+			.map((tag) => ({ id: tag, name: `Tag: ${tag}` }))
+			.filter((set) => !BRANCH_SETS.some((defaultSet) => defaultSet.id === set.id))
 	];
-	
+
 	// Initialize custom tree input with the appropriate tree when custom option is selected
 	$: if (selectedTree === 'custom' && !customTreeInput) {
 		// First try to use the explicitly provided userTree prop
 		if (userTree) {
 			customTreeInput = userTree;
 			if (!trees.custom) trees.custom = userTree;
-		} 
+		}
 		// Otherwise try to use the usertree from trees object
 		else if (trees.usertree) {
 			customTreeInput = trees.usertree;
@@ -95,11 +100,11 @@
 		taggedNewick = '';
 
 		// Show appropriate UI based on selection
-		const method = TREE_METHODS.find(m => m.id === selectedTree);
+		const method = TREE_METHODS.find((m) => m.id === selectedTree);
 		if (method?.id === 'custom') {
 			showCustomInput = true;
 			showMLOptions = false;
-			
+
 			// Initialize custom tree input with user tree if available
 			if (!customTreeInput) {
 				if (userTree) {
@@ -168,31 +173,31 @@
 	function handleParsedTags(event) {
 		// Get parsed tags from the tree
 		parsed_tags = event.detail.parsed_tags || [];
-		
+
 		// Update branch set dropdown if tags are found
 		if (parsed_tags.length > 0) {
 			// Create custom branch sets from parsed tags
-			const customBranchSets = parsed_tags.map(tag => ({ 
-				id: tag, 
-				name: `Tag: ${tag}` 
+			const customBranchSets = parsed_tags.map((tag) => ({
+				id: tag,
+				name: `Tag: ${tag}`
 			}));
-			
+
 			// Only add unique tags that aren't already in the branch sets
-			const existingIds = BRANCH_SETS.map(set => set.id);
-			const uniqueCustomSets = customBranchSets.filter(set => !existingIds.includes(set.id));
-			
+			const existingIds = BRANCH_SETS.map((set) => set.id);
+			const uniqueCustomSets = customBranchSets.filter((set) => !existingIds.includes(set.id));
+
 			// If we found new tags, update the branch sets
 			if (uniqueCustomSets.length > 0) {
 				// Update the default selected branch set to use the first parsed tag
 				selectedBranchSet = parsed_tags[0];
-				
+
 				// Automatically enable branch test mode if tags are found
 				if (!branchTestMode) {
 					branchTestMode = true;
 				}
 			}
 		}
-		
+
 		// Notify parent about the parsed tags - but don't pass selectedTree directly
 		if (onChange && parsed_tags.length > 0) {
 			// Just pass the tags without changing the tree selection
@@ -226,7 +231,7 @@
 					</option>
 				{/if}
 			{/each}
-			
+
 			{#each TREE_METHODS as method}
 				{#if !trees[method.id] && (method.needsInput || method.needsGeneration)}
 					<option value={method.id}>
@@ -240,15 +245,17 @@
 	{#if showCustomInput}
 		<div class="mt-4 rounded border border-gray-200 p-4">
 			<h4 class="mb-2 font-semibold">Custom Tree</h4>
-			
+
 			{#if trees.custom}
-				<div class="mb-3 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+				<div class="mb-3 rounded bg-gray-50 p-2 text-sm text-gray-600">
 					<p class="font-medium">Current Custom Tree:</p>
-					<p class="truncate">{trees.custom.substring(0, 50)}{trees.custom.length > 50 ? '...' : ''}</p>
+					<p class="truncate">
+						{trees.custom.substring(0, 50)}{trees.custom.length > 50 ? '...' : ''}
+					</p>
 					<p class="mt-1 font-medium">You can modify this tree below:</p>
 				</div>
 			{/if}
-			
+
 			<div class="mb-3">
 				<label for="tree-file" class="mb-1 block text-sm">Upload Newick File:</label>
 				<input

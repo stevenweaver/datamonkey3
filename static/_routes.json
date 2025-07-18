@@ -1,9 +1,5 @@
 {
-  "version": 1,
-  "include": ["/*"],
-  "exclude": [
-    "/assets/*",
-    "/_app/immutable/*",
-    "/favicon.png"
-  ]
+	"version": 1,
+	"include": ["/*"],
+	"exclude": ["/assets/*", "/_app/immutable/*", "/favicon.png"]
 }

@@ -14,16 +14,24 @@
 
 	// Derived counts from activeAnalyses (excluding datareader which is just file processing)
 	$: runningCount = $activeAnalyses
-		? $activeAnalyses.filter((a) => a.status !== 'completed' && a.status !== 'error' && a.method !== 'datareader').length
+		? $activeAnalyses.filter(
+				(a) => a.status !== 'completed' && a.status !== 'error' && a.method !== 'datareader'
+			).length
 		: 0;
 
 	$: completedCount = $activeAnalyses
 		? $activeAnalyses.filter(
-				(a) => a.status === 'completed' && a.completedAt && new Date(a.completedAt) >= todayStart && a.method !== 'datareader'
+				(a) =>
+					a.status === 'completed' &&
+					a.completedAt &&
+					new Date(a.completedAt) >= todayStart &&
+					a.method !== 'datareader'
 			).length
 		: 0;
 
-	$: failedCount = $activeAnalyses ? $activeAnalyses.filter((a) => a.status === 'error' && a.method !== 'datareader').length : 0;
+	$: failedCount = $activeAnalyses
+		? $activeAnalyses.filter((a) => a.status === 'error' && a.method !== 'datareader').length
+		: 0;
 
 	// Only show indicator if there are any analyses to display
 	$: showIndicator = runningCount > 0 || completedCount > 0 || failedCount > 0;

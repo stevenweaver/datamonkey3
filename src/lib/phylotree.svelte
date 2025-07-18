@@ -36,11 +36,11 @@
 			if (!data || !selection_set || selection_set.length === 0) {
 				return;
 			}
-			
+
 			let count_class = 0;
 			// The structure might vary depending on the phylotree version, so we need to safely access it
 			let annotation = null;
-			
+
 			// Different possible paths to annotation data
 			if (data.annotation) {
 				annotation = data.annotation;
@@ -73,7 +73,7 @@
 			let count_class = 0;
 			// The structure might vary depending on the phylotree version, so we need to safely access it
 			let annotation = null;
-			
+
 			// Different possible paths to annotation data
 			if (data.target && data.target.annotation) {
 				annotation = data.target.annotation;
@@ -88,7 +88,11 @@
 					// Check if the target node has this tag
 					if (annotation === tag) {
 						count_class++;
-						element.style('stroke', color_scheme(i), i === current_selection_id ? 'important' : null);
+						element.style(
+							'stroke',
+							color_scheme(i),
+							i === current_selection_id ? 'important' : null
+						);
 					}
 				});
 			}
@@ -110,14 +114,14 @@
 			if (!newickString || newickString.trim() === '') {
 				return;
 			}
-			
+
 			// Initialize tree from Newick string
 			tree = new phylotree(newickString);
-	
+
 			// Check for parsed tags in the tree
 			if (tree.parsed_tags && tree.parsed_tags.length) {
 				selection_set = [...tree.parsed_tags];
-				
+
 				// Dispatch the parsed tags to the parent component using a timeout
 				// to avoid the initial rendering error
 				setTimeout(() => {
@@ -126,21 +130,21 @@
 							parsed_tags: selection_set
 						});
 					} catch (dispatchError) {
-						console.error("Error dispatching parsed tags:", dispatchError);
+						console.error('Error dispatching parsed tags:', dispatchError);
 					}
 				}, 0);
-	
+
 				// If we have tags and in branch test mode, update selections
 				if (branchTestMode) {
 					try {
 						updateSelectedBranchesFromTags();
 					} catch (updateError) {
-						console.error("Error updating branches from tags:", updateError);
+						console.error('Error updating branches from tags:', updateError);
 					}
 				}
 			}
 		} catch (e) {
-			console.error("Error in renderTree:", e);
+			console.error('Error in renderTree:', e);
 		}
 
 		// Render the tree with colorizers
