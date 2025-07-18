@@ -293,7 +293,7 @@
 								<!-- HyPhy-eye iframe visualization -->
 								<div class="visualization-container h-[600px] w-full">
 									<iframe
-										src="{FINAL_HYPHY_EYE_URL}/viz/{analysis.method.toLowerCase().replace('-', '')}"
+										src="{FINAL_HYPHY_EYE_URL}/pages/{analysis.method.toLowerCase().replace('-', '')}"
 										class="h-full w-full border-0"
 										title="{analysis.method} visualization in HyPhy-eye"
 										allowfullscreen
@@ -305,7 +305,7 @@
 							<div class="mb-4 mt-4 rounded-lg bg-gray-100 p-4 text-center shadow-sm">
 								<p class="mb-2">Open results in a new tab:</p>
 								<a
-									href="{FINAL_HYPHY_EYE_URL}/viz/{analysis.method.toLowerCase().replace('-', '')}"
+									href="{FINAL_HYPHY_EYE_URL}/pages/{analysis.method.toLowerCase().replace('-', '')}"
 									target="_blank"
 									rel="noopener noreferrer"
 									class="inline-block rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"

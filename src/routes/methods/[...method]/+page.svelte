@@ -134,7 +134,7 @@
 			<h3 class="mb-4 text-xl font-semibold">View Results in hyphy-eye</h3>
 			<p class="mb-4">View detailed visualization of your results in hyphy-eye:</p>
 			<a
-				href="{HYPHY_EYE_URL}/viz/{currentMethod}"
+				href="{HYPHY_EYE_URL}/pages/{currentMethod}"
 				target="_blank"
 				rel="noopener noreferrer"
 				class="inline-block rounded-md bg-blue-500 px-5 py-3 text-white transition-colors hover:bg-blue-600"
