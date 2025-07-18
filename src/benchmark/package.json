@@ -1,19 +1,19 @@
 {
-  "name": "hyphy-benchmark",
-  "version": "1.0.0",
-  "description": "Benchmarking tools for HyPhy in browser and wasmer environments",
-  "type": "module",
-  "scripts": {
-    "start:browser": "npx http-server . -o benchmark.html",
-    "start:wasmer": "node hyphy-wasmer.js",
-    "setup": "mkdir -p ../test-data ../benchmark-results ../assets"
-  },
-  "dependencies": {
-    "@wasmer/wasi": "^1.2.2",
-    "@wasmer/wasmfs": "^0.12.0",
-    "@wasmer/wasm-transformer": "^0.12.0"
-  },
-  "devDependencies": {
-    "http-server": "^14.1.1"
-  }
+	"name": "hyphy-benchmark",
+	"version": "1.0.0",
+	"description": "Benchmarking tools for HyPhy in browser and wasmer environments",
+	"type": "module",
+	"scripts": {
+		"start:browser": "npx http-server . -o benchmark.html",
+		"start:wasmer": "node hyphy-wasmer.js",
+		"setup": "mkdir -p ../test-data ../benchmark-results ../assets"
+	},
+	"dependencies": {
+		"@wasmer/wasi": "^1.2.2",
+		"@wasmer/wasmfs": "^0.12.0",
+		"@wasmer/wasm-transformer": "^0.12.0"
+	},
+	"devDependencies": {
+		"http-server": "^14.1.1"
+	}
 }

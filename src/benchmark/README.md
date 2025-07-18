@@ -22,6 +22,7 @@ npm run setup
 Before running the benchmarks, you need to place the following files:
 
 1. Test alignment files in `../test-data/` directory:
+
    - Place `.nex`, `.fasta`, or other alignment files here
    - For wasmer tests, name them according to the TEST_FILES array in hyphy-wasmer.js
 
@@ -38,6 +39,7 @@ npm run start:browser
 ```
 
 This will open the benchmark.html file in your browser, where you can:
+
 - Select the HyPhy method to benchmark
 - Upload an alignment file
 - Choose the number of iterations
@@ -58,6 +60,7 @@ This will run the benchmark with the configured methods and test files, and save
 ### Browser Benchmark
 
 You can modify the benchmark.html file to:
+
 - Add or remove HyPhy methods from the dropdown
 - Change the default number of iterations
 - Customize the results display
@@ -65,6 +68,7 @@ You can modify the benchmark.html file to:
 ### Wasmer Benchmark
 
 You can modify the hyphy-wasmer.js file to:
+
 - Change the BENCHMARK_ITERATIONS constant
 - Modify the METHODS array to test different HyPhy methods
 - Update the TEST_FILES array to use different test files

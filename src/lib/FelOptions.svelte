@@ -90,10 +90,10 @@
 				runMethod({
 					code: gencodeid,
 					srv: dsVariation,
-					"multiple-hits": multipleHits,
+					'multiple-hits': multipleHits,
 					resample,
-					ci: confidenceInterval ? "Yes" : "No",
-					"site-multihit": siteMultihit
+					ci: confidenceInterval ? 'Yes' : 'No',
+					'site-multihit': siteMultihit
 				})}
 		>
 			Run FEL Analysis

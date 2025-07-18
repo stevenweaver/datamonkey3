@@ -186,19 +186,23 @@
 
 							<!-- Tabs navigation -->
 							<div class="mb-4 border-b border-gray-200">
-								<ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+								<ul class="-mb-px flex flex-wrap text-center text-sm font-medium">
 									<li class="mr-2">
 										<button
-											class="inline-block p-4 rounded-t-lg border-b-2 {activeTab === 'results' ? 'border-blue-500 text-blue-600' : 'border-transparent hover:text-gray-600 hover:border-gray-300'}"
-											on:click={() => activeTab = 'results'}
+											class="inline-block rounded-t-lg border-b-2 p-4 {activeTab === 'results'
+												? 'border-blue-500 text-blue-600'
+												: 'border-transparent hover:border-gray-300 hover:text-gray-600'}"
+											on:click={() => (activeTab = 'results')}
 										>
 											Results
 										</button>
 									</li>
 									<li class="mr-2">
 										<button
-											class="inline-block p-4 rounded-t-lg border-b-2 {activeTab === 'visualization' ? 'border-blue-500 text-blue-600' : 'border-transparent hover:text-gray-600 hover:border-gray-300'}"
-											on:click={() => activeTab = 'visualization'}
+											class="inline-block rounded-t-lg border-b-2 p-4 {activeTab === 'visualization'
+												? 'border-blue-500 text-blue-600'
+												: 'border-transparent hover:border-gray-300 hover:text-gray-600'}"
+											on:click={() => (activeTab = 'visualization')}
 										>
 											Visualization
 										</button>
@@ -288,7 +292,7 @@
 							{:else if activeTab === 'visualization'}
 								<!-- HyPhy-eye iframe visualization -->
 								<div class="visualization-container h-[600px] w-full">
-									<iframe 
+									<iframe
 										src="{FINAL_HYPHY_EYE_URL}/viz/{analysis.method.toLowerCase().replace('-', '')}"
 										class="h-full w-full border-0"
 										title="{analysis.method} visualization in HyPhy-eye"
