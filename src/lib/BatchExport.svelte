@@ -206,7 +206,6 @@
 
 	// Export FASTA file with corrections
 	async function exportCorrectedFasta(analysisId) {
-<<<<<<< HEAD
 		fastaExportStatus = 'Exporting FASTA...';
 
 		try {
@@ -216,23 +215,15 @@
 				setTimeout(() => {
 					fastaExportStatus = '';
 				}, 3000);
-=======
-		try {
-			const analysis = await analysisStore.getAnalysis(analysisId);
-			if (!analysis || analysis.method !== 'datareader') {
->>>>>>> 2a84eeb (Remove unused Svelte components and add code analysis report)
 				return false;
 			}
 
 			const file = files.find((f) => f.id === analysis.fileId);
 			if (!file) {
-<<<<<<< HEAD
 				fastaExportStatus = 'Error: File not found';
 				setTimeout(() => {
 					fastaExportStatus = '';
 				}, 3000);
-=======
->>>>>>> 2a84eeb (Remove unused Svelte components and add code analysis report)
 				return false;
 			}
 
@@ -240,7 +231,6 @@
 				typeof analysis.result === 'string' ? JSON.parse(analysis.result) : analysis.result;
 
 			if (!result || !result.FILE_INFO) {
-<<<<<<< HEAD
 				fastaExportStatus = 'Error: Analysis results incomplete';
 				setTimeout(() => {
 					fastaExportStatus = '';
@@ -296,16 +286,6 @@
 			setTimeout(() => {
 				fastaExportStatus = '';
 			}, 3000);
-=======
-				return false;
-			}
-
-			// TODO: Extract the corrected FASTA content
-
-			return true;
-		} catch (error) {
-			console.error('Error exporting corrected FASTA:', error);
->>>>>>> 2a84eeb (Remove unused Svelte components and add code analysis report)
 			return false;
 		}
 	}
@@ -388,10 +368,7 @@
 							<th class="w-20 p-2 text-left">Method</th>
 							<th class="p-2 text-left">File</th>
 							<th class="w-40 p-2 text-left">Date</th>
-<<<<<<< HEAD
 							<th class="w-32 p-2 text-left">Actions</th>
-=======
->>>>>>> 2a84eeb (Remove unused Svelte components and add code analysis report)
 						</tr>
 					</thead>
 					<tbody>
@@ -408,7 +385,6 @@
 								<td class="p-2 font-medium">{analysis.method.toUpperCase()}</td>
 								<td class="truncate p-2">{getFileName(analysis.fileId)}</td>
 								<td class="p-2 text-gray-600">{formatDate(analysis.createdAt)}</td>
-<<<<<<< HEAD
 								<td class="p-2">
 									{#if analysis.method === 'datareader'}
 										<button
@@ -422,8 +398,6 @@
 										<span class="text-xs text-gray-400">N/A</span>
 									{/if}
 								</td>
-=======
->>>>>>> 2a84eeb (Remove unused Svelte components and add code analysis report)
 							</tr>
 						{/each}
 					</tbody>
@@ -485,7 +459,6 @@
 				{exportStatus}
 			</p>
 		{/if}
-<<<<<<< HEAD
 
 		{#if fastaExportStatus}
 			<p
@@ -497,7 +470,5 @@
 				{fastaExportStatus}
 			</p>
 		{/if}
-=======
->>>>>>> 2a84eeb (Remove unused Svelte components and add code analysis report)
 	</div>
 </div>
