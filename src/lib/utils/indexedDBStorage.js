@@ -453,6 +453,34 @@ export const analysisStorage = {
 			console.error('Error in deleteAnalysis:', error);
 			throw error;
 		}
+	},
+
+	/**
+	 * Clear all analyses from IndexedDB
+	 * @returns {Promise<boolean>} - True if successful
+	 */
+	async clearAllAnalyses() {
+		try {
+			const db = await initDB();
+
+			return new Promise((resolve, reject) => {
+				const transaction = db.transaction([ANALYSES_STORE], 'readwrite');
+				const store = transaction.objectStore(ANALYSES_STORE);
+				const request = store.clear();
+
+				request.onsuccess = () => {
+					resolve(true);
+				};
+
+				request.onerror = (event) => {
+					console.error('Error clearing all analyses:', event.target.error);
+					reject(event.target.error);
+				};
+			});
+		} catch (error) {
+			console.error('Error in clearAllAnalyses:', error);
+			throw error;
+		}
 	}
 };
 

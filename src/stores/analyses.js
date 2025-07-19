@@ -454,6 +454,38 @@ function createAnalysisStore() {
 				...state,
 				activeAnalysesList: state.activeAnalysesList.filter((a) => a.id !== analysisId)
 			}));
+		},
+
+		// Clear all analyses
+		async clearAllAnalyses() {
+			if (!browser) return;
+
+			update((state) => ({ ...state, isLoading: true, error: null }));
+
+			try {
+				// Clear all analyses from IndexedDB
+				await analysisStorage.clearAllAnalyses();
+
+				// Reset the store state
+				update((state) => ({
+					...state,
+					analyses: [],
+					currentAnalysisId: null,
+					activeAnalysis: {
+						id: null,
+						status: null,
+						progress: 0,
+						message: '',
+						logs: []
+					},
+					activeAnalysesList: [],
+					isLoading: false
+				}));
+			} catch (error) {
+				console.error('Error clearing all analyses:', error);
+				update((state) => ({ ...state, error: error.message, isLoading: false }));
+				throw error;
+			}
 		}
 	};
 }
