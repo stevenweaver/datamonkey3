@@ -8,8 +8,6 @@
 	import { FINAL_HYPHY_EYE_URL } from './config/env';
 	import { shareWithHyphyEye, isMethodSupported, getHyphyEyeUrl } from './utils/hyphyEyeIntegration';
 
-	// Tab management
-	let activeTab = 'results';
 
 	export let analysisId = null;
 
@@ -185,34 +183,6 @@
 								<p><strong>Analysis File:</strong> {resultData.input.file}</p>
 							{/if}
 
-							<!-- Tabs navigation -->
-							<div class="mb-4 border-b border-gray-200">
-								<ul class="-mb-px flex flex-wrap text-center text-sm font-medium">
-									<li class="mr-2">
-										<button
-											class="inline-block rounded-t-lg border-b-2 p-4 {activeTab === 'results'
-												? 'border-blue-500 text-blue-600'
-												: 'border-transparent hover:border-gray-300 hover:text-gray-600'}"
-											on:click={() => (activeTab = 'results')}
-										>
-											Results
-										</button>
-									</li>
-									<li class="mr-2">
-										<button
-											class="inline-block rounded-t-lg border-b-2 p-4 {activeTab === 'visualization'
-												? 'border-blue-500 text-blue-600'
-												: 'border-transparent hover:border-gray-300 hover:text-gray-600'}"
-											on:click={() => (activeTab = 'visualization')}
-										>
-											Visualization
-										</button>
-									</li>
-								</ul>
-							</div>
-
-							<!-- Tab Content -->
-							{#if activeTab === 'results'}
 								<!-- FEL-specific visualization for FEL method -->
 								{#if analysis.method === 'FEL'}
 									<div class="mb-6 mt-6 rounded-lg bg-white p-4 shadow-sm">
@@ -290,17 +260,6 @@
 								{#if !resultData.tested && !resultData.fits}
 									<pre class="bg-gray-100 p-2 text-sm">{JSON.stringify(resultData, null, 2)}</pre>
 								{/if}
-							{:else if activeTab === 'visualization'}
-								<!-- HyPhy-eye iframe visualization -->
-								<div class="visualization-container h-[600px] w-full">
-									<iframe
-										src="{FINAL_HYPHY_EYE_URL}/pages/{analysis.method.toLowerCase().replace('-', '')}"
-										class="h-full w-full border-0"
-										title="{analysis.method} visualization in HyPhy-eye"
-										allowfullscreen
-									></iframe>
-								</div>
-							{/if}
 
 							<!-- HyPhy-eye integration with localStorage sharing -->
 							{#if isMethodSupported(analysis.method)}
