@@ -1,4 +1,4 @@
-<!-- src/lib/EnhancedAnalysisProgress.svelte -->
+<!-- src/lib/AnalysisProgress.svelte -->
 <script>
 	import { activeAnalysisProgress } from '../stores/analyses';
 	import { onDestroy, tick } from 'svelte';

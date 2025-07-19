@@ -1,5 +1,5 @@
 import '../app.css';
-import EnhancedAnalysisProgress from '../lib/EnhancedAnalysisProgress.svelte';
+import AnalysisProgress from '../lib/AnalysisProgress.svelte';
 import { writable } from 'svelte/store';
 
 // Create a mock store for the progress component
@@ -101,7 +101,7 @@ const errorAnalysis = {
 	]
 };
 
-// Story configuration for EnhancedAnalysisProgress
+// Story configuration for AnalysisProgress
 export default {
 	title: 'Analysis/Progress Indicators',
 	parameters: {
@@ -122,9 +122,9 @@ export default {
 	}
 };
 
-// Template for EnhancedAnalysisProgress
+// Template for AnalysisProgress
 const Template = (args) => ({
-	Component: EnhancedAnalysisProgress,
+	Component: AnalysisProgress,
 	props: args
 });
 

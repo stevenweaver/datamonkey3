@@ -6,7 +6,7 @@
 	import { treeStore } from '../stores/tree';
 	import MethodSelector from './MethodSelector.svelte';
 	import MethodOptionsTab from './MethodOptionsTab.svelte';
-	import EnhancedAnalysisProgress from './EnhancedAnalysisProgress.svelte';
+	import AnalysisProgress from './AnalysisProgress.svelte';
 	import AnalysisHistory from './AnalysisHistory.svelte';
 	import FileIndicator from './FileIndicator.svelte';
 	import TabNavigation from './TabNavigation.svelte';
@@ -53,7 +53,7 @@
 <div class="analyze-tab">
 	<!-- Analysis Progress Bar (always visible at top) -->
 	<div class="mb-premium-xl">
-		<EnhancedAnalysisProgress />
+		<AnalysisProgress />
 	</div>
 
 	<!-- File Indicator (visible when a file is selected) -->
