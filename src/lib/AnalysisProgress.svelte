@@ -76,43 +76,57 @@
 	let showLogs = true; // Default to showing logs
 
 	// Estimated time tracking
-	let startTime = null;
 	let elapsed = 0;
 	let estimatedTimeRemaining = null;
 	let timerInterval;
 
+	// Calculate elapsed time based on actual analysis start time
+	function calculateElapsed(progressData) {
+		if (!progressData.id) return 0;
+
+		// Try to get the actual start time from the analysis metadata or creation time
+		let analysisStartTime = null;
+		
+		if (progressData.metadata?.startTime) {
+			analysisStartTime = new Date(progressData.metadata.startTime);
+		} else if (analysisId && $analysisStore.analyses) {
+			const analysis = $analysisStore.analyses.find(a => a.id === analysisId);
+			if (analysis?.createdAt) {
+				analysisStartTime = new Date(analysis.createdAt);
+			}
+		}
+
+		if (!analysisStartTime) return 0;
+
+		// Calculate elapsed time from actual start to now
+		const now = new Date();
+		return (now - analysisStartTime) / 1000; // elapsed time in seconds
+	}
+
 	// When progress changes, update timer
 	$: if (progressToShow.id) {
-		// If we have a new analysis or state changed to running, start/reset the timer
-		if (
-			!startTime ||
-			(progressToShow.status === 'running' &&
-				['initializing', 'mounting'].includes(previousStatus))
-		) {
-			startTime = new Date();
-			elapsed = 0;
+		// Clear any existing interval
+		if (timerInterval) clearInterval(timerInterval);
 
-			// Clear any existing interval
-			if (timerInterval) clearInterval(timerInterval);
+		// For running analyses, start a timer to update elapsed time display
+		if (!['completed', 'error'].includes(progressToShow.status)) {
+			// Calculate initial elapsed time
+			elapsed = calculateElapsed(progressToShow);
 
-			// Start a new timer interval
+			// Start a new timer interval to keep updating the display
 			timerInterval = setInterval(() => {
-				elapsed = (new Date() - startTime) / 1000; // elapsed time in seconds
-
+				elapsed = calculateElapsed(progressToShow);
 				// We don't have reliable progress information, so we'll display the time
 				// but not attempt to estimate remaining time as that would be dishonest
 				estimatedTimeRemaining = null;
 			}, 1000);
-		}
-
-		// If analysis is completed or errored, clear the interval
-		if (['completed', 'error'].includes(progressToShow.status)) {
-			clearInterval(timerInterval);
+		} else {
+			// For completed/error analyses, calculate final elapsed time
+			elapsed = calculateElapsed(progressToShow);
 		}
 	} else {
 		// If no active analysis, clear the timer
 		clearInterval(timerInterval);
-		startTime = null;
 		elapsed = 0;
 		estimatedTimeRemaining = null;
 	}
