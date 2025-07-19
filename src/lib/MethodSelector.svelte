@@ -1,7 +1,7 @@
 <!-- src/lib/MethodSelector.svelte -->
 <script>
 	import { writable } from 'svelte/store';
-	import AnalysisProgressRams from './AnalysisProgressRams.svelte';
+	import EnhancedAnalysisProgress from './EnhancedAnalysisProgress.svelte';
 
 	export let methodConfig;
 	export let runMethod = [];
@@ -350,7 +350,7 @@
 
 	<!-- Analysis Progress -->
 	<div class="mb-premium-xl">
-		<AnalysisProgressRams />
+		<EnhancedAnalysisProgress />
 	</div>
 
 	<!-- Method cards -->
