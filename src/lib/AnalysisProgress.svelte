@@ -1,10 +1,61 @@
 <!-- src/lib/AnalysisProgress.svelte -->
 <script>
-	import { activeAnalysisProgress } from '../stores/analyses';
+	import { activeAnalysisProgress, analysisStore } from '../stores/analyses';
 	import { onDestroy, tick } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { marked } from 'marked';
+
+	// Optional prop to specify which analysis to show progress for
+	export let analysisId = null;
+
+	// Determine which progress to show - specific analysis or global active
+	$: progressToShow = analysisId 
+		? getAnalysisProgress(analysisId, $analysisStore)
+		: $activeAnalysisProgress;
+
+	// Function to get progress for a specific analysis
+	function getAnalysisProgress(id, store) {
+		if (!id || !store?.analyses) return { id: null, status: null, progress: 0, message: '', logs: [] };
+		
+		const analysis = store.analyses.find(a => a.id === id);
+		if (!analysis) return { id: null, status: null, progress: 0, message: '', logs: [] };
+
+		// For completed/error analyses, show static info
+		if (analysis.status === 'completed' || analysis.status === 'error') {
+			return {
+				id: analysis.id,
+				status: analysis.status,
+				progress: analysis.status === 'completed' ? 100 : 0,
+				message: analysis.status === 'completed' ? 'Analysis completed successfully' : 'Analysis failed',
+				logs: [],
+				metadata: {
+					method: analysis.method,
+					filename: analysis.fileId, // This could be improved to get actual filename
+					startTime: new Date(analysis.createdAt).toISOString()
+				}
+			};
+		}
+
+		// For running analyses, use activeAnalysisProgress if it matches
+		if ($activeAnalysisProgress.id === id) {
+			return $activeAnalysisProgress;
+		}
+
+		// For pending analyses
+		return {
+			id: analysis.id,
+			status: analysis.status,
+			progress: 0,
+			message: 'Analysis pending',
+			logs: [],
+			metadata: {
+				method: analysis.method,
+				filename: analysis.fileId,
+				startTime: new Date(analysis.createdAt).toISOString()
+			}
+		};
+	}
 
 	// Configure marked for security and custom rendering
 	marked.setOptions({
@@ -30,12 +81,12 @@
 	let estimatedTimeRemaining = null;
 	let timerInterval;
 
-	// When active analysis progress changes, update timer
-	$: if ($activeAnalysisProgress.id) {
+	// When progress changes, update timer
+	$: if (progressToShow.id) {
 		// If we have a new analysis or state changed to running, start/reset the timer
 		if (
 			!startTime ||
-			($activeAnalysisProgress.status === 'running' &&
+			(progressToShow.status === 'running' &&
 				['initializing', 'mounting'].includes(previousStatus))
 		) {
 			startTime = new Date();
@@ -55,7 +106,7 @@
 		}
 
 		// If analysis is completed or errored, clear the interval
-		if (['completed', 'error'].includes($activeAnalysisProgress.status)) {
+		if (['completed', 'error'].includes(progressToShow.status)) {
 			clearInterval(timerInterval);
 		}
 	} else {
@@ -78,12 +129,12 @@
 	// Track previous status to detect changes
 	let previousStatus = null;
 	$: {
-		previousStatus = $activeAnalysisProgress.status;
+		previousStatus = progressToShow.status;
 	}
 
 	$: if (
-		$activeAnalysisProgress.status === 'completed' ||
-		$activeAnalysisProgress.status === 'error'
+		progressToShow.status === 'completed' ||
+		progressToShow.status === 'error'
 	) {
 		showCompleted = true;
 		clearTimeout(hideCompletedTimeout);
@@ -151,28 +202,28 @@
 
 	// Get the last few logs, use sample logs for demo if none available
 	$: displayedLogs =
-		$activeAnalysisProgress.logs && $activeAnalysisProgress.logs.length > 0
-			? $activeAnalysisProgress.logs.slice(-5)
+		progressToShow.logs && progressToShow.logs.length > 0
+			? progressToShow.logs.slice(-5)
 			: sampleLogs;
 
 	// Provide a job info accessor
 	$: jobInfo =
-		$activeAnalysisProgress && $activeAnalysisProgress.id
+		progressToShow && progressToShow.id
 			? {
-					id: $activeAnalysisProgress.id,
-					method: $activeAnalysisProgress.metadata?.method || 'Analysis',
-					filename: $activeAnalysisProgress.metadata?.filename || 'data file',
-					startTime: $activeAnalysisProgress.metadata?.startTime || new Date().toISOString()
+					id: progressToShow.id,
+					method: progressToShow.metadata?.method || 'Analysis',
+					filename: progressToShow.metadata?.filename || 'data file',
+					startTime: progressToShow.metadata?.startTime || new Date().toISOString()
 				}
 			: null;
 
 	// Get simplified status for display
 	$: statusText =
-		$activeAnalysisProgress.status === 'running'
+		progressToShow.status === 'running'
 			? 'Analysis in progress'
-			: $activeAnalysisProgress.status === 'completed'
+			: progressToShow.status === 'completed'
 				? 'Analysis complete'
-				: $activeAnalysisProgress.status === 'error'
+				: progressToShow.status === 'error'
 					? 'Analysis failed'
 					: 'Processing';
 
@@ -229,7 +280,7 @@
 	// as these would be unreliable and potentially dishonest
 </script>
 
-{#if $activeAnalysisProgress.id && ($activeAnalysisProgress.status !== 'completed' || showCompleted)}
+{#if progressToShow.id && (progressToShow.status !== 'completed' || showCompleted)}
 	<div
 		class="analysis-progress mt-6 overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm"
 	>
@@ -239,7 +290,7 @@
 			<div class="mb-4 flex items-center justify-between">
 				<div class="flex items-center">
 					<span
-						class={`mr-2 text-lg font-medium ${getStatusColorClass($activeAnalysisProgress.status)}`}
+						class={`mr-2 text-lg font-medium ${getStatusColorClass(progressToShow.status)}`}
 					>
 						{statusText}
 					</span>
@@ -254,13 +305,13 @@
 
 			<!-- Progress indicator - uses an animation rather than a dishonest percentage -->
 			<div class="my-4 flex items-center">
-				{#if $activeAnalysisProgress.status === 'completed'}
+				{#if progressToShow.status === 'completed'}
 					<!-- Completed progress bar -->
 					<div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-gray-100">
 						<div class="absolute left-0 top-0 h-full w-full rounded-full bg-green-500"></div>
 					</div>
 					<span class="w-12 text-right text-sm font-medium text-green-600">Done</span>
-				{:else if $activeAnalysisProgress.status === 'error'}
+				{:else if progressToShow.status === 'error'}
 					<!-- Error progress bar -->
 					<div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-gray-100">
 						<div class="absolute left-0 top-0 h-full w-1/5 rounded-full bg-red-500"></div>
@@ -299,15 +350,15 @@
 				{/if}
 
 				<!-- Latest output with Markdown formatting -->
-				{#if $activeAnalysisProgress.message}
-					{@const parsedMessage = parseLogMessage($activeAnalysisProgress.message)}
+				{#if progressToShow.message}
+					{@const parsedMessage = parseLogMessage(progressToShow.message)}
 					<div class="message-preview text-sm text-gray-600">
 						{#if parsedMessage.isMarkdown}
 							<div class="markdown-content">
 								{@html parsedMessage.html}
 							</div>
 						{:else}
-							{$activeAnalysisProgress.message}
+							{progressToShow.message}
 						{/if}
 					</div>
 				{/if}
@@ -342,7 +393,7 @@
 						</div>
 					{/each}
 
-					{#if $activeAnalysisProgress.logs.length === 0}
+					{#if progressToShow.logs.length === 0}
 						<p class="text-center text-gray-500">No logs available</p>
 					{/if}
 				</div>

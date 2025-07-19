@@ -324,7 +324,7 @@
 					{/if}
 				{:else if ['pending', 'running', 'mounting', 'processing', 'saving'].includes(analysis.status)}
 					<!-- Show the detailed analysis progress when viewing a pending/running analysis -->
-					<AnalysisProgress />
+					<AnalysisProgress analysisId={analysisId} />
 				{:else}
 					<p class="text-gray-600">No results available</p>
 				{/if}
