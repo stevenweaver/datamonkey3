@@ -38,16 +38,6 @@
 							Home
 						</a>
 					</li>
-					<li>
-						<a
-							class="rounded-premium-sm bg-brand-gradient px-[16px] py-[8px] text-premium-body font-semibold tracking-premium-wide text-white shadow-sm transition-all duration-premium hover:bg-brand-deep"
-							href="https://github.com/stevenweaver/datamonkey3"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							GitHub
-						</a>
-					</li>
 				</ul>
 
 				<!-- Analysis Status Indicator -->
