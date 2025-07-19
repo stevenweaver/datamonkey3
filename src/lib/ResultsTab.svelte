@@ -26,6 +26,23 @@
 	function setViewMode(mode) {
 		viewMode = mode;
 	}
+
+	// Handle Clear All analyses
+	async function handleClearAll() {
+		const filteredAnalyses = $analysisStore.analyses.filter((a) => a.method !== 'datareader');
+		if (filteredAnalyses.length === 0) return;
+
+		const confirmMessage = `Are you sure you want to delete all ${filteredAnalyses.length} analyses? This action cannot be undone.`;
+		
+		if (confirm(confirmMessage)) {
+			try {
+				await analysisStore.clearAllAnalyses();
+			} catch (error) {
+				console.error('Error clearing all analyses:', error);
+				alert('Failed to clear analyses: ' + error.message);
+			}
+		}
+	}
 </script>
 
 <div class="results-tab">
@@ -98,9 +115,37 @@
 		<div class="grid grid-cols-1 gap-premium-xl lg:grid-cols-3">
 			<!-- Left column: Analysis history -->
 			<div class="rounded-premium bg-white p-premium-lg shadow-premium lg:col-span-1">
-				<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">
-					Analyses
-				</h2>
+				<div class="mb-premium-md flex items-center justify-between">
+					<h2 class="text-premium-header font-semibold text-text-rich">
+						Analyses
+					</h2>
+					{#if $analysisStore.analyses.filter((a) => a.method !== 'datareader').length > 0}
+						<button
+							on:click={handleClearAll}
+							class="inline-flex items-center rounded bg-red-100 px-2.5 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-200"
+							title="Delete all analyses"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="mr-1 h-3 w-3"
+								viewBox="0 0 20 20"
+								fill="currentColor"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
+									clip-rule="evenodd"
+								/>
+								<path
+									fill-rule="evenodd"
+									d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+									clip-rule="evenodd"
+								/>
+							</svg>
+							Clear All
+						</button>
+					{/if}
+				</div>
 				<AnalysisHistory
 					filterByCurrentFile={!showAllHistory && !!$currentFile}
 					onSelectAnalysis={selectAnalysis}
