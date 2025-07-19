@@ -99,12 +99,6 @@
 		// Implement export functionality
 	}
 
-	// Handle compare action
-	function handleCompare(event) {
-		const { analysisId } = event.detail;
-		// Implementation depends on comparison UI
-	}
-
 	// Handle cancel action
 	async function handleCancel(event) {
 		const { analysisId } = event.detail;
@@ -205,7 +199,6 @@
 									on:select={handleSelect}
 									on:view={handleView}
 									on:export={handleExport}
-									on:compare={handleCompare}
 									on:cancel={handleCancel}
 									on:delete={handleDelete}
 								/>
@@ -224,7 +217,6 @@
 							on:select={handleSelect}
 							on:view={handleView}
 							on:export={handleExport}
-							on:compare={handleCompare}
 							on:cancel={handleCancel}
 							on:delete={handleDelete}
 						/>
