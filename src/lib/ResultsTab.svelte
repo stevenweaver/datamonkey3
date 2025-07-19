@@ -4,7 +4,6 @@
 	import { currentFile, fileMetricsStore } from '../stores/fileInfo';
 	import AnalysisResultViewer from './AnalysisResultViewer.svelte';
 	import AnalysisHistory from './AnalysisHistory.svelte';
-	import AnalysisCompare from './AnalysisCompare.svelte';
 	import BatchExport from './BatchExport.svelte';
 	import FastaExport from './FastaExport.svelte';
 	import TabNavigation from './TabNavigation.svelte';
@@ -19,13 +18,6 @@
 	// Tab navigation
 	export let activeTab = 'results';
 	export let onChange = (tab) => {};
-
-	// Local state
-	let viewMode = 'single'; // 'single' or 'compare'
-
-	function setViewMode(mode) {
-		viewMode = mode;
-	}
 
 	// Handle Clear All analyses
 	async function handleClearAll() {
@@ -46,38 +38,6 @@
 </script>
 
 <div class="results-tab">
-	<!-- Top controls -->
-	<div class="mb-premium-xl flex flex-wrap items-center justify-between gap-premium-md">
-		<div class="flex items-center gap-premium-sm">
-			<button
-				class="rounded-premium-sm px-premium-md py-premium-sm text-premium-body font-medium transition-all duration-premium"
-				class:bg-brand-royal={viewMode === 'single'}
-				class:text-white={viewMode === 'single'}
-				class:bg-brand-whisper={viewMode !== 'single'}
-				class:text-text-rich={viewMode !== 'single'}
-				class:hover:bg-brand-ghost={viewMode !== 'single'}
-				class:hover:text-brand-royal={viewMode !== 'single'}
-				on:click={() => setViewMode('single')}
-			>
-				Single View
-			</button>
-			<button
-				class="rounded-premium-sm px-premium-md py-premium-sm text-premium-body font-medium transition-all duration-premium"
-				class:bg-brand-royal={viewMode === 'compare'}
-				class:text-white={viewMode === 'compare'}
-				class:bg-brand-whisper={viewMode !== 'compare'}
-				class:text-text-rich={viewMode !== 'compare'}
-				class:hover:bg-brand-ghost={viewMode !== 'compare'}
-				class:hover:text-brand-royal={viewMode !== 'compare'}
-				on:click={() => setViewMode('compare')}
-			>
-				Compare View
-			</button>
-		</div>
-
-		<!-- Export toggle removed - now integrated into the export section below -->
-	</div>
-
 	<!-- Export Options -->
 	<div
 		class="mb-premium-xl rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium"
@@ -111,8 +71,7 @@
 	</div>
 
 	<!-- Main content area -->
-	{#if viewMode === 'single'}
-		<div class="grid grid-cols-1 gap-premium-xl lg:grid-cols-3">
+	<div class="grid grid-cols-1 gap-premium-xl lg:grid-cols-3">
 			<!-- Left column: Analysis history -->
 			<div class="rounded-premium bg-white p-premium-lg shadow-premium lg:col-span-1">
 				<div class="mb-premium-md flex items-center justify-between">
@@ -221,14 +180,6 @@
 				{/if}
 			</div>
 		</div>
-	{:else if viewMode === 'compare'}
-		<div class="rounded-premium bg-white p-premium-lg shadow-premium">
-			<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">
-				Compare Analyses
-			</h2>
-			<AnalysisCompare />
-		</div>
-	{/if}
 
 	<!-- Tab Navigation -->
 	<div class="mt-premium-xl">
