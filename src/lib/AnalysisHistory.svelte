@@ -118,7 +118,6 @@
 </script>
 
 <div class="analysis-history">
-	<h2 class="mb-3 text-xl font-bold">Analysis History</h2>
 
 	{#if $analysisStore.isLoading}
 		<div class="flex items-center justify-center p-4">

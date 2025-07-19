@@ -99,7 +99,7 @@
 			<!-- Left column: Analysis history -->
 			<div class="rounded-premium bg-white p-premium-lg shadow-premium lg:col-span-1">
 				<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">
-					Analysis History
+					Analyses
 				</h2>
 				<AnalysisHistory
 					filterByCurrentFile={!showAllHistory && !!$currentFile}
