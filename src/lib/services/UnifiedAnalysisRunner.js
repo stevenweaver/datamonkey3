@@ -6,7 +6,7 @@
  */
 
 import { processingDecisionEngine } from './ProcessingDecisionEngine.js';
-import { AnalysisRunner } from './AnalysisRunner.js';
+import { analysisRunner } from './AnalysisRunner.js';
 import { backendSocketService } from './BackendSocketService.js';
 import { analysisStore } from '../../stores/analyses.js';
 import { persistentFileStore } from '../../stores/fileInfo.js';
@@ -14,7 +14,7 @@ import { browser } from '$app/environment';
 
 export class UnifiedAnalysisRunner {
 	constructor() {
-		this.localRunner = new AnalysisRunner();
+		this.localRunner = analysisRunner; // Use existing singleton
 		this.activeBackendJobs = new Map(); // Track polling intervals for backend jobs
 	}
 
@@ -154,8 +154,11 @@ export class UnifiedAnalysisRunner {
 				processingLocation: 'local'
 			});
 
-			// Use existing local analysis runner
-			return await this.localRunner.runAnalysis(fileId, method, options);
+			// For local analysis, we'll trigger the existing workflow
+			// The analysis ID is already created, so the existing system will pick it up
+			console.log(`Local analysis ${analysisId} will be handled by existing system`);
+			
+			return analysisId;
 
 		} catch (error) {
 			console.error('Local analysis failed:', error);
