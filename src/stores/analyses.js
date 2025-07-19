@@ -157,6 +157,41 @@ function createAnalysisStore() {
 			}
 		},
 
+		// Cancel a pending analysis
+		async cancelAnalysis(analysisId) {
+			if (!browser) return; // Only run in browser
+
+			try {
+				// Update the analysis status to cancelled
+				await this.updateAnalysis(analysisId, {
+					status: 'cancelled',
+					completedAt: new Date().getTime()
+				});
+
+				// Clear from active analysis progress if it matches
+				update((state) => {
+					const newState = { ...state };
+					if (newState.activeAnalysis.id === analysisId) {
+						newState.activeAnalysis = {
+							id: null,
+							status: null,
+							progress: 0,
+							message: '',
+							logs: []
+						};
+					}
+					// Remove from active analyses list
+					newState.activeAnalysesList = newState.activeAnalysesList.filter(
+						(a) => a.id !== analysisId
+					);
+					return newState;
+				});
+			} catch (error) {
+				console.error('Error cancelling analysis:', error);
+				throw error;
+			}
+		},
+
 		// Load analyses for a specific file
 		async loadAnalysesForFile(fileId) {
 			if (!browser) return; // Only run in browser

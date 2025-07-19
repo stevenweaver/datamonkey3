@@ -159,6 +159,16 @@
 	function compareAnalysis() {
 		dispatch('compare', { analysisId: analysis.id });
 	}
+
+	// Handle cancel action
+	function cancelAnalysis() {
+		dispatch('cancel', { analysisId: analysis.id });
+	}
+
+	// Handle delete action
+	function deleteAnalysis() {
+		dispatch('delete', { analysisId: analysis.id });
+	}
 </script>
 
 <div
@@ -197,10 +207,12 @@
 					class:text-yellow-800={analysis.status === 'running' || analysis.status === 'pending'}
 					class:bg-red-100={analysis.status === 'error'}
 					class:text-red-800={analysis.status === 'error'}
-					class:bg-gray-100={!['completed', 'running', 'pending', 'error'].includes(
+					class:bg-orange-100={analysis.status === 'cancelled'}
+					class:text-orange-800={analysis.status === 'cancelled'}
+					class:bg-gray-100={!['completed', 'running', 'pending', 'error', 'cancelled'].includes(
 						analysis.status
 					)}
-					class:text-gray-800={!['completed', 'running', 'pending', 'error'].includes(
+					class:text-gray-800={!['completed', 'running', 'pending', 'error', 'cancelled'].includes(
 						analysis.status
 					)}
 				>
@@ -240,7 +252,11 @@
 						</svg>
 					{/if}
 					<span class="capitalize"
-						>{analysis.status === 'completed' ? 'Completed' : analysis.status || 'unknown'}</span
+						>{analysis.status === 'completed' 
+							? 'Completed' 
+							: analysis.status === 'cancelled' 
+								? 'Cancelled' 
+								: analysis.status || 'unknown'}</span
 					>
 				</div>
 			</div>
@@ -312,6 +328,7 @@
 	<!-- Actions (only in full mode) -->
 	{#if !compact}
 		<div class="actions mt-3 flex justify-end gap-2">
+			<!-- View button - always available -->
 			<button
 				on:click|stopPropagation={viewAnalysis}
 				class="inline-flex items-center rounded bg-blue-100 px-2.5 py-1.5 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-200"
@@ -332,43 +349,97 @@
 				View
 			</button>
 
-			<button
-				on:click|stopPropagation={exportAnalysis}
-				class="inline-flex items-center rounded bg-green-100 px-2.5 py-1.5 text-xs font-medium text-green-700 transition-colors hover:bg-green-200"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="mr-1 h-3 w-3"
-					viewBox="0 0 20 20"
-					fill="currentColor"
+			<!-- Cancel button - only for pending/running analyses -->
+			{#if ['pending', 'running', 'mounting', 'processing', 'saving'].includes(analysis.status)}
+				<button
+					on:click|stopPropagation={cancelAnalysis}
+					class="inline-flex items-center rounded bg-orange-100 px-2.5 py-1.5 text-xs font-medium text-orange-700 transition-colors hover:bg-orange-200"
+					title="Cancel this analysis"
 				>
-					<path
-						fill-rule="evenodd"
-						d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-						clip-rule="evenodd"
-					/>
-				</svg>
-				Export
-			</button>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="mr-1 h-3 w-3"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+					Cancel
+				</button>
+			{/if}
 
-			<button
-				on:click|stopPropagation={compareAnalysis}
-				class="inline-flex items-center rounded bg-purple-100 px-2.5 py-1.5 text-xs font-medium text-purple-700 transition-colors hover:bg-purple-200"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="mr-1 h-3 w-3"
-					viewBox="0 0 20 20"
-					fill="currentColor"
+			<!-- Export button - only for completed analyses -->
+			{#if analysis.status === 'completed'}
+				<button
+					on:click|stopPropagation={exportAnalysis}
+					class="inline-flex items-center rounded bg-green-100 px-2.5 py-1.5 text-xs font-medium text-green-700 transition-colors hover:bg-green-200"
 				>
-					<path
-						fill-rule="evenodd"
-						d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="mr-1 h-3 w-3"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+					Export
+				</button>
+
+				<button
+					on:click|stopPropagation={compareAnalysis}
+					class="inline-flex items-center rounded bg-purple-100 px-2.5 py-1.5 text-xs font-medium text-purple-700 transition-colors hover:bg-purple-200"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="mr-1 h-3 w-3"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
 						clip-rule="evenodd"
 					/>
-				</svg>
-				Compare
-			</button>
+					</svg>
+					Compare
+				</button>
+			{/if}
+
+			<!-- Delete button - for completed/error/cancelled analyses -->
+			{#if ['completed', 'error', 'cancelled'].includes(analysis.status)}
+				<button
+					on:click|stopPropagation={deleteAnalysis}
+					class="inline-flex items-center rounded bg-red-100 px-2.5 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-200"
+					title="Delete this analysis"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="mr-1 h-3 w-3"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
+							clip-rule="evenodd"
+						/>
+						<path
+							fill-rule="evenodd"
+							d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L9.586 12l-2.293 2.293a1 1 0 101.414 1.414L11 13.414l2.293 2.293a1 1 0 001.414-1.414L12.414 12l2.293-2.293z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+					Delete
+				</button>
+			{/if}
 		</div>
 	{/if}
 </div>
