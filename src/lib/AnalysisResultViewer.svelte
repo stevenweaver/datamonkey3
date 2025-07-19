@@ -82,6 +82,16 @@
 		return new Date(timestamp).toLocaleString();
 	}
 
+	// Subscribe to store changes to auto-update when analysis status changes
+	$: if (analysisId && $analysisStore.analyses) {
+		// Find the current analysis in the store
+		const storeAnalysis = $analysisStore.analyses.find(a => a.id === analysisId);
+		if (storeAnalysis && (!analysis || storeAnalysis.status !== analysis.status || storeAnalysis.completedAt !== analysis.completedAt)) {
+			// Analysis has been updated in the store, reload it
+			loadAnalysis(analysisId);
+		}
+	}
+
 	onMount(() => {
 		if (analysisId) {
 			loadAnalysis(analysisId);
@@ -108,26 +118,6 @@
 			<div class="bg-gray-100 p-4">
 				<div class="flex items-center justify-between">
 					<h2 class="text-xl font-bold">{analysis.method.toUpperCase()} Analysis</h2>
-					<button
-						class="flex items-center rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600"
-						on:click={() => loadAnalysis(analysisId)}
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="mr-1 h-4 w-4"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-							/>
-						</svg>
-						Refresh
-					</button>
 				</div>
 				<div class="text-sm text-gray-600">
 					<p>File: {file.filename}</p>
