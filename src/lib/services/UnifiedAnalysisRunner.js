@@ -7,6 +7,7 @@
 
 import { processingDecisionEngine } from './ProcessingDecisionEngine.js';
 import { AnalysisRunner } from './AnalysisRunner.js';
+import { backendSocketService } from './BackendSocketService.js';
 import { analysisStore } from '../../stores/analyses.js';
 import { persistentFileStore } from '../../stores/fileInfo.js';
 import { browser } from '$app/environment';
@@ -65,28 +66,59 @@ export class UnifiedAnalysisRunner {
 			// Start progress tracking
 			analysisStore.startAnalysisProgress(
 				analysisId,
-				'Submitting job to backend server...',
+				'Connecting to backend server...',
 				method,
 				options.fileName || 'Unknown file'
 			);
 
-			// Submit job to backend via API
-			const jobSubmission = await this._submitBackendJob(analysisId, fileId, method, options);
-			
-			if (!jobSubmission.success) {
-				throw new Error(`Backend job submission failed: ${jobSubmission.error}`);
+			// Get file content for submission
+			const fileMetrics = await this._getFileMetrics(fileId);
+			if (!fileMetrics) {
+				throw new Error(`File not found: ${fileId}`);
 			}
 
-			// Update analysis with backend job information
+			// Get file content from store
+			let fileContent = '';
+			persistentFileStore.subscribe((store) => {
+				const file = store.files?.find(f => f.id === fileId);
+				if (file) {
+					fileContent = file.content || '';
+				}
+			})();
+
+			if (!fileContent) {
+				throw new Error('File content not available');
+			}
+
+			// Update analysis record
 			await analysisStore.updateAnalysis(analysisId, {
 				status: 'pending',
 				processingLocation: 'backend',
-				backendJobId: jobSubmission.analysis.backendJobId,
-				backendStatus: jobSubmission.analysis.backendStatus
+				backendJobId: analysisId
 			});
 
-			// Start polling backend for status updates
-			this._startBackendPolling(analysisId, jobSubmission.analysis.backendJobId);
+			// Setup progress callback
+			backendSocketService.addProgressCallback(analysisId, (progressData) => {
+				analysisStore.updateAnalysisProgress(
+					progressData.status || 'running',
+					progressData.progress || 0,
+					progressData.message || 'Processing on backend server...'
+				);
+			});
+
+			// Submit job to backend via Socket.IO
+			analysisStore.updateAnalysisProgress('pending', 5, 'Submitting job to backend server...');
+			
+			const jobResult = await this._submitSocketJob(analysisId, fileContent, method, options);
+
+			// Handle successful completion
+			await analysisStore.updateAnalysis(analysisId, {
+				status: 'completed',
+				result: jobResult.result,
+				completedAt: new Date().getTime()
+			});
+
+			await analysisStore.completeAnalysisProgress(true, 'Backend analysis completed successfully');
 
 			return analysisId;
 
@@ -133,132 +165,39 @@ export class UnifiedAnalysisRunner {
 	}
 
 	/**
-	 * Submit job to backend server
+	 * Submit job to backend server via Socket.IO
 	 */
-	async _submitBackendJob(analysisId, fileId, method, options) {
+	async _submitSocketJob(analysisId, fileContent, method, options) {
 		if (!browser) {
 			throw new Error('Backend job submission only available in browser environment');
 		}
 
 		try {
-			const response = await fetch('/api/analyses', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					analysisId,
-					fileId,
-					method,
-					options,
-					processingLocation: 'backend'
-				})
-			});
-
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.error || 'Backend job submission failed');
+			// Currently only FEL is supported
+			if (method.toLowerCase() !== 'fel') {
+				throw new Error(`Method ${method} not yet supported for backend processing`);
 			}
 
-			return await response.json();
+			// Submit FEL analysis job
+			const result = await backendSocketService.submitFelAnalysis(analysisId, fileContent, {
+				geneticCode: options.geneticCode || 'Universal',
+				additionalParams: options.additionalParams || {}
+			});
+
+			return result;
 
 		} catch (error) {
-			console.error('Backend job submission error:', error);
+			console.error('Socket job submission error:', error);
 			throw error;
 		}
 	}
 
-	/**
-	 * Start polling backend server for job status
-	 */
-	_startBackendPolling(analysisId, backendJobId) {
-		// Clear any existing polling for this analysis
-		this._stopBackendPolling(analysisId);
-
-		const pollInterval = setInterval(async () => {
-			try {
-				const response = await fetch(`/api/analyses/${analysisId}`);
-				if (!response.ok) {
-					throw new Error(`Status check failed: ${response.status}`);
-				}
-
-				const data = await response.json();
-				const analysis = data.analysis;
-
-				// Update progress tracking
-				if (analysis.progress !== undefined) {
-					analysisStore.updateAnalysisProgress(
-						analysis.status || 'running',
-						analysis.progress,
-						analysis.message || 'Processing on backend server...'
-					);
-				}
-
-				// Check if job is complete
-				if (['completed', 'error', 'cancelled'].includes(analysis.status)) {
-					this._stopBackendPolling(analysisId);
-					
-					if (analysis.status === 'completed') {
-						// Update analysis with results
-						await analysisStore.updateAnalysis(analysisId, {
-							status: 'completed',
-							result: analysis.result,
-							completedAt: analysis.completedAt,
-							logs: analysis.logs
-						});
-						
-						await analysisStore.completeAnalysisProgress(true, 'Backend analysis completed successfully');
-					} else {
-						await analysisStore.completeAnalysisProgress(false, analysis.error || 'Backend analysis failed');
-					}
-				}
-
-			} catch (error) {
-				console.error('Backend polling error:', error);
-				
-				// After several failures, consider the job failed
-				const failures = (this.activeBackendJobs.get(analysisId)?.failures || 0) + 1;
-				if (failures >= 5) {
-					this._stopBackendPolling(analysisId);
-					await analysisStore.completeAnalysisProgress(false, 'Lost connection to backend server');
-				} else {
-					// Track failure count
-					const jobInfo = this.activeBackendJobs.get(analysisId) || {};
-					jobInfo.failures = failures;
-					this.activeBackendJobs.set(analysisId, jobInfo);
-				}
-			}
-		}, 5000); // Poll every 5 seconds
-
-		// Store interval reference
-		this.activeBackendJobs.set(analysisId, { interval: pollInterval, failures: 0 });
-	}
-
-	/**
-	 * Stop polling for backend job status
-	 */
-	_stopBackendPolling(analysisId) {
-		const jobInfo = this.activeBackendJobs.get(analysisId);
-		if (jobInfo?.interval) {
-			clearInterval(jobInfo.interval);
-			this.activeBackendJobs.delete(analysisId);
-		}
-	}
-
-	/**
-	 * Cancel an analysis (local or backend)
-	 */
 	async cancelAnalysis(analysisId) {
 		try {
-			// Stop any backend polling
-			this._stopBackendPolling(analysisId);
-
-			// If it's a backend job, cancel on server
+			// If it's a backend job, cancel on server via Socket.IO
 			const analysis = await analysisStore.getAnalysis(analysisId);
 			if (analysis?.processingLocation === 'backend') {
-				await fetch(`/api/analyses/${analysisId}`, {
-					method: 'DELETE'
-				});
+				await backendSocketService.cancelJob(analysisId);
 			}
 
 			// Cancel in local store
@@ -310,16 +249,14 @@ export class UnifiedAnalysisRunner {
 	 * Get current backend job status
 	 */
 	getActiveBackendJobs() {
-		return Array.from(this.activeBackendJobs.keys());
+		return backendSocketService.getConnectionState().activeJobs;
 	}
 
 	/**
-	 * Cleanup - stop all polling when service is destroyed
+	 * Cleanup - disconnect from backend when service is destroyed
 	 */
 	destroy() {
-		for (const [analysisId] of this.activeBackendJobs) {
-			this._stopBackendPolling(analysisId);
-		}
+		backendSocketService.disconnect();
 	}
 }
 

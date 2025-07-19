@@ -10,6 +10,8 @@
 	} from '../stores/fileInfo';
 	import { analysisStore, currentAnalysis, activeAnalysisProgress } from '../stores/analyses';
 	import { treeStore, addTree, updateTaggedTree } from '../stores/tree';
+	import { unifiedAnalysisRunner } from '../lib/services/UnifiedAnalysisRunner.js';
+	import { processingDecisionEngine } from '../lib/services/ProcessingDecisionEngine.js';
 	import Aioli from '@biowasm/aioli';
 	import TreeSelector from '../lib/TreeSelector.svelte';
 	import ErrorHandler from '../lib/ErrorHandler.svelte';
@@ -150,12 +152,74 @@
 		analysisStore.setCurrentAnalysis(analysisId);
 	}
 
+	// Helper function to get file metrics for processing decisions
+	async function getFileMetrics(fileId) {
+		try {
+			const file = await persistentFileStore.getFile(fileId);
+			if (!file) return null;
+
+			const content = file.content || '';
+			const sequences = (content.match(/^>/gm) || []).length;
+			const totalLength = content.replace(/^>.*$/gm, '').replace(/\s/g, '').length;
+			const avgSequenceLength = sequences > 0 ? totalLength / sequences : 0;
+
+			return {
+				size: new Blob([content]).size,
+				sequences,
+				totalLength,
+				avgSequenceLength,
+				filename: file.filename || 'Unknown'
+			};
+		} catch (error) {
+			console.error('Error getting file metrics:', error);
+			return null;
+		}
+	}
+
 	// Run or rerun an analysis method
 	async function runMethod(method, options = null) {
 		try {
 			// Extract the method name and options
 			const methodName = typeof method === 'string' ? method : 'unknown';
 
+			// Check if current file is selected
+			const currentFileId = $currentFile?.id;
+			if (!currentFileId) {
+				hyphyOut = 'Error: No file selected for analysis';
+				return;
+			}
+
+			// For FEL analysis, use UnifiedAnalysisRunner for backend support
+			if (methodName.toLowerCase() === 'fel') {
+				console.log('Using UnifiedAnalysisRunner for FEL analysis');
+				
+				// Check processing location
+				const fileMetrics = await getFileMetrics(currentFileId);
+				const processingLocation = await processingDecisionEngine.determineProcessingLocation(
+					fileMetrics,
+					'fel',
+					{ userPreference: 'auto' }
+				);
+				
+				console.log(`FEL will be processed: ${processingLocation}`, fileMetrics);
+				
+				// Run analysis with UnifiedAnalysisRunner
+				const analysisId = await unifiedAnalysisRunner.runAnalysis(
+					currentFileId,
+					'fel',
+					{
+						...options,
+						fileName: $currentFile?.filename,
+						processingLocation
+					}
+				);
+				
+				selectAnalysis(analysisId);
+				activeTab = 'results';
+				return;
+			}
+
+			// For all other methods, use existing local processing
 			// Get method configuration
 			const methodInfo = methodConfig[methodName];
 			if (!methodInfo) {
@@ -167,13 +231,6 @@
 
 			if (!command) {
 				hyphyOut = `Error: Method ${methodName} is not implemented yet`;
-				return;
-			}
-
-			// Create an analysis record for tracking
-			const currentFileId = $currentFile?.id;
-			if (!currentFileId) {
-				hyphyOut = 'Error: No file selected for analysis';
 				return;
 			}
 

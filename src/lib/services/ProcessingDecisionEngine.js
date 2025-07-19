@@ -5,13 +5,11 @@
  * to route computational jobs to the most appropriate processing location.
  */
 
-import { PAGES_URL, HYPHY_EYE_URL } from '../config/env.js';
+import { DATAMONKEY_SERVER_URL, ENABLE_BACKEND_PROCESSING, BACKEND_JOB_THRESHOLDS } from '../config/env.js';
 
-// Default thresholds (should be configurable via environment variables)
+// Use environment-based thresholds with fallbacks
 const DEFAULT_THRESHOLDS = {
-	fileSize: 5 * 1024 * 1024, // 5MB
-	sequences: 100,
-	sequenceLength: 10000,
+	...BACKEND_JOB_THRESHOLDS,
 	maxLocalDuration: 5 * 60 * 1000, // 5 minutes
 	maxLocalMemory: 100 * 1024 * 1024 // 100MB
 };
@@ -43,8 +41,8 @@ const METHOD_CATEGORIES = {
 export class ProcessingDecisionEngine {
 	constructor(config = {}) {
 		this.thresholds = { ...DEFAULT_THRESHOLDS, ...config.thresholds };
-		this.backendServerUrl = config.backendServerUrl || null;
-		this.enableBackendProcessing = config.enableBackendProcessing ?? true;
+		this.backendServerUrl = config.backendServerUrl || DATAMONKEY_SERVER_URL;
+		this.enableBackendProcessing = config.enableBackendProcessing ?? ENABLE_BACKEND_PROCESSING;
 		this.userPreference = config.userPreference || 'auto';
 		
 		// Cache for server availability to avoid repeated health checks
@@ -333,17 +331,8 @@ export class ProcessingDecisionEngine {
 	 * Static factory method with environment-based configuration
 	 */
 	static createFromEnvironment() {
-		const config = {
-			backendServerUrl: globalThis?.process?.env?.VITE_DATAMONKEY_SERVER_URL || null,
-			enableBackendProcessing: globalThis?.process?.env?.VITE_ENABLE_BACKEND_PROCESSING === 'true',
-			thresholds: {
-				fileSize: parseInt(globalThis?.process?.env?.VITE_BACKEND_FILE_SIZE_THRESHOLD) || DEFAULT_THRESHOLDS.fileSize,
-				sequences: parseInt(globalThis?.process?.env?.VITE_BACKEND_SEQUENCE_THRESHOLD) || DEFAULT_THRESHOLDS.sequences,
-				sequenceLength: parseInt(globalThis?.process?.env?.VITE_BACKEND_SEQUENCE_LENGTH_THRESHOLD) || DEFAULT_THRESHOLDS.sequenceLength
-			}
-		};
-
-		return new ProcessingDecisionEngine(config);
+		// Configuration comes from env.js imports
+		return new ProcessingDecisionEngine();
 	}
 }
 

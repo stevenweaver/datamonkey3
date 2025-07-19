@@ -5,7 +5,7 @@
  */
 
 import { json } from '@sveltejs/kit';
-import { analysisStorage } from '../../../lib/utils/indexedDBStorage.js';
+import { backendSocketService } from '../../../lib/services/BackendSocketService.js';
 
 /** @type {import('./$types').RequestHandler} */
 export async function POST({ request, fetch, url }) {
@@ -36,10 +36,20 @@ export async function POST({ request, fetch, url }) {
 		};
 
 		if (processingLocation === 'backend') {
-			// Submit to backend datamonkey-js-server
-			const backendJob = await submitToBackendServer(analysis, options);
-			analysis.backendJobId = backendJob.id;
-			analysis.backendStatus = backendJob.status;
+			// Submit to backend datamonkey-js-server via Socket.IO
+			try {
+				await backendSocketService.connect();
+				
+				// For now, we'll just mark it as submitted
+				// The actual job submission will happen in the UnifiedAnalysisRunner
+				analysis.backendJobId = analysisId; // Use analysis ID as job ID
+				analysis.backendStatus = 'submitted';
+			} catch (error) {
+				console.error('Backend connection failed:', error);
+				// Fall back to local processing
+				analysis.processingLocation = 'local';
+				analysis.fallbackReason = 'Backend server unavailable';
+			}
 		}
 
 		// Save analysis to storage (this would be database in real implementation)

@@ -1,6 +1,7 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { persistentFileStore } from '../stores/fileInfo';
+	import ProcessingLocationBadge from './ProcessingLocationBadge.svelte';
 
 	// Props
 	export let analysis = {};
@@ -187,9 +188,21 @@
 		<div class="flex-grow">
 			<!-- Header -->
 			<div class="flex items-start justify-between">
-				<h3 class="font-medium {compact ? 'text-sm' : 'text-base'}">
-					{analysis.method ? analysis.method.toUpperCase() : 'Unknown'} Analysis
-				</h3>
+				<div class="flex flex-col">
+					<h3 class="font-medium {compact ? 'text-sm' : 'text-base'}">
+						{analysis.method ? analysis.method.toUpperCase() : 'Unknown'} Analysis
+					</h3>
+					<!-- Processing location badge -->
+					{#if analysis.processingLocation}
+						<div class="mt-1">
+							<ProcessingLocationBadge 
+								processingLocation={analysis.processingLocation} 
+								status={analysis.status}
+								compact={compact}
+							/>
+						</div>
+					{/if}
+				</div>
 
 				<!-- Status badge -->
 				<div
