@@ -155,11 +155,6 @@
 		dispatch('export', { analysisId: analysis.id });
 	}
 
-	// Handle compare action
-	function compareAnalysis() {
-		dispatch('compare', { analysisId: analysis.id });
-	}
-
 	// Handle cancel action
 	function cancelAnalysis() {
 		dispatch('cancel', { analysisId: analysis.id });
@@ -391,25 +386,6 @@
 						/>
 					</svg>
 					Export
-				</button>
-
-				<button
-					on:click|stopPropagation={compareAnalysis}
-					class="inline-flex items-center rounded bg-purple-100 px-2.5 py-1.5 text-xs font-medium text-purple-700 transition-colors hover:bg-purple-200"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="mr-1 h-3 w-3"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-						clip-rule="evenodd"
-					/>
-					</svg>
-					Compare
 				</button>
 			{/if}
 
