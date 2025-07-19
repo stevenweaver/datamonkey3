@@ -1,7 +1,6 @@
 <!-- src/lib/MethodSelector.svelte -->
 <script>
 	import { writable } from 'svelte/store';
-	import AnalysisProgress from './AnalysisProgress.svelte';
 
 	export let methodConfig;
 	export let runMethod = [];
@@ -348,10 +347,6 @@
 		</div>
 	{/if}
 
-	<!-- Analysis Progress -->
-	<div class="mb-premium-xl">
-		<AnalysisProgress />
-	</div>
 
 	<!-- Method cards -->
 	<div class="grid grid-cols-1 gap-premium-md md:grid-cols-2 lg:grid-cols-3">
