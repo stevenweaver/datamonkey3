@@ -175,7 +175,7 @@
 		{/if}
 	</div>
 
-	<!-- Analysis History Section (collapsible) -->
+	<!-- Recent Analyses Section (collapsible) -->
 	<div class="mb-premium-xl rounded-premium border border-border-platinum bg-white shadow-premium">
 		<div
 			class="flex cursor-pointer items-center justify-between rounded-t-premium bg-brand-whisper p-premium-md transition-all duration-premium hover:bg-brand-ghost"
