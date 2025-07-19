@@ -6,6 +6,7 @@
 	import EnhancedExportPanel from './EnhancedExportPanel.svelte';
 	import FelVisualization from './FelVisualization.svelte';
 	import { FINAL_HYPHY_EYE_URL } from './config/env';
+	import { shareWithHyphyEye, isMethodSupported, getHyphyEyeUrl } from './utils/hyphyEyeIntegration';
 
 	// Tab management
 	let activeTab = 'results';
@@ -293,7 +294,7 @@
 								<!-- HyPhy-eye iframe visualization -->
 								<div class="visualization-container h-[600px] w-full">
 									<iframe
-										src="{FINAL_HYPHY_EYE_URL}/viz/{analysis.method.toLowerCase().replace('-', '')}"
+										src="{FINAL_HYPHY_EYE_URL}/pages/{analysis.method.toLowerCase().replace('-', '')}"
 										class="h-full w-full border-0"
 										title="{analysis.method} visualization in HyPhy-eye"
 										allowfullscreen
@@ -301,35 +302,64 @@
 								</div>
 							{/if}
 
-							<!-- Link to external hyphy-eye for reference -->
-							<div class="mb-4 mt-4 rounded-lg bg-gray-100 p-4 text-center shadow-sm">
-								<p class="mb-2">Open results in a new tab:</p>
-								<a
-									href="{FINAL_HYPHY_EYE_URL}/viz/{analysis.method.toLowerCase().replace('-', '')}"
-									target="_blank"
-									rel="noopener noreferrer"
-									class="inline-block rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
-								>
-									Open {analysis.method.toUpperCase()} Results in hyphy-eye
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										class="ml-1 inline-block h-4 w-4"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
+							<!-- HyPhy-eye integration with localStorage sharing -->
+							{#if isMethodSupported(analysis.method)}
+								<div class="mb-4 mt-4 rounded-lg bg-blue-50 p-4 text-center shadow-sm">
+									<p class="mb-2 text-blue-800">View results with automatic data sharing:</p>
+									<button
+										on:click={() => shareWithHyphyEye(resultData, analysis.method)}
+										class="inline-block rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
 									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-										/>
-									</svg>
-								</a>
-								<p class="mt-2 text-sm text-gray-600">
-									Note: You will need to upload your result JSON to hyphy-eye or share the URL.
-								</p>
-							</div>
+										View in HyPhy-eye
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											class="ml-1 inline-block h-4 w-4"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke="currentColor"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+											/>
+										</svg>
+									</button>
+									<p class="mt-2 text-sm text-blue-600">
+										Analysis results will be automatically shared via localStorage.
+									</p>
+								</div>
+							{:else}
+								<div class="mb-4 mt-4 rounded-lg bg-gray-100 p-4 text-center shadow-sm">
+									<p class="mb-2">Open results in a new tab:</p>
+									<a
+										href="{FINAL_HYPHY_EYE_URL}/pages/{analysis.method.toLowerCase().replace('-', '')}"
+										target="_blank"
+										rel="noopener noreferrer"
+										class="inline-block rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
+									>
+										Open {analysis.method.toUpperCase()} Results in hyphy-eye
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											class="ml-1 inline-block h-4 w-4"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke="currentColor"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+											/>
+										</svg>
+									</a>
+									<p class="mt-2 text-sm text-gray-600">
+										Note: You will need to upload your result JSON to hyphy-eye manually.
+									</p>
+								</div>
+							{/if}
 						</div>
 					{:else}
 						<!-- Generic JSON display for other methods -->

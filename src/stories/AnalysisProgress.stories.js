@@ -1,6 +1,5 @@
 import '../app.css';
-import EnhancedAnalysisProgress from '../lib/EnhancedAnalysisProgress.svelte';
-import AnalysisProgressRams from '../lib/AnalysisProgressRams.svelte';
+import AnalysisProgress from '../lib/AnalysisProgress.svelte';
 import { writable } from 'svelte/store';
 
 // Create a mock store for the progress component
@@ -102,7 +101,7 @@ const errorAnalysis = {
 	]
 };
 
-// Story configuration for EnhancedAnalysisProgress
+// Story configuration for AnalysisProgress
 export default {
 	title: 'Analysis/Progress Indicators',
 	parameters: {
@@ -123,26 +122,20 @@ export default {
 	}
 };
 
-// Template for EnhancedAnalysisProgress
-const EnhancedTemplate = (args) => ({
-	Component: EnhancedAnalysisProgress,
+// Template for AnalysisProgress
+const Template = (args) => ({
+	Component: AnalysisProgress,
 	props: args
 });
 
-// Template for AnalysisProgressRams
-const RamsTemplate = (args) => ({
-	Component: AnalysisProgressRams,
-	props: args
-});
-
-// Story variations for EnhancedAnalysisProgress
-export const EnhancedRunning = (args) => {
+// Story variations
+export const Running = (args) => {
 	// Override the store with our mock for this story
 	window.activeAnalysisProgress = createProgressStore(runningAnalysis);
-	return EnhancedTemplate.bind({})();
+	return Template.bind({})();
 };
-EnhancedRunning.storyName = 'Enhanced - Running';
-EnhancedRunning.parameters = {
+Running.storyName = 'Running';
+Running.parameters = {
 	docs: {
 		description: {
 			story: 'Progress indicator for a running analysis, showing real-time updates.'
@@ -150,12 +143,12 @@ EnhancedRunning.parameters = {
 	}
 };
 
-export const EnhancedProcessing = (args) => {
+export const Processing = (args) => {
 	window.activeAnalysisProgress = createProgressStore(processingAnalysis);
-	return EnhancedTemplate.bind({})();
+	return Template.bind({})();
 };
-EnhancedProcessing.storyName = 'Enhanced - Processing';
-EnhancedProcessing.parameters = {
+Processing.storyName = 'Processing';
+Processing.parameters = {
 	docs: {
 		description: {
 			story: 'Progress indicator for an analysis in the processing phase.'
@@ -163,12 +156,12 @@ EnhancedProcessing.parameters = {
 	}
 };
 
-export const EnhancedCompleted = (args) => {
+export const Completed = (args) => {
 	window.activeAnalysisProgress = createProgressStore(completedAnalysis);
-	return EnhancedTemplate.bind({})();
+	return Template.bind({})();
 };
-EnhancedCompleted.storyName = 'Enhanced - Completed';
-EnhancedCompleted.parameters = {
+Completed.storyName = 'Completed';
+Completed.parameters = {
 	docs: {
 		description: {
 			story: 'Progress indicator for a completed analysis, showing results summary.'
@@ -176,12 +169,12 @@ EnhancedCompleted.parameters = {
 	}
 };
 
-export const EnhancedError = (args) => {
+export const Error = (args) => {
 	window.activeAnalysisProgress = createProgressStore(errorAnalysis);
-	return EnhancedTemplate.bind({})();
+	return Template.bind({})();
 };
-EnhancedError.storyName = 'Enhanced - Error';
-EnhancedError.parameters = {
+Error.storyName = 'Error';
+Error.parameters = {
 	docs: {
 		description: {
 			story: 'Progress indicator for an analysis that encountered an error.'
@@ -189,55 +182,3 @@ EnhancedError.parameters = {
 	}
 };
 
-// Story variations for AnalysisProgressRams
-export const RamsRunning = (args) => {
-	window.activeAnalysisProgress = createProgressStore(runningAnalysis);
-	return RamsTemplate.bind({})();
-};
-RamsRunning.storyName = 'Rams - Running';
-RamsRunning.parameters = {
-	docs: {
-		description: {
-			story: 'Dieter Rams-inspired progress indicator for a running analysis.'
-		}
-	}
-};
-
-export const RamsProcessing = (args) => {
-	window.activeAnalysisProgress = createProgressStore(processingAnalysis);
-	return RamsTemplate.bind({})();
-};
-RamsProcessing.storyName = 'Rams - Processing';
-RamsProcessing.parameters = {
-	docs: {
-		description: {
-			story: 'Dieter Rams-inspired progress indicator for an analysis in the processing phase.'
-		}
-	}
-};
-
-export const RamsCompleted = (args) => {
-	window.activeAnalysisProgress = createProgressStore(completedAnalysis);
-	return RamsTemplate.bind({})();
-};
-RamsCompleted.storyName = 'Rams - Completed';
-RamsCompleted.parameters = {
-	docs: {
-		description: {
-			story: 'Dieter Rams-inspired progress indicator for a completed analysis.'
-		}
-	}
-};
-
-export const RamsError = (args) => {
-	window.activeAnalysisProgress = createProgressStore(errorAnalysis);
-	return RamsTemplate.bind({})();
-};
-RamsError.storyName = 'Rams - Error';
-RamsError.parameters = {
-	docs: {
-		description: {
-			story: 'Dieter Rams-inspired progress indicator for an analysis that encountered an error.'
-		}
-	}
-};

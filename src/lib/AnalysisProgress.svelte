@@ -1,3 +1,4 @@
+<!-- src/lib/AnalysisProgress.svelte -->
 <script>
 	import { activeAnalysisProgress } from '../stores/analyses';
 	import { onDestroy, tick } from 'svelte';
@@ -168,7 +169,7 @@
 	// Get simplified status for display
 	$: statusText =
 		$activeAnalysisProgress.status === 'running'
-			? 'Running analysis'
+			? 'Analysis in progress'
 			: $activeAnalysisProgress.status === 'completed'
 				? 'Analysis complete'
 				: $activeAnalysisProgress.status === 'error'
@@ -272,7 +273,11 @@
 							class="progress-pulse absolute left-0 top-0 h-full w-1/3 rounded-full bg-blue-500"
 						></div>
 					</div>
-					<span class="w-12 text-right text-sm font-medium text-blue-600">Active</span>
+					<span
+						class="flex w-12 items-center justify-end text-right text-sm font-medium text-blue-600"
+					>
+						<span class="pulse-animation mr-1 h-2 w-2 rounded-full bg-blue-500"></span>
+					</span>
 				{/if}
 			</div>
 
@@ -366,6 +371,26 @@
 		}
 		100% {
 			transform: translateX(300%);
+		}
+	}
+
+	/* Animation for the pulsing indicator */
+	.pulse-animation {
+		animation: pulse 2s infinite;
+	}
+
+	@keyframes pulse {
+		0% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.5;
+			transform: scale(1.05);
+		}
+		100% {
+			opacity: 1;
+			transform: scale(1);
 		}
 	}
 

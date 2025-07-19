@@ -323,7 +323,9 @@
 </script>
 
 <div class="fel-visualization">
-	<div class="chart-container" bind:this={chartContainer}></div>
+	{#if resultData && resultData.tested && resultData.tested.sites && resultData.tested.sites.length > 0}
+		<div bind:this={chartContainer} style="width: 100%; height: 400px; border: 1px solid #e2e8f0; border-radius: 0.5rem; overflow: hidden; background-color: #fff;"></div>
+	{/if}
 
 	{#if significantSites.length > 0}
 		<div class="significant-sites mt-6">
@@ -369,21 +371,12 @@
 </div>
 
 <style>
-	.chart-container {
-		width: 100%;
-		height: 400px;
-		border: 1px solid #e2e8f0;
-		border-radius: 0.5rem;
-		overflow: hidden;
-		background-color: #fff;
-	}
-
 	/* SVG styles */
-	:global(.chart-container svg) {
+	:global(.fel-visualization svg) {
 		font-family: sans-serif;
 	}
 
-	:global(.chart-container .x-axis text, .chart-container .y-axis text) {
+	:global(.fel-visualization .x-axis text, .fel-visualization .y-axis text) {
 		font-size: 12px;
 	}
 </style>
