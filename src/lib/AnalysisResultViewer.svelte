@@ -5,11 +5,10 @@
 	import ExportPanel from './ExportPanel.svelte';
 	import EnhancedExportPanel from './EnhancedExportPanel.svelte';
 	import FelVisualization from './FelVisualization.svelte';
+	import AnalysisProgress from './AnalysisProgress.svelte';
 	import { FINAL_HYPHY_EYE_URL } from './config/env';
 	import { shareWithHyphyEye, isMethodSupported, getHyphyEyeUrl } from './utils/hyphyEyeIntegration';
 
-	// Tab management
-	let activeTab = 'results';
 
 	export let analysisId = null;
 
@@ -185,34 +184,6 @@
 								<p><strong>Analysis File:</strong> {resultData.input.file}</p>
 							{/if}
 
-							<!-- Tabs navigation -->
-							<div class="mb-4 border-b border-gray-200">
-								<ul class="-mb-px flex flex-wrap text-center text-sm font-medium">
-									<li class="mr-2">
-										<button
-											class="inline-block rounded-t-lg border-b-2 p-4 {activeTab === 'results'
-												? 'border-blue-500 text-blue-600'
-												: 'border-transparent hover:border-gray-300 hover:text-gray-600'}"
-											on:click={() => (activeTab = 'results')}
-										>
-											Results
-										</button>
-									</li>
-									<li class="mr-2">
-										<button
-											class="inline-block rounded-t-lg border-b-2 p-4 {activeTab === 'visualization'
-												? 'border-blue-500 text-blue-600'
-												: 'border-transparent hover:border-gray-300 hover:text-gray-600'}"
-											on:click={() => (activeTab = 'visualization')}
-										>
-											Visualization
-										</button>
-									</li>
-								</ul>
-							</div>
-
-							<!-- Tab Content -->
-							{#if activeTab === 'results'}
 								<!-- FEL-specific visualization for FEL method -->
 								{#if analysis.method === 'FEL'}
 									<div class="mb-6 mt-6 rounded-lg bg-white p-4 shadow-sm">
@@ -290,17 +261,6 @@
 								{#if !resultData.tested && !resultData.fits}
 									<pre class="bg-gray-100 p-2 text-sm">{JSON.stringify(resultData, null, 2)}</pre>
 								{/if}
-							{:else if activeTab === 'visualization'}
-								<!-- HyPhy-eye iframe visualization -->
-								<div class="visualization-container h-[600px] w-full">
-									<iframe
-										src="{FINAL_HYPHY_EYE_URL}/pages/{analysis.method.toLowerCase().replace('-', '')}"
-										class="h-full w-full border-0"
-										title="{analysis.method} visualization in HyPhy-eye"
-										allowfullscreen
-									></iframe>
-								</div>
-							{/if}
 
 							<!-- HyPhy-eye integration with localStorage sharing -->
 							{#if isMethodSupported(analysis.method)}
@@ -373,32 +333,8 @@
 						</div>
 					{/if}
 				{:else if ['pending', 'running', 'mounting', 'processing', 'saving'].includes(analysis.status)}
-					<div class="flex flex-col items-center justify-center p-4">
-						<div class="loader mb-4"></div>
-						<p class="text-lg text-yellow-600">
-							Analysis is {analysis.status === 'pending' ? 'pending...' : analysis.status + '...'}
-						</p>
-						<p class="mt-2 text-sm text-gray-500">This might take a few moments to complete.</p>
-						<div class="mt-4 flex justify-center">
-							<div class="h-20 w-20">
-								<svg class="animate-spin" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-									<circle
-										cx="12"
-										cy="12"
-										r="10"
-										stroke-width="4"
-										stroke="currentColor"
-										stroke-opacity="0.25"
-										fill="none"
-									/>
-									<path
-										fill="currentColor"
-										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-									></path>
-								</svg>
-							</div>
-						</div>
-					</div>
+					<!-- Show the detailed analysis progress when viewing a pending/running analysis -->
+					<AnalysisProgress />
 				{:else}
 					<p class="text-gray-600">No results available</p>
 				{/if}
