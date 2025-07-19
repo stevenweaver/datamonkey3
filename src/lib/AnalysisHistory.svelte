@@ -105,6 +105,32 @@
 		// Implementation depends on comparison UI
 	}
 
+	// Handle cancel action
+	async function handleCancel(event) {
+		const { analysisId } = event.detail;
+		if (confirm('Are you sure you want to cancel this analysis?')) {
+			try {
+				await analysisStore.cancelAnalysis(analysisId);
+			} catch (error) {
+				console.error('Error cancelling analysis:', error);
+				alert('Failed to cancel analysis: ' + error.message);
+			}
+		}
+	}
+
+	// Handle delete action
+	async function handleDelete(event) {
+		const { analysisId } = event.detail;
+		if (confirm('Are you sure you want to delete this analysis? This action cannot be undone.')) {
+			try {
+				await analysisStore.deleteAnalysis(analysisId);
+			} catch (error) {
+				console.error('Error deleting analysis:', error);
+				alert('Failed to delete analysis: ' + error.message);
+			}
+		}
+	}
+
 	// Load analyses on mount
 	onMount(async () => {
 		if (browser) {
@@ -180,6 +206,8 @@
 									on:view={handleView}
 									on:export={handleExport}
 									on:compare={handleCompare}
+									on:cancel={handleCancel}
+									on:delete={handleDelete}
 								/>
 							{/each}
 						</div>
@@ -197,6 +225,8 @@
 							on:view={handleView}
 							on:export={handleExport}
 							on:compare={handleCompare}
+							on:cancel={handleCancel}
+							on:delete={handleDelete}
 						/>
 					{/each}
 				</div>
