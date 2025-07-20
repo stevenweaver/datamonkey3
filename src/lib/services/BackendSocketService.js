@@ -6,7 +6,7 @@
  */
 
 import { io } from 'socket.io-client';
-import { DATAMONKEY_SERVER_URL } from '../config/env.js';
+import { DATAMONKEY_SERVER_URL } from '../config/env';
 import { browser } from '$app/environment';
 
 export class BackendSocketService {

@@ -10,8 +10,8 @@
 	} from '../stores/fileInfo';
 	import { analysisStore, currentAnalysis, activeAnalysisProgress } from '../stores/analyses';
 	import { treeStore, addTree, updateTaggedTree } from '../stores/tree';
-	import { unifiedAnalysisRunner } from '../lib/services/UnifiedAnalysisRunner.js';
-	import { processingDecisionEngine } from '../lib/services/ProcessingDecisionEngine.js';
+	import { unifiedAnalysisRunner } from '../lib/services/UnifiedAnalysisRunner';
+	import { processingDecisionEngine } from '../lib/services/ProcessingDecisionEngine';
 	import Aioli from '@biowasm/aioli';
 	import TreeSelector from '../lib/TreeSelector.svelte';
 	import ErrorHandler from '../lib/ErrorHandler.svelte';

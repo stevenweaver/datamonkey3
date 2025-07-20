@@ -5,11 +5,11 @@
  * lifecycle regardless of whether it runs locally (WebAssembly) or on the backend server.
  */
 
-import { processingDecisionEngine } from './ProcessingDecisionEngine.js';
-import { analysisRunner } from './AnalysisRunner.js';
-import { backendSocketService } from './BackendSocketService.js';
-import { analysisStore } from '../../stores/analyses.js';
-import { persistentFileStore } from '../../stores/fileInfo.js';
+import { processingDecisionEngine } from './ProcessingDecisionEngine';
+import { analysisRunner } from './AnalysisRunner';
+import { backendSocketService } from './BackendSocketService';
+import { analysisStore } from '../../stores/analyses';
+import { persistentFileStore } from '../../stores/fileInfo';
 import { browser } from '$app/environment';
 
 export class UnifiedAnalysisRunner {

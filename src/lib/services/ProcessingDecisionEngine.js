@@ -5,7 +5,7 @@
  * to route computational jobs to the most appropriate processing location.
  */
 
-import { DATAMONKEY_SERVER_URL, ENABLE_BACKEND_PROCESSING, BACKEND_JOB_THRESHOLDS } from '../config/env.js';
+import { DATAMONKEY_SERVER_URL, ENABLE_BACKEND_PROCESSING, BACKEND_JOB_THRESHOLDS } from '../config/env';
 
 // Use environment-based thresholds with fallbacks
 const DEFAULT_THRESHOLDS = {

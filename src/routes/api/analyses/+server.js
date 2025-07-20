@@ -5,7 +5,7 @@
  */
 
 import { json } from '@sveltejs/kit';
-import { backendSocketService } from '../../../lib/services/BackendSocketService.js';
+import { backendSocketService } from '../../../lib/services/BackendSocketService';
 
 /** @type {import('./$types').RequestHandler} */
 export async function POST({ request, fetch, url }) {
