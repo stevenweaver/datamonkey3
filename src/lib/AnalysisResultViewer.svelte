@@ -18,7 +18,10 @@
 	let loading = true;
 	let error = null;
 
-	$: if (analysisId) {
+	// Load analysis when ID changes
+	let previousAnalysisId = null;
+	$: if (analysisId && analysisId !== previousAnalysisId) {
+		previousAnalysisId = analysisId;
 		loadAnalysis(analysisId);
 	}
 
@@ -27,23 +30,8 @@
 		error = null;
 
 		try {
-			// Try to get analysis from server first (most up-to-date status)
-			try {
-				const response = await fetch(`/api/analyses/${id}`);
-				if (response.ok) {
-					const serverAnalysis = await response.json();
-					// Update local store with server data to keep them in sync
-					await analysisStore.updateAnalysis(id, serverAnalysis);
-					analysis = serverAnalysis;
-				} else {
-					// Fall back to local storage if server request fails
-					analysis = await analysisStore.getAnalysis(id);
-				}
-			} catch (err) {
-				console.warn('Server fetch failed, using local data:', err);
-				// Fall back to local storage
-				analysis = await analysisStore.getAnalysis(id);
-			}
+			// Get analysis from local store (the API endpoint doesn't exist yet)
+			analysis = await analysisStore.getAnalysis(id);
 
 			if (!analysis) {
 				error = 'Analysis not found';
@@ -86,7 +74,12 @@
 	$: if (analysisId && $analysisStore.analyses) {
 		// Find the current analysis in the store
 		const storeAnalysis = $analysisStore.analyses.find(a => a.id === analysisId);
-		if (storeAnalysis && (!analysis || storeAnalysis.status !== analysis.status || storeAnalysis.completedAt !== analysis.completedAt)) {
+		// Only reload if there's a meaningful change and we're not already loading
+		if (storeAnalysis && !loading && analysis && (
+			storeAnalysis.status !== analysis.status || 
+			(storeAnalysis.completedAt && storeAnalysis.completedAt !== analysis.completedAt) ||
+			(storeAnalysis.result && storeAnalysis.result !== analysis.result)
+		)) {
 			// Analysis has been updated in the store, reload it
 			loadAnalysis(analysisId);
 		}

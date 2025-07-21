@@ -1,6 +1,7 @@
 <script>
 	import { persistentFileStore, currentFile } from '../stores/fileInfo';
 	import { analysisStore } from '../stores/analyses';
+	import { wrapForAutomation } from './utils/browserAutomationHelpers.js';
 
 	export let activeTab = 'data';
 	export let onChange = (tabName) => {};
@@ -15,7 +16,9 @@
 	$: isResultsDisabled = !hasAnalyses;
 
 	// Function to handle tab clicks with context-aware behavior
-	function handleTabClick(tabName) {
+	function handleTabClick(tabName, event) {
+		console.log(`[SmartTabNavigation] Tab click: ${tabName}`);
+		
 		// Data tab is always accessible
 		if (tabName === 'data') {
 			onChange(tabName);
@@ -50,8 +53,10 @@
 				class:text-text-rich={activeTab !== 'data'}
 				class:hover:text-brand-royal={activeTab !== 'data'}
 				class:hover:bg-brand-whisper={activeTab !== 'data'}
-				on:click={() => handleTabClick('data')}
+				on:click={wrapForAutomation((event) => handleTabClick('data', event), 50)}
 				title="Manage sequence data"
+				data-testid="tab-data"
+				data-automation-ready="true"
 			>
 				<span class="flex items-center">
 					<div
@@ -82,9 +87,11 @@
 				class:hover:bg-brand-whisper={activeTab !== 'analyze' && !isAnalyzeDisabled}
 				class:cursor-not-allowed={isAnalyzeDisabled}
 				class:opacity-60={isAnalyzeDisabled}
-				on:click={() => handleTabClick('analyze')}
+				on:click={wrapForAutomation((event) => handleTabClick('analyze', event), 50)}
 				title={isAnalyzeDisabled ? 'Upload data first' : 'Run analysis on selected data'}
 				aria-disabled={isAnalyzeDisabled}
+				data-testid="tab-analyze"
+				data-automation-ready="true"
 			>
 				<span class="flex items-center">
 					<div
@@ -125,9 +132,11 @@
 				class:hover:bg-brand-whisper={activeTab !== 'results' && !isResultsDisabled}
 				class:cursor-not-allowed={isResultsDisabled}
 				class:opacity-60={isResultsDisabled}
-				on:click={() => handleTabClick('results')}
+				on:click={wrapForAutomation((event) => handleTabClick('results', event), 50)}
 				title={isResultsDisabled ? 'Run analysis first' : 'View analysis results'}
 				aria-disabled={isResultsDisabled}
+				data-testid="tab-results"
+				data-automation-ready="true"
 			>
 				<span class="flex items-center">
 					<div

@@ -63,30 +63,49 @@ export class ProcessingDecisionEngine {
 	async determineProcessingLocation(fileMetrics, method, options = {}) {
 		const userPref = options.userPreference || this.userPreference;
 		
+		console.log('ProcessingDecisionEngine: Determining processing location', {
+			fileMetrics,
+			method,
+			userPref,
+			thresholds: this.thresholds,
+			enableBackendProcessing: this.enableBackendProcessing
+		});
+		
 		// User override - force local
 		if (userPref === 'force-local') {
+			console.log('ProcessingDecisionEngine: User preference force-local');
 			return 'local';
 		}
 
 		// User override - force backend (but check availability)
 		if (userPref === 'force-backend') {
 			const isAvailable = await this.isBackendAvailable();
+			console.log('ProcessingDecisionEngine: User preference force-backend, server available:', isAvailable);
 			return isAvailable ? 'backend' : 'local';
 		}
 
 		// If backend processing disabled, always use local
 		if (!this.enableBackendProcessing) {
+			console.log('ProcessingDecisionEngine: Backend processing disabled');
 			return 'local';
 		}
 
-		// Check backend availability before making decisions
-		const isBackendAvailable = await this.isBackendAvailable();
-		if (!isBackendAvailable) {
-			return 'local';
+		// Check backend availability before making decisions (unless skipped for testing)
+		if (!options.skipServerCheck) {
+			const isBackendAvailable = await this.isBackendAvailable();
+			console.log('ProcessingDecisionEngine: Backend available:', isBackendAvailable);
+			if (!isBackendAvailable) {
+				console.log('ProcessingDecisionEngine: Backend not available, falling back to local');
+				return 'local';
+			}
+		} else {
+			console.log('ProcessingDecisionEngine: Skipping server availability check for testing');
 		}
 
 		// Apply decision logic
-		return this._evaluateProcessingCriteria(fileMetrics, method, options);
+		const result = this._evaluateProcessingCriteria(fileMetrics, method, options);
+		console.log('ProcessingDecisionEngine: Decision result:', result);
+		return result;
 	}
 
 	/**
@@ -170,26 +189,37 @@ export class ProcessingDecisionEngine {
 	 * Determine if job requires backend processing (hard constraints)
 	 */
 	_requiresBackendProcessing(fileMetrics, methodInfo) {
+		console.log('ProcessingDecisionEngine: Checking backend requirements', {
+			fileMetrics,
+			thresholds: this.thresholds,
+			methodInfo
+		});
+
 		// File size constraint
 		if (fileMetrics.size > this.thresholds.fileSize) {
+			console.log('ProcessingDecisionEngine: File size exceeds threshold', fileMetrics.size, '>', this.thresholds.fileSize);
 			return true;
 		}
 
 		// Sequence count constraint  
 		if (fileMetrics.sequences > this.thresholds.sequences) {
+			console.log('ProcessingDecisionEngine: Sequence count exceeds threshold', fileMetrics.sequences, '>', this.thresholds.sequences);
 			return true;
 		}
 
 		// Average sequence length constraint
 		if (fileMetrics.avgSequenceLength > this.thresholds.sequenceLength) {
+			console.log('ProcessingDecisionEngine: Sequence length exceeds threshold', fileMetrics.avgSequenceLength, '>', this.thresholds.sequenceLength);
 			return true;
 		}
 
 		// Method complexity constraint
 		if (methodInfo.category === 'verySlow') {
+			console.log('ProcessingDecisionEngine: Method is very slow category');
 			return true;
 		}
 
+		console.log('ProcessingDecisionEngine: No backend requirements met');
 		return false;
 	}
 

@@ -20,6 +20,6 @@ export const DATAMONKEY_SERVER_URL = import.meta.env.VITE_DATAMONKEY_SERVER_URL 
 export const ENABLE_BACKEND_PROCESSING = import.meta.env.VITE_ENABLE_BACKEND_PROCESSING !== 'false'; // Default to enabled
 export const BACKEND_JOB_THRESHOLDS = {
 	fileSize: parseInt(import.meta.env.VITE_BACKEND_FILE_SIZE_THRESHOLD) || 5 * 1024 * 1024, // 5MB
-	sequences: parseInt(import.meta.env.VITE_BACKEND_SEQUENCE_THRESHOLD) || 100,
+	sequences: parseInt(import.meta.env.VITE_BACKEND_SEQUENCE_THRESHOLD) || 10, // Changed from 100 to 10 for testing
 	sequenceLength: parseInt(import.meta.env.VITE_BACKEND_SEQUENCE_LENGTH_THRESHOLD) || 10000
 };

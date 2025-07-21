@@ -1,6 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
+	import { wrapForAutomation, delay } from './utils/browserAutomationHelpers.js';
 
 	const dispatch = createEventDispatcher();
 
@@ -18,16 +19,13 @@
 
 	// Handle loading a demo file using the File System API
 	async function loadDemoFile(filePath, fileName) {
+		console.log(`[DemoFileSelector] Starting to load: ${fileName}`);
+		
 		try {
-			// For security reasons, browser JS can't directly access file system
-			// In a real app, these would be served from the server's public directory
-			// For this demo, we'll simply read the files from our test-data directory
-
 			// Read file from test-data directory using fetch
 			const demoFilePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
 
-			// In a development environment, we need to fetch from the right path
-			// In Vite, public files are served from the root, so we adjust the path
+			console.log(`[DemoFileSelector] Fetching from: ${demoFilePath}`);
 			const response = await fetch(demoFilePath);
 
 			if (!response.ok) {
@@ -36,6 +34,7 @@
 
 			// Get the file content
 			const content = await response.text();
+			console.log(`[DemoFileSelector] File content loaded, size: ${content.length} chars`);
 
 			// Create a File object from the content
 			const file = new File([content], fileName, { type: 'application/octet-stream' });
@@ -43,10 +42,15 @@
 			// Add metadata to indicate this is a demo file
 			const metadata = { isDemo: true, source: 'demoSelector' };
 
+			// Add a small delay for browser automation
+			await delay(50);
+
 			// Dispatch the file to the parent component
+			console.log(`[DemoFileSelector] Dispatching selectFile event for: ${fileName}`);
 			dispatch('selectFile', { file, metadata });
+			
 		} catch (error) {
-			console.error('Error loading demo file:', error);
+			console.error('[DemoFileSelector] Error loading demo file:', error);
 			dispatch('error', { message: `Failed to load demo file: ${error.message}` });
 		}
 	}
@@ -75,7 +79,9 @@
 		{#each demoFiles as demoFile}
 			<button
 				class="flex items-center rounded-md border border-gray-200 p-2 transition-colors hover:border-blue-300 hover:bg-blue-50"
-				on:click={() => loadDemoFile(demoFile.path, demoFile.name)}
+				on:click={wrapForAutomation((event) => loadDemoFile(demoFile.path, demoFile.name), 100)}
+				data-testid="demo-file-{demoFile.name}"
+				data-automation-ready="true"
 			>
 				<div class="mr-2 text-blue-500">
 					<svg

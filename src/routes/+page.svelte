@@ -198,7 +198,7 @@
 				const processingLocation = await processingDecisionEngine.determineProcessingLocation(
 					fileMetrics,
 					'fel',
-					{ userPreference: 'auto' }
+					{ userPreference: 'auto', skipServerCheck: true } // Skip server check for testing
 				);
 				
 				console.log(`FEL will be processed: ${processingLocation}`, fileMetrics);
@@ -775,13 +775,16 @@
 		const { file, metadata } = event.detail;
 
 		if (file) {
-			// Process the demo file
-			handleFileUpload({
-				target: { files: [file] },
-				isSelection: false,
-				isDemo: true,
-				metadata
-			});
+			// Use setTimeout to ensure proper event completion for browser automation
+			setTimeout(() => {
+				// Process the demo file
+				handleFileUpload({
+					target: { files: [file] },
+					isSelection: false,
+					isDemo: true,
+					metadata
+				});
+			}, 50); // Slightly longer delay for file processing
 		}
 	}
 
@@ -798,12 +801,15 @@
 	// Handle tab switching events from child components
 	function handleSwitchTab(event) {
 		if (event.detail && event.detail.tabName) {
-			activeTab = event.detail.tabName;
+			// Use setTimeout for browser automation compatibility
+			setTimeout(() => {
+				activeTab = event.detail.tabName;
 
-			// If we have an analysis ID, select it
-			if (event.detail.analysisId) {
-				selectAnalysis(event.detail.analysisId);
-			}
+				// If we have an analysis ID, select it
+				if (event.detail.analysisId) {
+					selectAnalysis(event.detail.analysisId);
+				}
+			}, 10);
 		}
 	}
 </script>
