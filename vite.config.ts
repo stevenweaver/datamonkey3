@@ -9,6 +9,11 @@ export default defineConfig({
 		environment: 'jsdom'
 	},
 
+	define: {
+		global: 'globalThis',
+		'process.env': {}
+	},
+
 	server: {
 		// Increase WebSocket timeout to prevent timeout errors
 		hmr: {
@@ -32,6 +37,6 @@ export default defineConfig({
 
 	// Optimize dependencies to prevent long processing times
 	optimizeDeps: {
-		include: ['@biowasm/aioli', 'toml', 'marked']
+		include: ['@biowasm/aioli', 'toml', 'marked', 'socket.io-client']
 	}
 });
