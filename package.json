@@ -20,6 +20,7 @@
 		"test:meme-backend": "vitest run src/test/meme-backend.test.js --reporter=verbose",
 		"test:fubar-backend": "vitest run src/test/fubar-backend.test.js --reporter=verbose",
 		"test:busted-backend": "vitest run src/test/busted-backend.test.js --reporter=verbose",
+		"test:absrel-backend": "vitest run src/test/absrel-backend.test.js --reporter=verbose",
 		"storybook": "storybook dev -p 6006",
 		"build-storybook": "storybook build",
 		"deploy": "wrangler pages deploy .svelte-kit/cloudflare",
