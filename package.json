@@ -15,6 +15,7 @@
 		"lint": "prettier --check . && eslint .",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run",
+		"test:fel-backend": "vitest run src/test/fel-backend.test.js --reporter=verbose",
 		"storybook": "storybook dev -p 6006",
 		"build-storybook": "storybook build",
 		"deploy": "wrangler pages deploy .svelte-kit/cloudflare",
