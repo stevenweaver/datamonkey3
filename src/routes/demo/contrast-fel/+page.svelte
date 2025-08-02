@@ -44,8 +44,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 	let contrastFelParams = {
 		analysis_type: 'contrast-fel',
 		code: 'Universal',
-		'branch-set-1': 'Internal',
-		'branch-set-2': 'Leaves',
+		'branch-set': 'Foreground',
 		srv: 'Yes',
 		permutations: 'Yes',
 		'p-value': 0.05,
@@ -335,34 +334,20 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				</select>
 			</div>
 			<div>
-				<label for="branch-set-1" class="block text-sm font-medium text-gray-700"
-					>Branch Set 1</label
+				<label for="branch-set" class="block text-sm font-medium text-gray-700"
+					>Branch Set</label
 				>
 				<select
-					id="branch-set-1"
-					bind:value={contrastFelParams['branch-set-1']}
+					id="branch-set"
+					bind:value={contrastFelParams['branch-set']}
 					class="mt-1 block w-full rounded border p-2"
 				>
+					<option value="Foreground">Foreground</option>
 					<option value="Internal">Internal Branches</option>
 					<option value="Leaves">Terminal Branches</option>
 					<option value="Unlabeled">Unlabeled Branches</option>
 				</select>
-				<p class="mt-1 text-xs text-gray-500">First branch set for comparison</p>
-			</div>
-			<div>
-				<label for="branch-set-2" class="block text-sm font-medium text-gray-700"
-					>Branch Set 2</label
-				>
-				<select
-					id="branch-set-2"
-					bind:value={contrastFelParams['branch-set-2']}
-					class="mt-1 block w-full rounded border p-2"
-				>
-					<option value="Leaves">Terminal Branches</option>
-					<option value="Internal">Internal Branches</option>
-					<option value="Unlabeled">Unlabeled Branches</option>
-				</select>
-				<p class="mt-1 text-xs text-gray-500">Second branch set for comparison</p>
+				<p class="mt-1 text-xs text-gray-500">Branch set for contrast analysis</p>
 			</div>
 			<div>
 				<label for="srv" class="block text-sm font-medium text-gray-700"

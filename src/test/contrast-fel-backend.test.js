@@ -42,8 +42,7 @@ const TEST_TREE =
 const CONTRAST_FEL_PARAMS = {
 	analysis_type: "contrast-fel",
 	code: "Universal", // Default genetic code
-	"branch-set-1": "Internal", // First branch set to compare
-	"branch-set-2": "Leaves", // Second branch set to compare
+	"branch-set": "Foreground", // Branch set for analysis
 	srv: "Yes", // Synonymous rate variation (default: Yes)
 	permutations: "Yes", // Perform permutation tests (default: Yes)
 	"p-value": 0.05, // Significance value for site tests (default: 0.05)
