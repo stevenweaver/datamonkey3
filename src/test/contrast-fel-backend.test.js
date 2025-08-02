@@ -37,7 +37,7 @@ AATGAGACCATCTGGGGTGTCTTGGGTCATGGCATCACCCTGAACATCCCC
 AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
 const TEST_TREE =
-	`((((Pig:0.147969,Cow:0.213430):0.085099,Horse:0.165787,Cat:0.264806):0.058611,((RhMonkey:0.002015,Baboon:0.003108):0.022733,(Human:0.004349,Chimp:0.000799):0.011873):0.101856):0.340802,Rat:0.050958,Mouse:0.097950);`;
+	`((((Pig:0.147969{Background},Cow:0.213430{Background}):0.085099{Background},Horse:0.165787{Background},Cat:0.264806{Background}):0.058611{Background},((RhMonkey:0.002015{Foreground},Baboon:0.003108{Foreground}):0.022733{Foreground},(Human:0.004349{Foreground},Chimp:0.000799{Foreground}):0.011873{Foreground}):0.101856{Foreground}):0.340802{Background},Rat:0.050958{Background},Mouse:0.097950{Background});`;
 
 const CONTRAST_FEL_PARAMS = {
 	genetic_code: "Universal", // Default genetic code
