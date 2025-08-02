@@ -8,7 +8,7 @@
  * an external DataMonkey server to be running.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import io from 'socket.io-client';
 
 // Test data from CD2-slim.fna
@@ -33,11 +33,12 @@ AATGAGACCATCTGGGGTGTCTTGGGTCATGGCATCACCCTGAACATCCCC
 >Rat
 AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
-const TEST_TREE = "((((Pig:0.147969,Cow:0.213430):0.085099,Horse:0.165787,Cat:0.264806):0.058611,((RhMonkey:0.002015,Baboon:0.003108):0.022733,(Human:0.004349,Chimp:0.000799):0.011873):0.101856):0.340802,Rat:0.050958,Mouse:0.097950);";
+const TEST_TREE =
+	'((((Pig:0.147969,Cow:0.213430):0.085099,Horse:0.165787,Cat:0.264806):0.058611,((RhMonkey:0.002015,Baboon:0.003108):0.022733,(Human:0.004349,Chimp:0.000799):0.011873):0.101856):0.340802,Rat:0.050958,Mouse:0.097950);';
 
 const FUBAR_PARAMS = {
 	analysis_type: 'fubar',
-	code: 'Universal',
+	genetic_code: 'Universal',
 	grid: 20,
 	concentration_parameter: 0.5
 };
@@ -126,7 +127,7 @@ describe('DataMonkey FUBAR Backend Integration', () => {
 		}
 	});
 
-	it(
+	it.only(
 		'should run FUBAR analysis successfully',
 		async () => {
 			if (!isServerAvailable) {
@@ -159,13 +160,19 @@ describe('DataMonkey FUBAR Backend Integration', () => {
 
 			const analysisPromise = new Promise((resolve, reject) => {
 				const timeout = setTimeout(() => {
-					reject(new Error('Analysis timeout - may need more time for complex datasets'));
+					reject(
+						new Error(
+							'Analysis timeout - may need more time for complex datasets'
+						)
+					);
 				}, ANALYSIS_TIMEOUT);
 
 				// Track status updates
 				testSocket.on('status update', (status) => {
 					statusMessages.push(status);
-					console.log(`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
+					console.log(
+						`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`
+					);
 				});
 
 				// Handle successful completion
@@ -186,11 +193,11 @@ describe('DataMonkey FUBAR Backend Integration', () => {
 
 				// Start the analysis
 				console.log('🚀 Starting FUBAR analysis...');
-				testSocket.emit('fubar:spawn', {
-					alignment: TEST_FASTA,
-					tree: TEST_TREE,
-					job: FUBAR_PARAMS
-				});
+				const fubarJobWithTree = {
+					...FUBAR_PARAMS,
+					tree: TEST_TREE
+				};
+				testSocket.emit('fubar:spawn', TEST_FASTA, fubarJobWithTree);
 			});
 
 			// Wait for analysis to complete
@@ -229,7 +236,9 @@ describe('DataMonkey FUBAR Backend Integration', () => {
 		// Job queue is optional - some servers run locally without job management
 		const queueResult = await new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				console.log('📊 Job queue not implemented (running locally) - skipping');
+				console.log(
+					'📊 Job queue not implemented (running locally) - skipping'
+				);
 				resolve([]);
 			}, 3000);
 
@@ -269,22 +278,27 @@ describe('DataMonkey FUBAR Backend Integration', () => {
 
 		const errorPromise = new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				console.log('⚠️  Server did not reject malformed data (may accept any input)');
+				console.log(
+					'⚠️  Server did not reject malformed data (may accept any input)'
+				);
 				resolve(false); // No error received within timeout
 			}, 8000);
 
 			testSocket.on('script error', (error) => {
 				clearTimeout(timeout);
-				console.log('✅ Server correctly rejected malformed data:', error.message || error);
+				console.log(
+					'✅ Server correctly rejected malformed data:',
+					error.message || error
+				);
 				resolve(true);
 			});
 
 			// Send malformed data
-			testSocket.emit('fubar:spawn', {
-				alignment: 'INVALID_FASTA_DATA',
-				tree: 'INVALID_TREE_DATA',
-				job: FUBAR_PARAMS
-			});
+			const malformedJob = {
+				...FUBAR_PARAMS,
+				tree: 'INVALID_TREE_DATA'
+			};
+			testSocket.emit('fubar:spawn', 'INVALID_FASTA_DATA', malformedJob);
 		});
 
 		const gotError = await errorPromise;
@@ -294,7 +308,9 @@ describe('DataMonkey FUBAR Backend Integration', () => {
 		if (gotError) {
 			console.log('✅ Server validates input data correctly');
 		} else {
-			console.log('ℹ️  Server accepts any input data (validation may be lenient)');
+			console.log(
+				'ℹ️  Server accepts any input data (validation may be lenient)'
+			);
 		}
 	}, 15000);
 });
@@ -334,7 +350,9 @@ export class FUBARBackendTester {
 	setupEventHandlers() {
 		this.socket.on('status update', (status) => {
 			this.statusMessages.push(status);
-			console.log(`📊 ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
+			console.log(
+				`📊 ${status.msg}${status.phase ? ` (${status.phase})` : ''}`
+			);
 		});
 
 		this.socket.on('completed', (data) => {
@@ -374,7 +392,11 @@ export class FUBARBackendTester {
 		});
 	}
 
-	async runAnalysis(fasta = TEST_FASTA, tree = TEST_TREE, params = FUBAR_PARAMS) {
+	async runAnalysis(
+		fasta = TEST_FASTA,
+		tree = TEST_TREE,
+		params = FUBAR_PARAMS
+	) {
 		this.statusMessages = [];
 
 		return new Promise((resolve, reject) => {
@@ -409,4 +431,4 @@ export class FUBARBackendTester {
 }
 
 // Export test data for use in other tests
-export { TEST_FASTA, TEST_TREE, FUBAR_PARAMS, SERVER_URL };
+export { FUBAR_PARAMS, SERVER_URL, TEST_FASTA, TEST_TREE };

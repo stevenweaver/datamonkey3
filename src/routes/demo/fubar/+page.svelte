@@ -43,7 +43,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 	// FUBAR analysis parameters - corrected to use grid-based approach
 	let fubarParams = {
 		analysis_type: 'fubar',
-		code: 'Universal',
+		genetic_code: 'Universal',
 		grid: 20,
 		concentration_parameter: 0.5
 	};
@@ -168,14 +168,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		isAnalysisRunning = true;
 		statusMessages = [...statusMessages, { msg: 'Starting FUBAR analysis...', type: 'info' }];
 
-		// Send single object with alignment, tree, and job properties
+		// Send FASTA and job parameters as separate arguments (tree included in job)
 		const treeData = usingSampleData ? sampleTree : customTree;
+		const fubarJobWithTree = {
+			...fubarParams,
+			tree: treeData.trim()
+		};
 		
-		socket.emit('fubar:spawn', {
-			alignment: fastaData,
-			tree: treeData.trim(),
-			job: fubarParams
-		});
+		socket.emit('fubar:spawn', fastaData, fubarJobWithTree);
 	}
 
 	function cancelAnalysis() {
@@ -317,7 +317,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				>
 				<select
 					id="genetic-code"
-					bind:value={fubarParams.code}
+					bind:value={fubarParams.genetic_code}
 					class="mt-1 block w-full rounded border p-2"
 				>
 					<option value="Universal">Universal</option>
