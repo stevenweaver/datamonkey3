@@ -42,7 +42,7 @@ const BGM_PARAMS = {
 	type: 'codon',
 	steps: 10000, // Reduced for testing
 	'burn-in': 1000,
-	samples: 50,
+	samples: 100,
 	'chain-sample': 100, // Number of steps to extract from chain sample
 	'max-parents': 1,
 	'min-subs': 1

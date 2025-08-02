@@ -48,7 +48,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		type: 'codon',
 		steps: 10000,
 		'burn-in': 1000,
-		samples: 50,
+		samples: 100,
 		'chain-sample': 100,
 		'max-parents': 1,
 		'min-subs': 1
