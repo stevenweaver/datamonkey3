@@ -40,13 +40,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 	let usingSampleData = true;
 	let jobId = null;
 
-	// NRM analysis parameters based on backend test configuration
+	// NRM analysis parameters based on official API specification
 	let nrmParams = {
-		analysis_type: 'nrm',
-		code: 'Universal',
-		'rate-classes': 1,
-		'triple-islands': 'No',
-		email: 'No'
+		genetic_code: 'Universal',
+		branches: 'All'
 	};
 
 	onMount(() => {
@@ -169,7 +166,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		isAnalysisRunning = true;
 		statusMessages = [...statusMessages, { msg: 'Starting NRM analysis...', type: 'info' }];
 
-		// Send single object with alignment, tree, and job properties
+		// Send using unified data format
 		socket.emit('nrm:spawn', {
 			alignment: fastaData,
 			tree: usingSampleData ? sampleTree : customTree,
@@ -309,14 +306,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 	<!-- NRM Parameters -->
 	<div class="mb-6 rounded-lg border p-4">
 		<h2 class="mb-3 text-lg font-semibold">NRM Analysis Parameters</h2>
-		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 			<div>
 				<label for="genetic-code" class="block text-sm font-medium text-gray-700"
 					>Genetic Code</label
 				>
 				<select
 					id="genetic-code"
-					bind:value={nrmParams.code}
+					bind:value={nrmParams.genetic_code}
 					class="mt-1 block w-full rounded border p-2"
 				>
 					<option value="Universal">Universal</option>
@@ -325,48 +322,22 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 					<option value="Mold/Protozoan mtDNA">Mold/Protozoan Mitochondrial</option>
 					<option value="Invertebrate mtDNA">Invertebrate Mitochondrial</option>
 				</select>
+				<p class="mt-1 text-xs text-gray-500">Genetic code for translation</p>
 			</div>
 			<div>
-				<label for="rate-classes" class="block text-sm font-medium text-gray-700"
-					>Rate Classes</label
-				>
-				<input
-					id="rate-classes"
-					type="number"
-					bind:value={nrmParams['rate-classes']}
-					min="1"
-					max="5"
-					step="1"
-					class="mt-1 block w-full rounded border p-2"
-				/>
-				<p class="mt-1 text-xs text-gray-500">Number of rate categories (default: 1)</p>
-			</div>
-			<div>
-				<label for="triple-islands" class="block text-sm font-medium text-gray-700"
-					>Triple Islands</label
+				<label for="branches" class="block text-sm font-medium text-gray-700"
+					>Branches to Test</label
 				>
 				<select
-					id="triple-islands"
-					bind:value={nrmParams['triple-islands']}
+					id="branches"
+					bind:value={nrmParams.branches}
 					class="mt-1 block w-full rounded border p-2"
 				>
-					<option value="No">No</option>
-					<option value="Yes">Yes</option>
+					<option value="All">All Branches</option>
+					<option value="Internal">Internal Branches Only</option>
+					<option value="Leaves">Terminal Branches Only</option>
 				</select>
-				<p class="mt-1 text-xs text-gray-500">Use triple islands for codon model</p>
-			</div>
-			<div>
-				<label for="email" class="block text-sm font-medium text-gray-700">Email Notification</label
-				>
-				<select
-					id="email"
-					bind:value={nrmParams.email}
-					class="mt-1 block w-full rounded border p-2"
-				>
-					<option value="No">No</option>
-					<option value="Yes">Yes</option>
-				</select>
-				<p class="mt-1 text-xs text-gray-500">Receive email when analysis completes</p>
+				<p class="mt-1 text-xs text-gray-500">Which branches to test for non-reversibility</p>
 			</div>
 		</div>
 	</div>

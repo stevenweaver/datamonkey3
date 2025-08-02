@@ -11,7 +11,7 @@
  * the evolutionary process at certain sites is reversible or not.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import io from 'socket.io-client';
 
 // Test data from CD2-slim.fna
@@ -39,11 +39,8 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 const TEST_TREE = `((((Pig:0.147969,Cow:0.213430):0.085099,Horse:0.165787,Cat:0.264806):0.058611,((RhMonkey:0.002015,Baboon:0.003108):0.022733,(Human:0.004349,Chimp:0.000799):0.011873):0.101856):0.340802,Rat:0.050958,Mouse:0.097950);`;
 
 const NRM_PARAMS = {
-	analysis_type: 'nrm',
-	code: 'Universal', // Default genetic code
-	'rate-classes': 1, // Number of rate classes (default: 1)
-	'triple-islands': 'No', // Use triple islands (default: No)
-	email: 'No' // Receive email notification (default: No)
+	genetic_code: 'Universal', // Default genetic code
+	branches: 'All' // Branch set selection (default: All)
 };
 
 const SERVER_URL = 'http://localhost:7015';
@@ -130,7 +127,7 @@ describe('DataMonkey NRM Backend Integration', () => {
 		}
 	});
 
-	it.skip(
+	it.only(
 		'should run NRM analysis successfully (skipped - computational complexity)',
 		async () => {
 			if (!isServerAvailable) {
@@ -167,13 +164,19 @@ describe('DataMonkey NRM Backend Integration', () => {
 
 			const analysisPromise = new Promise((resolve, reject) => {
 				const timeout = setTimeout(() => {
-					reject(new Error('Analysis timeout - may need more time for complex datasets'));
+					reject(
+						new Error(
+							'Analysis timeout - may need more time for complex datasets'
+						)
+					);
 				}, ANALYSIS_TIMEOUT);
 
 				// Track status updates
 				testSocket.on('status update', (status) => {
 					statusMessages.push(status);
-					console.log(`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
+					console.log(
+						`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`
+					);
 				});
 
 				// Handle successful completion
@@ -251,7 +254,9 @@ describe('DataMonkey NRM Backend Integration', () => {
 		// Job queue is optional - some servers run locally without job management
 		const queueResult = await new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				console.log('📊 Job queue not implemented (running locally) - skipping');
+				console.log(
+					'📊 Job queue not implemented (running locally) - skipping'
+				);
 				resolve([]);
 			}, 3000);
 
@@ -291,13 +296,18 @@ describe('DataMonkey NRM Backend Integration', () => {
 
 		const errorPromise = new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				console.log('⚠️  Server did not reject malformed data (may accept any input)');
+				console.log(
+					'⚠️  Server did not reject malformed data (may accept any input)'
+				);
 				resolve(false); // No error received within timeout
 			}, 8000);
 
 			testSocket.on('script error', (error) => {
 				clearTimeout(timeout);
-				console.log('✅ Server correctly rejected malformed data:', error.message || error);
+				console.log(
+					'✅ Server correctly rejected malformed data:',
+					error.message || error
+				);
 				resolve(true);
 			});
 
@@ -316,7 +326,9 @@ describe('DataMonkey NRM Backend Integration', () => {
 		if (gotError) {
 			console.log('✅ Server validates input data correctly');
 		} else {
-			console.log('ℹ️  Server accepts any input data (validation may be lenient)');
+			console.log(
+				'ℹ️  Server accepts any input data (validation may be lenient)'
+			);
 		}
 	}, 15000);
 });
@@ -356,7 +368,9 @@ export class NRMBackendTester {
 	setupEventHandlers() {
 		this.socket.on('status update', (status) => {
 			this.statusMessages.push(status);
-			console.log(`📊 ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
+			console.log(
+				`📊 ${status.msg}${status.phase ? ` (${status.phase})` : ''}`
+			);
 		});
 
 		this.socket.on('completed', (data) => {
@@ -431,4 +445,4 @@ export class NRMBackendTester {
 }
 
 // Export test data for use in other tests
-export { TEST_FASTA, TEST_TREE, NRM_PARAMS, SERVER_URL };
+export { NRM_PARAMS, SERVER_URL, TEST_FASTA, TEST_TREE };
