@@ -50,7 +50,7 @@ const RELAX_PARAMS = {
 
 const SERVER_URL = 'http://localhost:7015';
 const CONNECTION_TIMEOUT = 5000; // 5 seconds
-const ANALYSIS_TIMEOUT = 120000; // 2 minutes for RELAX (it can be slow)
+const ANALYSIS_TIMEOUT = 600000; // 10 minutes for RELAX (it can be very slow)
 
 describe('DataMonkey RELAX Backend Integration', () => {
 	let socket;
@@ -133,7 +133,8 @@ describe('DataMonkey RELAX Backend Integration', () => {
 		}
 	});
 
-	// Note: RELAX can take a very long time to run
+	// Note: RELAX can take a very long time to run (10+ minutes)
+	// Unskip this test when you specifically need to test RELAX analysis
 	it.skip('should run RELAX analysis successfully', async () => {
 		if (!isServerAvailable) {
 			console.log('Skipping test - server not available');
@@ -171,7 +172,11 @@ describe('DataMonkey RELAX Backend Integration', () => {
 			// Track status updates
 			testSocket.on('status update', (status) => {
 				statusMessages.push(status);
-				console.log(`📊 Status: ${status.msg || status}${status.phase ? ` (${status.phase})` : ''}`);
+				console.log(`📊 Status: ${status.msg || 'Processing'}${status.phase ? ` (${status.phase})` : ''}`);
+				// Show job ID once
+				if (statusMessages.length === 1 && status.torque_id) {
+					console.log(`📊 Job ID: ${status.torque_id}`);
+				}
 				// Log full status object to debug
 				if (statusMessages.length === 1) {
 					console.log('First status object:', JSON.stringify(status, null, 2));
