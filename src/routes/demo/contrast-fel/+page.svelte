@@ -149,7 +149,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		error = null;
 		statusMessages = [...statusMessages, { msg: 'Validating parameters...', type: 'info' }];
 
-		socket.emit('contrast-fel:check', {
+		socket.emit('cfel:check', {
 			job: contrastFelParams
 		});
 	}
@@ -176,7 +176,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		];
 
 		// Send single object with alignment, tree, and job properties
-		socket.emit('contrast-fel:spawn', {
+		socket.emit('cfel:spawn', {
 			alignment: fastaData,
 			tree: usingSampleData ? sampleTree : customTree,
 			job: contrastFelParams
@@ -185,7 +185,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
 	function cancelAnalysis() {
 		if (socket && jobId) {
-			socket.emit('contrast-fel:cancel', { id: jobId });
+			socket.emit('cfel:cancel', { id: jobId });
 			isAnalysisRunning = false;
 			statusMessages = [...statusMessages, { msg: 'Analysis cancelled', type: 'warning' }];
 		}
