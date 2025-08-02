@@ -15,9 +15,9 @@ GCCTTGGAAACCTGGGGTGCCTTGGGTCAGGACATCAACTTGGACATTCCT
 >Chimp
 GCCTTGGAAACCTGGGGTGCCTTGGGTCAGGACATCAACTTGGACATTCCT
 >Baboon
-GCTTTGGAAACCTGGGGAGCGCTGGGTCAGGACATCGACTTGGACATTCCT
+GCTTTGGAAACCTGGGGAGCGCTGGGTCAGGACATCAACTTGGACATTCCT
 >RhMonkey
-GCTTTGGAAACCTGGGGAGCGCTGGGTCAGGACATCGACTTGGACATTCCT
+GCTTTGGAAACCTGGGGAGCGCTGGGTCAGGACATCAACTTGGACATTCCT
 >Cow
 AGCATTGTCGTCTGGGGTGCCCTGGATCATGACCTCAACCTGGACATTCCT
 >Pig
@@ -45,7 +45,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		analysis_type: 'fubar',
 		code: 'Universal',
 		grid: 20,
-		'concentration-parameter': 0.5
+		concentration_parameter: 0.5
 	};
 
 	onMount(() => {
@@ -169,9 +169,11 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		statusMessages = [...statusMessages, { msg: 'Starting FUBAR analysis...', type: 'info' }];
 
 		// Send single object with alignment, tree, and job properties
+		const treeData = usingSampleData ? sampleTree : customTree;
+		
 		socket.emit('fubar:spawn', {
 			alignment: fastaData,
-			tree: usingSampleData ? sampleTree : customTree,
+			tree: treeData.trim(),
 			job: fubarParams
 		});
 	}
@@ -347,7 +349,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<input
 					id="concentration-parameter"
 					type="number"
-					bind:value={fubarParams['concentration-parameter']}
+					bind:value={fubarParams.concentration_parameter}
 					min="0.01"
 					max="2.0"
 					step="0.01"
