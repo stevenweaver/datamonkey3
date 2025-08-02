@@ -175,12 +175,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			{ msg: 'Starting CONTRAST-FEL analysis...', type: 'info' }
 		];
 
-		// Send single object with alignment, tree, and job properties
-		socket.emit('cfel:spawn', {
-			alignment: fastaData,
-			tree: usingSampleData ? sampleTree : customTree,
-			job: contrastFelParams
-		});
+		// Send FASTA and job parameters as separate arguments (tree included in job)
+		const treeData = usingSampleData ? sampleTree : customTree;
+		const contrastFelJobWithTree = {
+			...contrastFelParams,
+			tree: treeData.trim()
+		};
+		
+		socket.emit('cfel:spawn', fastaData, contrastFelJobWithTree);
 	}
 
 	function cancelAnalysis() {

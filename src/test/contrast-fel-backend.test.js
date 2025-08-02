@@ -206,11 +206,11 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 
 				// Start the analysis
 				console.log("🚀 Starting CONTRAST-FEL analysis...");
-				testSocket.emit("cfel:spawn", {
-					alignment: TEST_FASTA,
-					tree: TEST_TREE,
-					job: CONTRAST_FEL_PARAMS,
-				});
+				const contrastFelJobWithTree = {
+					...CONTRAST_FEL_PARAMS,
+					tree: TEST_TREE
+				};
+				testSocket.emit("cfel:spawn", TEST_FASTA, contrastFelJobWithTree);
 			});
 
 			// Wait for analysis to complete
@@ -327,11 +327,11 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 			});
 
 			// Send malformed data
-			testSocket.emit("cfel:spawn", {
-				alignment: "INVALID_FASTA_DATA",
-				tree: "INVALID_TREE_DATA",
-				job: CONTRAST_FEL_PARAMS,
-			});
+			const malformedJob = {
+				...CONTRAST_FEL_PARAMS,
+				tree: "INVALID_TREE_DATA"
+			};
+			testSocket.emit("cfel:spawn", "INVALID_FASTA_DATA", malformedJob);
 		});
 
 		const gotError = await errorPromise;
@@ -448,11 +448,11 @@ export class CONTRASTFELBackendTester {
 			});
 
 			console.log("🚀 Starting CONTRAST-FEL analysis...");
-			this.socket.emit("cfel:spawn", {
-				alignment: fasta,
-				tree: tree,
-				job: params,
-			});
+			const contrastFelJobWithTree = {
+				...params,
+				tree: tree
+			};
+			this.socket.emit("cfel:spawn", fasta, contrastFelJobWithTree);
 		});
 	}
 
