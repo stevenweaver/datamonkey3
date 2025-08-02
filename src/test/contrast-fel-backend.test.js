@@ -1,12 +1,12 @@
 /**
  * Manual test for DataMonkey CONTRAST-FEL backend integration
- * 
+ *
  * This test requires a running DataMonkey server on localhost:7015
  * Run with: npm run test:contrast-fel-backend
- * 
+ *
  * This test is excluded from CI/automated testing since it requires
  * an external DataMonkey server to be running.
- * 
+ *
  * CONTRAST-FEL assesses whether selective pressures differ between
  * two or more sets of branches at a particular site in a phylogenetic tree.
  */
@@ -46,7 +46,7 @@ const CONTRAST_FEL_PARAMS = {
 	srv: 'Yes', // Synonymous rate variation (default: Yes)
 	permutations: 'Yes', // Perform permutation tests (default: Yes)
 	'p-value': 0.05, // Significance value for site tests (default: 0.05)
-	'q-value': 0.20 // Significance value for False Discovery Rate reporting (default: 0.20)
+	'q-value': 0.2 // Significance value for False Discovery Rate reporting (default: 0.20)
 };
 
 const SERVER_URL = 'http://localhost:7015';
@@ -133,119 +133,123 @@ describe('DataMonkey CONTRAST-FEL Backend Integration', () => {
 		}
 	});
 
-	it.skip('should run CONTRAST-FEL analysis successfully (skipped - computational complexity)', async () => {
-		if (!isServerAvailable) {
-			console.log('Skipping test - server not available');
-			return;
-		}
+	it.skip(
+		'should run CONTRAST-FEL analysis successfully (skipped - computational complexity)',
+		async () => {
+			if (!isServerAvailable) {
+				console.log('Skipping test - server not available');
+				return;
+			}
 
-		// This test is skipped by default due to computational complexity
-		// CONTRAST-FEL analysis can take several minutes
-		// To enable: remove .skip and be prepared to wait
+			// This test is skipped by default due to computational complexity
+			// CONTRAST-FEL analysis can take several minutes
+			// To enable: remove .skip and be prepared to wait
 
-		// Create a fresh socket connection for this test to avoid event handler conflicts
-		const testSocket = io(SERVER_URL, { forceNew: true });
-		
-		await new Promise((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(new Error('Test socket connection timeout'));
-			}, 5000);
+			// Create a fresh socket connection for this test to avoid event handler conflicts
+			const testSocket = io(SERVER_URL, { forceNew: true });
 
-			testSocket.on('connect', () => {
-				clearTimeout(timeout);
-				resolve();
+			await new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(new Error('Test socket connection timeout'));
+				}, 5000);
+
+				testSocket.on('connect', () => {
+					clearTimeout(timeout);
+					resolve();
+				});
+
+				testSocket.on('connect_error', (error) => {
+					clearTimeout(timeout);
+					reject(error);
+				});
 			});
 
-			testSocket.on('connect_error', (error) => {
-				clearTimeout(timeout);
-				reject(error);
+			const statusMessages = [];
+			let analysisResult = null;
+			let analysisError = null;
+
+			const analysisPromise = new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(new Error('Analysis timeout - may need more time for complex datasets'));
+				}, ANALYSIS_TIMEOUT);
+
+				// Track status updates
+				testSocket.on('status update', (status) => {
+					statusMessages.push(status);
+					console.log(`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
+				});
+
+				// Handle successful completion
+				testSocket.on('completed', (data) => {
+					clearTimeout(timeout);
+					analysisResult = data;
+					console.log('✅ Analysis completed successfully');
+					resolve(data);
+				});
+
+				// Handle errors
+				testSocket.on('script error', (error) => {
+					clearTimeout(timeout);
+					analysisError = error;
+					console.error('❌ Analysis failed:', error.message || error);
+					reject(new Error(error.message || error));
+				});
+
+				// Start the analysis
+				console.log('🚀 Starting CONTRAST-FEL analysis...');
+				testSocket.emit('contrast-fel:spawn', {
+					alignment: TEST_FASTA,
+					tree: TEST_TREE,
+					job: CONTRAST_FEL_PARAMS
+				});
 			});
-		});
 
-		const statusMessages = [];
-		let analysisResult = null;
-		let analysisError = null;
+			// Wait for analysis to complete
+			const result = await analysisPromise;
 
-		const analysisPromise = new Promise((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(new Error('Analysis timeout - may need more time for complex datasets'));
-			}, ANALYSIS_TIMEOUT);
+			// Cleanup
+			testSocket.disconnect();
 
-			// Track status updates
-			testSocket.on('status update', (status) => {
-				statusMessages.push(status);
-				console.log(`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
-			});
+			// Verify we received status updates
+			expect(statusMessages.length).toBeGreaterThan(0);
+			console.log(`📈 Received ${statusMessages.length} status updates`);
 
-			// Handle successful completion
-			testSocket.on('completed', (data) => {
-				clearTimeout(timeout);
-				analysisResult = data;
-				console.log('✅ Analysis completed successfully');
-				resolve(data);
-			});
+			// Verify analysis completed successfully
+			expect(result).toBeDefined();
+			expect(analysisError).toBeNull();
 
-			// Handle errors
-			testSocket.on('script error', (error) => {
-				clearTimeout(timeout);
-				analysisError = error;
-				console.error('❌ Analysis failed:', error.message || error);
-				reject(new Error(error.message || error));
-			});
+			// Log summary
+			console.log('📋 Analysis Summary:');
+			console.log(`   - Status updates: ${statusMessages.length}`);
+			console.log(`   - Result keys: ${Object.keys(result || {}).join(', ')}`);
 
-			// Start the analysis
-			console.log('🚀 Starting CONTRAST-FEL analysis...');
-			testSocket.emit('contrast-fel:spawn', {
-				alignment: TEST_FASTA,
-				tree: TEST_TREE,
-				job: CONTRAST_FEL_PARAMS
-			});
-		});
+			// Basic result structure validation for CONTRAST-FEL output
+			if (result && typeof result === 'object') {
+				console.log('✅ Analysis result is valid object');
 
-		// Wait for analysis to complete
-		const result = await analysisPromise;
-
-		// Cleanup
-		testSocket.disconnect();
-
-		// Verify we received status updates
-		expect(statusMessages.length).toBeGreaterThan(0);
-		console.log(`📈 Received ${statusMessages.length} status updates`);
-
-		// Verify analysis completed successfully
-		expect(result).toBeDefined();
-		expect(analysisError).toBeNull();
-
-		// Log summary
-		console.log('📋 Analysis Summary:');
-		console.log(`   - Status updates: ${statusMessages.length}`);
-		console.log(`   - Result keys: ${Object.keys(result || {}).join(', ')}`);
-		
-		// Basic result structure validation for CONTRAST-FEL output
-		if (result && typeof result === 'object') {
-			console.log('✅ Analysis result is valid object');
-			
-			// Check for expected CONTRAST-FEL output structure
-			if (result.analysis) {
-				console.log('📊 Found analysis metadata');
+				// Check for expected CONTRAST-FEL output structure
+				if (result.analysis) {
+					console.log('📊 Found analysis metadata');
+				}
+				if (result['site-by-site results']) {
+					console.log('📊 Found site-by-site results');
+				}
+				if (result['alpha']) {
+					console.log('📊 Found alpha (synonymous rates)');
+				}
+				if (result['beta']) {
+					console.log('📊 Found beta (nonsynonymous rates)');
+				}
+				if (result['p-values']) {
+					console.log('📊 Found p-values');
+				}
+				if (result['q-values']) {
+					console.log('📊 Found q-values');
+				}
 			}
-			if (result['site-by-site results']) {
-				console.log('📊 Found site-by-site results');
-			}
-			if (result['alpha']) {
-				console.log('📊 Found alpha (synonymous rates)');
-			}
-			if (result['beta']) {
-				console.log('📊 Found beta (nonsynonymous rates)');
-			}
-			if (result['p-values']) {
-				console.log('📊 Found p-values');
-			}
-			if (result['q-values']) {
-				console.log('📊 Found q-values');
-			}
-		}
-	}, ANALYSIS_TIMEOUT + 10000); // Extra time for test framework
+		},
+		ANALYSIS_TIMEOUT + 10000
+	); // Extra time for test framework
 
 	it('should handle job queue requests (optional)', async () => {
 		if (!isServerAvailable) {
@@ -282,7 +286,7 @@ describe('DataMonkey CONTRAST-FEL Backend Integration', () => {
 
 		// Create fresh socket for this test
 		const testSocket = io(SERVER_URL, { forceNew: true });
-		
+
 		await new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Test socket connection timeout'));
@@ -316,7 +320,7 @@ describe('DataMonkey CONTRAST-FEL Backend Integration', () => {
 
 		const gotError = await errorPromise;
 		testSocket.disconnect();
-		
+
 		// Don't fail if server accepts malformed data - just log it
 		if (gotError) {
 			console.log('✅ Server validates input data correctly');
@@ -338,7 +342,7 @@ export class CONTRASTFELBackendTester {
 
 	async connect() {
 		this.socket = io(this.serverUrl);
-		
+
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Connection timeout'));
@@ -403,7 +407,7 @@ export class CONTRASTFELBackendTester {
 
 	async runAnalysis(fasta = TEST_FASTA, tree = TEST_TREE, params = CONTRAST_FEL_PARAMS) {
 		this.statusMessages = [];
-		
+
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Analysis timeout'));

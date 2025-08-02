@@ -1,9 +1,9 @@
 /**
  * Manual test for DataMonkey BGM backend integration
- * 
+ *
  * This test requires a running DataMonkey server on localhost:7015
  * Run with: npm run test:bgm-backend
- * 
+ *
  * This test is excluded from CI/automated testing since it requires
  * an external DataMonkey server to be running.
  */
@@ -134,118 +134,124 @@ describe('DataMonkey BGM Backend Integration', () => {
 
 	// Note: BGM can take a very long time to run (MCMC sampling is computationally expensive)
 	// Unskip this test when you specifically need to test BGM analysis
-	it.skip('should run BGM analysis successfully', async () => {
-		if (!isServerAvailable) {
-			console.log('Skipping test - server not available');
-			return;
-		}
+	it.skip(
+		'should run BGM analysis successfully',
+		async () => {
+			if (!isServerAvailable) {
+				console.log('Skipping test - server not available');
+				return;
+			}
 
-		// Create a fresh socket connection for this test to avoid event handler conflicts
-		const testSocket = io(SERVER_URL, { forceNew: true });
-		
-		await new Promise((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(new Error('Test socket connection timeout'));
-			}, 5000);
+			// Create a fresh socket connection for this test to avoid event handler conflicts
+			const testSocket = io(SERVER_URL, { forceNew: true });
 
-			testSocket.on('connect', () => {
-				clearTimeout(timeout);
-				resolve();
+			await new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(new Error('Test socket connection timeout'));
+				}, 5000);
+
+				testSocket.on('connect', () => {
+					clearTimeout(timeout);
+					resolve();
+				});
+
+				testSocket.on('connect_error', (error) => {
+					clearTimeout(timeout);
+					reject(error);
+				});
 			});
 
-			testSocket.on('connect_error', (error) => {
-				clearTimeout(timeout);
-				reject(error);
+			const statusMessages = [];
+			let analysisResult = null;
+			let analysisError = null;
+
+			const analysisPromise = new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(new Error('Analysis timeout - may need more time for MCMC sampling'));
+				}, ANALYSIS_TIMEOUT);
+
+				// Track status updates
+				testSocket.on('status update', (status) => {
+					statusMessages.push(status);
+					console.log(
+						`📊 Status: ${status.msg || 'Processing'}${status.phase ? ` (${status.phase})` : ''}`
+					);
+					// Show job ID once
+					if (statusMessages.length === 1 && status.torque_id) {
+						console.log(`📊 Job ID: ${status.torque_id}`);
+					}
+				});
+
+				// Handle successful completion
+				testSocket.on('completed', (data) => {
+					clearTimeout(timeout);
+					analysisResult = data;
+					console.log('✅ Analysis completed successfully');
+					resolve(data);
+				});
+
+				// Handle errors
+				testSocket.on('script error', (error) => {
+					clearTimeout(timeout);
+					analysisError = error;
+					// Better error handling for objects
+					let errorMessage = 'Unknown error';
+					if (typeof error === 'string') {
+						errorMessage = error;
+					} else if (error && typeof error === 'object') {
+						errorMessage = error.message || error.msg || JSON.stringify(error);
+					}
+					console.error('❌ Analysis failed:', errorMessage);
+					console.error('Full error object:', error);
+					reject(new Error(errorMessage));
+				});
+
+				// Start the analysis
+				console.log('🚀 Starting BGM analysis...');
+				testSocket.emit('bgm:spawn', {
+					alignment: TEST_FASTA,
+					tree: TEST_TREE,
+					job: BGM_PARAMS
+				});
 			});
-		});
 
-		const statusMessages = [];
-		let analysisResult = null;
-		let analysisError = null;
+			// Wait for analysis to complete
+			const result = await analysisPromise;
 
-		const analysisPromise = new Promise((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(new Error('Analysis timeout - may need more time for MCMC sampling'));
-			}, ANALYSIS_TIMEOUT);
+			// Cleanup
+			testSocket.disconnect();
 
-			// Track status updates
-			testSocket.on('status update', (status) => {
-				statusMessages.push(status);
-				console.log(`📊 Status: ${status.msg || 'Processing'}${status.phase ? ` (${status.phase})` : ''}`);
-				// Show job ID once
-				if (statusMessages.length === 1 && status.torque_id) {
-					console.log(`📊 Job ID: ${status.torque_id}`);
+			// Verify we received status updates
+			expect(statusMessages.length).toBeGreaterThan(0);
+			console.log(`📈 Received ${statusMessages.length} status updates`);
+
+			// Verify analysis completed successfully
+			expect(result).toBeDefined();
+			expect(analysisError).toBeNull();
+
+			// Log summary
+			console.log('📋 Analysis Summary:');
+			console.log(`   - Status updates: ${statusMessages.length}`);
+			console.log(`   - Result keys: ${Object.keys(result || {}).join(', ')}`);
+
+			// Basic result structure validation for BGM output
+			if (result && typeof result === 'object') {
+				console.log('✅ Analysis result is valid object');
+
+				// Check for expected BGM output structure
+				if (result.analysis) {
+					console.log('📊 Found analysis metadata');
 				}
-			});
-
-			// Handle successful completion
-			testSocket.on('completed', (data) => {
-				clearTimeout(timeout);
-				analysisResult = data;
-				console.log('✅ Analysis completed successfully');
-				resolve(data);
-			});
-
-			// Handle errors
-			testSocket.on('script error', (error) => {
-				clearTimeout(timeout);
-				analysisError = error;
-				// Better error handling for objects
-				let errorMessage = 'Unknown error';
-				if (typeof error === 'string') {
-					errorMessage = error;
-				} else if (error && typeof error === 'object') {
-					errorMessage = error.message || error.msg || JSON.stringify(error);
+				if (result.network) {
+					console.log('📊 Found network structure');
 				}
-				console.error('❌ Analysis failed:', errorMessage);
-				console.error('Full error object:', error);
-				reject(new Error(errorMessage));
-			});
-
-			// Start the analysis
-			console.log('🚀 Starting BGM analysis...');
-			testSocket.emit('bgm:spawn', {
-				alignment: TEST_FASTA,
-				tree: TEST_TREE,
-				job: BGM_PARAMS
-			});
-		});
-
-		// Wait for analysis to complete
-		const result = await analysisPromise;
-
-		// Cleanup
-		testSocket.disconnect();
-
-		// Verify we received status updates
-		expect(statusMessages.length).toBeGreaterThan(0);
-		console.log(`📈 Received ${statusMessages.length} status updates`);
-
-		// Verify analysis completed successfully
-		expect(result).toBeDefined();
-		expect(analysisError).toBeNull();
-
-		// Log summary
-		console.log('📋 Analysis Summary:');
-		console.log(`   - Status updates: ${statusMessages.length}`);
-		console.log(`   - Result keys: ${Object.keys(result || {}).join(', ')}`);
-		
-		// Basic result structure validation for BGM output
-		if (result && typeof result === 'object') {
-			console.log('✅ Analysis result is valid object');
-			
-			// Check for expected BGM output structure
-			if (result.analysis) {
-				console.log('📊 Found analysis metadata');
+				if (result.mcmc) {
+					console.log('📊 Found MCMC sampling information');
+				}
 			}
-			if (result.network) {
-				console.log('📊 Found network structure');
-			}
-			if (result.mcmc) {
-				console.log('📊 Found MCMC sampling information');
-			}
-		}
-	}, ANALYSIS_TIMEOUT + 10000); // Extra time for test framework
+		},
+		ANALYSIS_TIMEOUT + 10000
+	); // Extra time for test framework
 
 	it('should handle job queue requests (optional)', async () => {
 		if (!isServerAvailable) {
@@ -282,7 +288,7 @@ describe('DataMonkey BGM Backend Integration', () => {
 
 		// Create fresh socket for this test
 		const testSocket = io(SERVER_URL, { forceNew: true });
-		
+
 		await new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Test socket connection timeout'));
@@ -316,7 +322,7 @@ describe('DataMonkey BGM Backend Integration', () => {
 
 		const gotError = await errorPromise;
 		testSocket.disconnect();
-		
+
 		// Don't fail if server accepts malformed data - just log it
 		if (gotError) {
 			console.log('✅ Server validates input data correctly');
@@ -338,7 +344,7 @@ export class BGMBackendTester {
 
 	async connect() {
 		this.socket = io(this.serverUrl);
-		
+
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Connection timeout'));
@@ -403,7 +409,7 @@ export class BGMBackendTester {
 
 	async runAnalysis(fasta = TEST_FASTA, tree = TEST_TREE, params = BGM_PARAMS) {
 		this.statusMessages = [];
-		
+
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Analysis timeout'));

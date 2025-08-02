@@ -1,9 +1,9 @@
 /**
  * Manual test for DataMonkey FEL backend integration
- * 
+ *
  * This test requires a running DataMonkey server on localhost:7015
  * Run with: npm run test:fel-backend
- * 
+ *
  * This test is excluded from CI/automated testing since it requires
  * an external DataMonkey server to be running.
  */
@@ -130,95 +130,99 @@ describe('DataMonkey FEL Backend Integration', () => {
 		}
 	});
 
-	it('should run FEL analysis successfully', async () => {
-		if (!isServerAvailable) {
-			console.log('Skipping test - server not available');
-			return;
-		}
+	it(
+		'should run FEL analysis successfully',
+		async () => {
+			if (!isServerAvailable) {
+				console.log('Skipping test - server not available');
+				return;
+			}
 
-		// Create a fresh socket connection for this test to avoid event handler conflicts
-		const testSocket = io(SERVER_URL, { forceNew: true });
-		
-		await new Promise((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(new Error('Test socket connection timeout'));
-			}, 5000);
+			// Create a fresh socket connection for this test to avoid event handler conflicts
+			const testSocket = io(SERVER_URL, { forceNew: true });
 
-			testSocket.on('connect', () => {
-				clearTimeout(timeout);
-				resolve();
+			await new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(new Error('Test socket connection timeout'));
+				}, 5000);
+
+				testSocket.on('connect', () => {
+					clearTimeout(timeout);
+					resolve();
+				});
+
+				testSocket.on('connect_error', (error) => {
+					clearTimeout(timeout);
+					reject(error);
+				});
 			});
 
-			testSocket.on('connect_error', (error) => {
-				clearTimeout(timeout);
-				reject(error);
+			const statusMessages = [];
+			let analysisResult = null;
+			let analysisError = null;
+
+			const analysisPromise = new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(new Error('Analysis timeout - may need more time for complex datasets'));
+				}, ANALYSIS_TIMEOUT);
+
+				// Track status updates
+				testSocket.on('status update', (status) => {
+					statusMessages.push(status);
+					console.log(`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
+				});
+
+				// Handle successful completion
+				testSocket.on('completed', (data) => {
+					clearTimeout(timeout);
+					analysisResult = data;
+					console.log('✅ Analysis completed successfully');
+					resolve(data);
+				});
+
+				// Handle errors
+				testSocket.on('script error', (error) => {
+					clearTimeout(timeout);
+					analysisError = error;
+					console.error('❌ Analysis failed:', error.message || error);
+					reject(new Error(error.message || error));
+				});
+
+				// Start the analysis
+				console.log('🚀 Starting FEL analysis...');
+				testSocket.emit('fel:spawn', {
+					alignment: TEST_FASTA,
+					tree: TEST_TREE,
+					job: FEL_PARAMS
+				});
 			});
-		});
 
-		const statusMessages = [];
-		let analysisResult = null;
-		let analysisError = null;
+			// Wait for analysis to complete
+			const result = await analysisPromise;
 
-		const analysisPromise = new Promise((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(new Error('Analysis timeout - may need more time for complex datasets'));
-			}, ANALYSIS_TIMEOUT);
+			// Cleanup
+			testSocket.disconnect();
 
-			// Track status updates
-			testSocket.on('status update', (status) => {
-				statusMessages.push(status);
-				console.log(`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
-			});
+			// Verify we received status updates
+			expect(statusMessages.length).toBeGreaterThan(0);
+			console.log(`📈 Received ${statusMessages.length} status updates`);
 
-			// Handle successful completion
-			testSocket.on('completed', (data) => {
-				clearTimeout(timeout);
-				analysisResult = data;
-				console.log('✅ Analysis completed successfully');
-				resolve(data);
-			});
+			// Verify analysis completed successfully
+			expect(result).toBeDefined();
+			expect(analysisError).toBeNull();
 
-			// Handle errors
-			testSocket.on('script error', (error) => {
-				clearTimeout(timeout);
-				analysisError = error;
-				console.error('❌ Analysis failed:', error.message || error);
-				reject(new Error(error.message || error));
-			});
+			// Log summary
+			console.log('📋 Analysis Summary:');
+			console.log(`   - Status updates: ${statusMessages.length}`);
+			console.log(`   - Result keys: ${Object.keys(result || {}).join(', ')}`);
 
-			// Start the analysis
-			console.log('🚀 Starting FEL analysis...');
-			testSocket.emit('fel:spawn', {
-				alignment: TEST_FASTA,
-				tree: TEST_TREE,
-				job: FEL_PARAMS
-			});
-		});
-
-		// Wait for analysis to complete
-		const result = await analysisPromise;
-
-		// Cleanup
-		testSocket.disconnect();
-
-		// Verify we received status updates
-		expect(statusMessages.length).toBeGreaterThan(0);
-		console.log(`📈 Received ${statusMessages.length} status updates`);
-
-		// Verify analysis completed successfully
-		expect(result).toBeDefined();
-		expect(analysisError).toBeNull();
-
-		// Log summary
-		console.log('📋 Analysis Summary:');
-		console.log(`   - Status updates: ${statusMessages.length}`);
-		console.log(`   - Result keys: ${Object.keys(result || {}).join(', ')}`);
-		
-		// Basic result structure validation (adjust based on actual FEL output)
-		if (result && typeof result === 'object') {
-			console.log('✅ Analysis result is valid object');
-		}
-	}, ANALYSIS_TIMEOUT + 10000); // Extra time for test framework
+			// Basic result structure validation (adjust based on actual FEL output)
+			if (result && typeof result === 'object') {
+				console.log('✅ Analysis result is valid object');
+			}
+		},
+		ANALYSIS_TIMEOUT + 10000
+	); // Extra time for test framework
 
 	it('should handle job queue requests (optional)', async () => {
 		if (!isServerAvailable) {
@@ -255,7 +259,7 @@ describe('DataMonkey FEL Backend Integration', () => {
 
 		// Create fresh socket for this test
 		const testSocket = io(SERVER_URL, { forceNew: true });
-		
+
 		await new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Test socket connection timeout'));
@@ -289,7 +293,7 @@ describe('DataMonkey FEL Backend Integration', () => {
 
 		const gotError = await errorPromise;
 		testSocket.disconnect();
-		
+
 		// Don't fail if server accepts malformed data - just log it
 		if (gotError) {
 			console.log('✅ Server validates input data correctly');
@@ -311,7 +315,7 @@ export class FELBackendTester {
 
 	async connect() {
 		this.socket = io(this.serverUrl);
-		
+
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Connection timeout'));
@@ -376,7 +380,7 @@ export class FELBackendTester {
 
 	async runAnalysis(fasta = TEST_FASTA, tree = TEST_TREE, params = FEL_PARAMS) {
 		this.statusMessages = [];
-		
+
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Analysis timeout'));

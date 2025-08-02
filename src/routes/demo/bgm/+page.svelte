@@ -70,7 +70,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 	function setupSocketHandlers() {
 		socket.on('connect', () => {
 			isConnected = true;
-			statusMessages = [...statusMessages, { msg: 'Connected to DataMonkey server', type: 'success' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: 'Connected to DataMonkey server', type: 'success' }
+			];
 		});
 
 		socket.on('disconnect', () => {
@@ -80,7 +83,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
 		socket.on('connect_error', (err) => {
 			error = `Connection error: ${err.message}`;
-			statusMessages = [...statusMessages, { msg: `Connection failed: ${err.message}`, type: 'error' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: `Connection failed: ${err.message}`, type: 'error' }
+			];
 		});
 
 		socket.on('connected', (data) => {
@@ -88,27 +94,39 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		});
 
 		socket.on('status update', (status) => {
-			statusMessages = [...statusMessages, { 
-				msg: `${status.msg}${status.phase ? ` (Phase: ${status.phase})` : ''}`, 
-				type: 'info' 
-			}];
+			statusMessages = [
+				...statusMessages,
+				{
+					msg: `${status.msg}${status.phase ? ` (Phase: ${status.phase})` : ''}`,
+					type: 'info'
+				}
+			];
 		});
 
 		socket.on('completed', (data) => {
 			isAnalysisRunning = false;
 			results = data;
-			statusMessages = [...statusMessages, { msg: 'Analysis completed successfully!', type: 'success' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: 'Analysis completed successfully!', type: 'success' }
+			];
 		});
 
 		socket.on('script error', (err) => {
 			isAnalysisRunning = false;
 			error = `Analysis failed: ${err.message || err}`;
-			statusMessages = [...statusMessages, { msg: `Analysis error: ${err.message || err}`, type: 'error' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: `Analysis error: ${err.message || err}`, type: 'error' }
+			];
 		});
 
 		socket.on('validated', (result) => {
 			if (result.valid) {
-				statusMessages = [...statusMessages, { msg: 'Parameters validated successfully', type: 'success' }];
+				statusMessages = [
+					...statusMessages,
+					{ msg: 'Parameters validated successfully', type: 'success' }
+				];
 			} else {
 				error = `Invalid parameters: ${result.errors?.join(', ') || 'Unknown validation error'}`;
 				statusMessages = [...statusMessages, { msg: `Validation failed: ${error}`, type: 'error' }];
@@ -116,7 +134,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		});
 
 		socket.on('job queue', (jobs) => {
-			statusMessages = [...statusMessages, { msg: `Active jobs in queue: ${jobs.length}`, type: 'info' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: `Active jobs in queue: ${jobs.length}`, type: 'info' }
+			];
 		});
 	}
 
@@ -141,7 +162,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		}
 
 		const fastaData = usingSampleData ? sampleFasta : customFasta;
-		
+
 		if (!fastaData.trim()) {
 			error = 'No FASTA data provided';
 			return;
@@ -194,12 +215,16 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
 <div class="container mx-auto max-w-6xl p-6">
 	<h1 class="mb-6 text-3xl font-bold text-gray-900">DataMonkey BGM Analysis Demo</h1>
-	
+
 	<div class="mb-4 rounded-lg bg-blue-50 p-4">
 		<h2 class="text-lg font-semibold text-blue-800">About BGM</h2>
-		<p class="text-blue-700">BGM (Bayesian Graphical Model) detects correlated evolution between amino acid sites in a protein sequence alignment. It uses MCMC sampling to identify pairs of sites that have evolved in a coordinated manner, potentially indicating functional or structural constraints.</p>
+		<p class="text-blue-700">
+			BGM (Bayesian Graphical Model) detects correlated evolution between amino acid sites in a
+			protein sequence alignment. It uses MCMC sampling to identify pairs of sites that have evolved
+			in a coordinated manner, potentially indicating functional or structural constraints.
+		</p>
 	</div>
-	
+
 	<!-- Connection Status -->
 	<div class="mb-6 rounded-lg border p-4">
 		<h2 class="mb-3 text-lg font-semibold">Server Connection</h2>
@@ -210,20 +235,20 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 					{isConnected ? 'Connected' : 'Disconnected'}
 				</span>
 			</div>
-			<input 
-				bind:value={serverUrl} 
+			<input
+				bind:value={serverUrl}
 				placeholder="Server URL"
 				class="rounded border px-3 py-1 text-sm"
 				disabled={isConnected}
 			/>
-			<button 
+			<button
 				on:click={reconnect}
 				class="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600 disabled:opacity-50"
 				disabled={isAnalysisRunning}
 			>
 				{isConnected ? 'Reconnect' : 'Connect'}
 			</button>
-			<button 
+			<button
 				on:click={getJobQueue}
 				class="rounded bg-gray-500 px-3 py-1 text-sm text-white hover:bg-gray-600"
 				disabled={!isConnected}
@@ -238,30 +263,22 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		<h2 class="mb-3 text-lg font-semibold">FASTA Data</h2>
 		<div class="mb-3 flex gap-4">
 			<label class="flex items-center">
-				<input 
-					type="radio" 
-					bind:group={usingSampleData} 
-					value={true}
-					class="mr-2"
-				/>
+				<input type="radio" bind:group={usingSampleData} value={true} class="mr-2" />
 				Use Sample Data
 			</label>
 			<label class="flex items-center">
-				<input 
-					type="radio" 
-					bind:group={usingSampleData} 
-					value={false}
-					class="mr-2"
-				/>
+				<input type="radio" bind:group={usingSampleData} value={false} class="mr-2" />
 				Custom FASTA
 			</label>
 		</div>
-		
+
 		{#if !usingSampleData}
 			<div class="space-y-4">
 				<div>
-					<label for="custom-fasta" class="block text-sm font-medium text-gray-700 mb-2">FASTA Alignment</label>
-					<textarea 
+					<label for="custom-fasta" class="mb-2 block text-sm font-medium text-gray-700"
+						>FASTA Alignment</label
+					>
+					<textarea
 						id="custom-fasta"
 						bind:value={customFasta}
 						placeholder="Paste your FASTA alignment here..."
@@ -270,8 +287,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 					></textarea>
 				</div>
 				<div>
-					<label for="custom-tree" class="block text-sm font-medium text-gray-700 mb-2">Newick Tree</label>
-					<textarea 
+					<label for="custom-tree" class="mb-2 block text-sm font-medium text-gray-700"
+						>Newick Tree</label
+					>
+					<textarea
 						id="custom-tree"
 						bind:value={customTree}
 						placeholder="Paste your Newick tree here..."
@@ -282,7 +301,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			</div>
 		{:else}
 			<div class="rounded bg-gray-50 p-3">
-				<p class="text-sm text-gray-600">Using CD2-slim.fna test data (10 mammalian species, 51bp each) with corresponding Newick phylogenetic tree</p>
+				<p class="text-sm text-gray-600">
+					Using CD2-slim.fna test data (10 mammalian species, 51bp each) with corresponding Newick
+					phylogenetic tree
+				</p>
 			</div>
 		{/if}
 	</div>
@@ -292,8 +314,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		<h2 class="mb-3 text-lg font-semibold">BGM Analysis Parameters</h2>
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 			<div>
-				<label for="genetic-code" class="block text-sm font-medium text-gray-700">Genetic Code</label>
-				<select id="genetic-code" bind:value={bgmParams.code} class="mt-1 block w-full rounded border p-2">
+				<label for="genetic-code" class="block text-sm font-medium text-gray-700"
+					>Genetic Code</label
+				>
+				<select
+					id="genetic-code"
+					bind:value={bgmParams.code}
+					class="mt-1 block w-full rounded border p-2"
+				>
 					<option value="Universal">Universal</option>
 					<option value="Vertebrate mtDNA">Vertebrate Mitochondrial</option>
 					<option value="Yeast mtDNA">Yeast Mitochondrial</option>
@@ -302,8 +330,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				</select>
 			</div>
 			<div>
-				<label for="branches" class="block text-sm font-medium text-gray-700">Branches to Test</label>
-				<select id="branches" bind:value={bgmParams.branches} class="mt-1 block w-full rounded border p-2">
+				<label for="branches" class="block text-sm font-medium text-gray-700"
+					>Branches to Test</label
+				>
+				<select
+					id="branches"
+					bind:value={bgmParams.branches}
+					class="mt-1 block w-full rounded border p-2"
+				>
 					<option value="All">All Branches</option>
 					<option value="Internal">Internal Branches Only</option>
 					<option value="Leaves">Terminal Branches Only</option>
@@ -318,9 +352,9 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			</div>
 			<div>
 				<label for="steps" class="block text-sm font-medium text-gray-700">MCMC Steps</label>
-				<input 
+				<input
 					id="steps"
-					type="number" 
+					type="number"
 					bind:value={bgmParams.steps}
 					min="1000"
 					max="1000000"
@@ -331,9 +365,9 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			</div>
 			<div>
 				<label for="burn-in" class="block text-sm font-medium text-gray-700">Burn-in Steps</label>
-				<input 
+				<input
 					id="burn-in"
-					type="number" 
+					type="number"
 					bind:value={bgmParams['burn-in']}
 					min="100"
 					max="100000"
@@ -344,9 +378,9 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			</div>
 			<div>
 				<label for="samples" class="block text-sm font-medium text-gray-700">Samples</label>
-				<input 
+				<input
 					id="samples"
-					type="number" 
+					type="number"
 					bind:value={bgmParams.samples}
 					min="10"
 					max="1000"
@@ -357,9 +391,9 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			</div>
 			<div>
 				<label for="max-parents" class="block text-sm font-medium text-gray-700">Max Parents</label>
-				<input 
+				<input
 					id="max-parents"
-					type="number" 
+					type="number"
 					bind:value={bgmParams['max-parents']}
 					min="1"
 					max="10"
@@ -369,10 +403,12 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<p class="mt-1 text-xs text-gray-500">Maximum number of parent nodes per site</p>
 			</div>
 			<div>
-				<label for="min-subs" class="block text-sm font-medium text-gray-700">Min Substitutions</label>
-				<input 
+				<label for="min-subs" class="block text-sm font-medium text-gray-700"
+					>Min Substitutions</label
+				>
+				<input
 					id="min-subs"
-					type="number" 
+					type="number"
 					bind:value={bgmParams['min-subs']}
 					min="1"
 					max="10"
@@ -386,14 +422,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
 	<!-- Action Buttons -->
 	<div class="mb-6 flex gap-3">
-		<button 
+		<button
 			on:click={validateParameters}
 			class="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600 disabled:opacity-50"
 			disabled={!isConnected || isAnalysisRunning}
 		>
 			Validate Parameters
 		</button>
-		<button 
+		<button
 			on:click={runBgmAnalysis}
 			class="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 disabled:opacity-50"
 			disabled={!isConnected || isAnalysisRunning}
@@ -401,17 +437,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			{isAnalysisRunning ? 'Running...' : 'Run BGM Analysis'}
 		</button>
 		{#if isAnalysisRunning}
-			<button 
+			<button
 				on:click={cancelAnalysis}
 				class="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
 			>
 				Cancel
 			</button>
 		{/if}
-		<button 
-			on:click={clearLog}
-			class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
-		>
+		<button on:click={clearLog} class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
 			Clear Log
 		</button>
 	</div>
@@ -429,12 +462,15 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		<h2 class="mb-3 text-lg font-semibold">Status Log</h2>
 		<div class="max-h-64 overflow-y-auto rounded bg-gray-50 p-3 font-mono text-sm">
 			{#each statusMessages as message}
-				<div class="mb-1 {
-					message.type === 'error' ? 'text-red-600' :
-					message.type === 'success' ? 'text-green-600' :
-					message.type === 'warning' ? 'text-yellow-600' :
-					'text-gray-800'
-				}">
+				<div
+					class="mb-1 {message.type === 'error'
+						? 'text-red-600'
+						: message.type === 'success'
+							? 'text-green-600'
+							: message.type === 'warning'
+								? 'text-yellow-600'
+								: 'text-gray-800'}"
+				>
 					[{new Date().toLocaleTimeString()}] {message.msg}
 				</div>
 			{/each}

@@ -10,15 +10,16 @@
 	export let analysisId = null;
 
 	// Determine which progress to show - specific analysis or global active
-	$: progressToShow = analysisId 
+	$: progressToShow = analysisId
 		? getAnalysisProgress(analysisId, $analysisStore)
 		: $activeAnalysisProgress;
 
 	// Function to get progress for a specific analysis
 	function getAnalysisProgress(id, store) {
-		if (!id || !store?.analyses) return { id: null, status: null, progress: 0, message: '', logs: [] };
-		
-		const analysis = store.analyses.find(a => a.id === id);
+		if (!id || !store?.analyses)
+			return { id: null, status: null, progress: 0, message: '', logs: [] };
+
+		const analysis = store.analyses.find((a) => a.id === id);
 		if (!analysis) return { id: null, status: null, progress: 0, message: '', logs: [] };
 
 		// For completed/error analyses, show static info
@@ -27,7 +28,8 @@
 				id: analysis.id,
 				status: analysis.status,
 				progress: analysis.status === 'completed' ? 100 : 0,
-				message: analysis.status === 'completed' ? 'Analysis completed successfully' : 'Analysis failed',
+				message:
+					analysis.status === 'completed' ? 'Analysis completed successfully' : 'Analysis failed',
 				logs: [],
 				metadata: {
 					method: analysis.method,
@@ -86,11 +88,11 @@
 
 		// Try to get the actual start time from the analysis metadata or creation time
 		let analysisStartTime = null;
-		
+
 		if (progressData.metadata?.startTime) {
 			analysisStartTime = new Date(progressData.metadata.startTime);
 		} else if (analysisId && $analysisStore.analyses) {
-			const analysis = $analysisStore.analyses.find(a => a.id === analysisId);
+			const analysis = $analysisStore.analyses.find((a) => a.id === analysisId);
 			if (analysis?.createdAt) {
 				analysisStartTime = new Date(analysis.createdAt);
 			}
@@ -146,10 +148,7 @@
 		previousStatus = progressToShow.status;
 	}
 
-	$: if (
-		progressToShow.status === 'completed' ||
-		progressToShow.status === 'error'
-	) {
+	$: if (progressToShow.status === 'completed' || progressToShow.status === 'error') {
 		showCompleted = true;
 		clearTimeout(hideCompletedTimeout);
 		hideCompletedTimeout = setTimeout(() => {
@@ -303,9 +302,7 @@
 			<!-- Status and time information in single row -->
 			<div class="mb-4 flex items-center justify-between">
 				<div class="flex items-center">
-					<span
-						class={`mr-2 text-lg font-medium ${getStatusColorClass(progressToShow.status)}`}
-					>
+					<span class={`mr-2 text-lg font-medium ${getStatusColorClass(progressToShow.status)}`}>
 						{statusText}
 					</span>
 				</div>

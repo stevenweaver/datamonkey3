@@ -66,7 +66,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 	function setupSocketHandlers() {
 		socket.on('connect', () => {
 			isConnected = true;
-			statusMessages = [...statusMessages, { msg: 'Connected to DataMonkey server', type: 'success' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: 'Connected to DataMonkey server', type: 'success' }
+			];
 		});
 
 		socket.on('disconnect', () => {
@@ -76,7 +79,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
 		socket.on('connect_error', (err) => {
 			error = `Connection error: ${err.message}`;
-			statusMessages = [...statusMessages, { msg: `Connection failed: ${err.message}`, type: 'error' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: `Connection failed: ${err.message}`, type: 'error' }
+			];
 		});
 
 		socket.on('connected', (data) => {
@@ -84,27 +90,39 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		});
 
 		socket.on('status update', (status) => {
-			statusMessages = [...statusMessages, { 
-				msg: `${status.msg}${status.phase ? ` (Phase: ${status.phase})` : ''}`, 
-				type: 'info' 
-			}];
+			statusMessages = [
+				...statusMessages,
+				{
+					msg: `${status.msg}${status.phase ? ` (Phase: ${status.phase})` : ''}`,
+					type: 'info'
+				}
+			];
 		});
 
 		socket.on('completed', (data) => {
 			isAnalysisRunning = false;
 			results = data;
-			statusMessages = [...statusMessages, { msg: 'Analysis completed successfully!', type: 'success' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: 'Analysis completed successfully!', type: 'success' }
+			];
 		});
 
 		socket.on('script error', (err) => {
 			isAnalysisRunning = false;
 			error = `Analysis failed: ${err.message || err}`;
-			statusMessages = [...statusMessages, { msg: `Analysis error: ${err.message || err}`, type: 'error' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: `Analysis error: ${err.message || err}`, type: 'error' }
+			];
 		});
 
 		socket.on('validated', (result) => {
 			if (result.valid) {
-				statusMessages = [...statusMessages, { msg: 'Parameters validated successfully', type: 'success' }];
+				statusMessages = [
+					...statusMessages,
+					{ msg: 'Parameters validated successfully', type: 'success' }
+				];
 			} else {
 				error = `Invalid parameters: ${result.errors?.join(', ') || 'Unknown validation error'}`;
 				statusMessages = [...statusMessages, { msg: `Validation failed: ${error}`, type: 'error' }];
@@ -112,7 +130,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		});
 
 		socket.on('job queue', (jobs) => {
-			statusMessages = [...statusMessages, { msg: `Active jobs in queue: ${jobs.length}`, type: 'info' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: `Active jobs in queue: ${jobs.length}`, type: 'info' }
+			];
 		});
 	}
 
@@ -137,7 +158,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		}
 
 		const fastaData = usingSampleData ? sampleFasta : customFasta;
-		
+
 		if (!fastaData.trim()) {
 			error = 'No FASTA data provided';
 			return;
@@ -190,12 +211,17 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
 <div class="container mx-auto max-w-6xl p-6">
 	<h1 class="mb-6 text-3xl font-bold text-gray-900">DataMonkey NRM Analysis Demo</h1>
-	
+
 	<div class="mb-4 rounded-lg bg-blue-50 p-4">
 		<h2 class="text-lg font-semibold text-blue-800">About NRM</h2>
-		<p class="text-blue-700">NRM (Non-Reversibility of the Evolutionary Process) tests whether the evolutionary process at certain sites is reversible or not. It detects asymmetric evolution where the rate of change from amino acid A to B differs significantly from B to A, indicating directional evolutionary pressure.</p>
+		<p class="text-blue-700">
+			NRM (Non-Reversibility of the Evolutionary Process) tests whether the evolutionary process at
+			certain sites is reversible or not. It detects asymmetric evolution where the rate of change
+			from amino acid A to B differs significantly from B to A, indicating directional evolutionary
+			pressure.
+		</p>
 	</div>
-	
+
 	<!-- Connection Status -->
 	<div class="mb-6 rounded-lg border p-4">
 		<h2 class="mb-3 text-lg font-semibold">Server Connection</h2>
@@ -206,20 +232,20 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 					{isConnected ? 'Connected' : 'Disconnected'}
 				</span>
 			</div>
-			<input 
-				bind:value={serverUrl} 
+			<input
+				bind:value={serverUrl}
 				placeholder="Server URL"
 				class="rounded border px-3 py-1 text-sm"
 				disabled={isConnected}
 			/>
-			<button 
+			<button
 				on:click={reconnect}
 				class="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600 disabled:opacity-50"
 				disabled={isAnalysisRunning}
 			>
 				{isConnected ? 'Reconnect' : 'Connect'}
 			</button>
-			<button 
+			<button
 				on:click={getJobQueue}
 				class="rounded bg-gray-500 px-3 py-1 text-sm text-white hover:bg-gray-600"
 				disabled={!isConnected}
@@ -234,30 +260,22 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		<h2 class="mb-3 text-lg font-semibold">FASTA Data</h2>
 		<div class="mb-3 flex gap-4">
 			<label class="flex items-center">
-				<input 
-					type="radio" 
-					bind:group={usingSampleData} 
-					value={true}
-					class="mr-2"
-				/>
+				<input type="radio" bind:group={usingSampleData} value={true} class="mr-2" />
 				Use Sample Data
 			</label>
 			<label class="flex items-center">
-				<input 
-					type="radio" 
-					bind:group={usingSampleData} 
-					value={false}
-					class="mr-2"
-				/>
+				<input type="radio" bind:group={usingSampleData} value={false} class="mr-2" />
 				Custom FASTA
 			</label>
 		</div>
-		
+
 		{#if !usingSampleData}
 			<div class="space-y-4">
 				<div>
-					<label for="custom-fasta" class="block text-sm font-medium text-gray-700 mb-2">FASTA Alignment</label>
-					<textarea 
+					<label for="custom-fasta" class="mb-2 block text-sm font-medium text-gray-700"
+						>FASTA Alignment</label
+					>
+					<textarea
 						id="custom-fasta"
 						bind:value={customFasta}
 						placeholder="Paste your codon alignment here..."
@@ -266,8 +284,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 					></textarea>
 				</div>
 				<div>
-					<label for="custom-tree" class="block text-sm font-medium text-gray-700 mb-2">Newick Tree</label>
-					<textarea 
+					<label for="custom-tree" class="mb-2 block text-sm font-medium text-gray-700"
+						>Newick Tree</label
+					>
+					<textarea
 						id="custom-tree"
 						bind:value={customTree}
 						placeholder="Paste your Newick tree here..."
@@ -278,7 +298,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			</div>
 		{:else}
 			<div class="rounded bg-gray-50 p-3">
-				<p class="text-sm text-gray-600">Using CD2-slim.fna test data (10 mammalian species, 51bp each) with corresponding Newick phylogenetic tree</p>
+				<p class="text-sm text-gray-600">
+					Using CD2-slim.fna test data (10 mammalian species, 51bp each) with corresponding Newick
+					phylogenetic tree
+				</p>
 			</div>
 		{/if}
 	</div>
@@ -288,8 +311,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		<h2 class="mb-3 text-lg font-semibold">NRM Analysis Parameters</h2>
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 			<div>
-				<label for="genetic-code" class="block text-sm font-medium text-gray-700">Genetic Code</label>
-				<select id="genetic-code" bind:value={nrmParams.code} class="mt-1 block w-full rounded border p-2">
+				<label for="genetic-code" class="block text-sm font-medium text-gray-700"
+					>Genetic Code</label
+				>
+				<select
+					id="genetic-code"
+					bind:value={nrmParams.code}
+					class="mt-1 block w-full rounded border p-2"
+				>
 					<option value="Universal">Universal</option>
 					<option value="Vertebrate mtDNA">Vertebrate Mitochondrial</option>
 					<option value="Yeast mtDNA">Yeast Mitochondrial</option>
@@ -298,10 +327,12 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				</select>
 			</div>
 			<div>
-				<label for="rate-classes" class="block text-sm font-medium text-gray-700">Rate Classes</label>
-				<input 
+				<label for="rate-classes" class="block text-sm font-medium text-gray-700"
+					>Rate Classes</label
+				>
+				<input
 					id="rate-classes"
-					type="number" 
+					type="number"
 					bind:value={nrmParams['rate-classes']}
 					min="1"
 					max="5"
@@ -311,16 +342,27 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<p class="mt-1 text-xs text-gray-500">Number of rate categories (default: 1)</p>
 			</div>
 			<div>
-				<label for="triple-islands" class="block text-sm font-medium text-gray-700">Triple Islands</label>
-				<select id="triple-islands" bind:value={nrmParams['triple-islands']} class="mt-1 block w-full rounded border p-2">
+				<label for="triple-islands" class="block text-sm font-medium text-gray-700"
+					>Triple Islands</label
+				>
+				<select
+					id="triple-islands"
+					bind:value={nrmParams['triple-islands']}
+					class="mt-1 block w-full rounded border p-2"
+				>
 					<option value="No">No</option>
 					<option value="Yes">Yes</option>
 				</select>
 				<p class="mt-1 text-xs text-gray-500">Use triple islands for codon model</p>
 			</div>
 			<div>
-				<label for="email" class="block text-sm font-medium text-gray-700">Email Notification</label>
-				<select id="email" bind:value={nrmParams.email} class="mt-1 block w-full rounded border p-2">
+				<label for="email" class="block text-sm font-medium text-gray-700">Email Notification</label
+				>
+				<select
+					id="email"
+					bind:value={nrmParams.email}
+					class="mt-1 block w-full rounded border p-2"
+				>
 					<option value="No">No</option>
 					<option value="Yes">Yes</option>
 				</select>
@@ -331,14 +373,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
 	<!-- Action Buttons -->
 	<div class="mb-6 flex gap-3">
-		<button 
+		<button
 			on:click={validateParameters}
 			class="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600 disabled:opacity-50"
 			disabled={!isConnected || isAnalysisRunning}
 		>
 			Validate Parameters
 		</button>
-		<button 
+		<button
 			on:click={runNrmAnalysis}
 			class="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 disabled:opacity-50"
 			disabled={!isConnected || isAnalysisRunning}
@@ -346,17 +388,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			{isAnalysisRunning ? 'Running...' : 'Run NRM Analysis'}
 		</button>
 		{#if isAnalysisRunning}
-			<button 
+			<button
 				on:click={cancelAnalysis}
 				class="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
 			>
 				Cancel
 			</button>
 		{/if}
-		<button 
-			on:click={clearLog}
-			class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
-		>
+		<button on:click={clearLog} class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
 			Clear Log
 		</button>
 	</div>
@@ -374,12 +413,15 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		<h2 class="mb-3 text-lg font-semibold">Status Log</h2>
 		<div class="max-h-64 overflow-y-auto rounded bg-gray-50 p-3 font-mono text-sm">
 			{#each statusMessages as message}
-				<div class="mb-1 {
-					message.type === 'error' ? 'text-red-600' :
-					message.type === 'success' ? 'text-green-600' :
-					message.type === 'warning' ? 'text-yellow-600' :
-					'text-gray-800'
-				}">
+				<div
+					class="mb-1 {message.type === 'error'
+						? 'text-red-600'
+						: message.type === 'success'
+							? 'text-green-600'
+							: message.type === 'warning'
+								? 'text-yellow-600'
+								: 'text-gray-800'}"
+				>
 					[{new Date().toLocaleTimeString()}] {message.msg}
 				</div>
 			{/each}

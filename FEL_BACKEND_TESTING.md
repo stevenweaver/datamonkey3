@@ -7,6 +7,7 @@ This document describes how to test the FEL analysis integration with the DataMo
 ## Prerequisites
 
 1. **DataMonkey Server Running**
+
    - Server must be running on `localhost:7015`
    - Server must support FEL analysis via Socket.IO
    - Server must handle the documented data format
@@ -27,6 +28,7 @@ npm run test:fel-backend
 ```
 
 This will:
+
 - Check if DataMonkey server is available
 - Skip tests with clear messaging if server is not running
 - Run comprehensive FEL integration tests if server is available
@@ -48,20 +50,19 @@ import { FELBackendTester } from './src/test/fel-backend.test.js';
 const tester = new FELBackendTester();
 
 try {
-    await tester.connect();
-    
-    // Validate parameters
-    const validation = await tester.validateParameters();
-    console.log('Validation result:', validation);
-    
-    // Run analysis
-    const result = await tester.runAnalysis();
-    console.log('Analysis result:', result);
-    
+	await tester.connect();
+
+	// Validate parameters
+	const validation = await tester.validateParameters();
+	console.log('Validation result:', validation);
+
+	// Run analysis
+	const result = await tester.runAnalysis();
+	console.log('Analysis result:', result);
 } catch (error) {
-    console.error('Test failed:', error.message);
+	console.error('Test failed:', error.message);
 } finally {
-    tester.disconnect();
+	tester.disconnect();
 }
 ```
 
@@ -70,16 +71,19 @@ try {
 The test suite covers:
 
 ### 1. Connection Testing
+
 - ✅ Server availability check
 - ✅ Socket.IO connection establishment
 - ⚠️ Graceful handling when server is unavailable
 
 ### 2. Parameter Validation
+
 - ✅ Valid FEL parameter validation
 - ✅ `fel:check` event handling
 - ✅ Server response validation
 
 ### 3. FEL Analysis Execution
+
 - ✅ Complete analysis workflow
 - ✅ Real-time status update tracking
 - ✅ Successful completion handling
@@ -87,11 +91,13 @@ The test suite covers:
 - ⏱️ Timeout handling (5 minute limit)
 
 ### 4. Error Handling
+
 - ✅ Malformed data rejection
 - ✅ Script error event handling
 - ✅ Analysis failure scenarios
 
 ### 5. Server Communication
+
 - ✅ Job queue status requests (optional - local servers may not implement)
 - ✅ Socket event handling
 - ✅ Connection state management
@@ -101,16 +107,19 @@ The test suite covers:
 The tests use the CD2-slim.fna dataset:
 
 **FASTA Alignment:** 10 mammalian species, 51bp each
+
 ```
 >Human, >Chimp, >Baboon, >RhMonkey, >Cow, >Pig, >Horse, >Cat, >Mouse, >Rat
 ```
 
 **Phylogenetic Tree:** Newick format with branch lengths
+
 ```
 ((((Pig:0.147969,Cow:0.213430):0.085099,Horse:0.165787,Cat:0.264806):0.058611,((RhMonkey:0.002015,Baboon:0.003108):0.022733,(Human:0.004349,Chimp:0.000799):0.011873):0.101856):0.340802,Rat:0.050958,Mouse:0.097950);
 ```
 
 **FEL Parameters:**
+
 - Genetic Code: Universal
 - P-value: 0.1
 - Bootstrap: 1 (for fast testing)
@@ -120,6 +129,7 @@ The tests use the CD2-slim.fna dataset:
 ## Expected Output
 
 ### Successful Test Run
+
 ```
 ✅ DataMonkey server is available
 📊 Status: Reading alignment file
@@ -137,10 +147,11 @@ The tests use the CD2-slim.fna dataset:
 ```
 
 ### Server Not Available
+
 ```
 ⚠️  DataMonkey server not available, skipping tests
    To run these tests:
-   1. Start DataMonkey server on localhost:7015  
+   1. Start DataMonkey server on localhost:7015
    2. Run: npm run test:fel-backend
    Error: Server not available: connect ECONNREFUSED 127.0.0.1:7015
 ```
@@ -150,7 +161,8 @@ The tests use the CD2-slim.fna dataset:
 ### Server Connection Issues
 
 **Problem:** `connect ECONNREFUSED 127.0.0.1:7015`
-**Solution:** 
+**Solution:**
+
 - Ensure DataMonkey server is running
 - Check server is listening on port 7015
 - Verify no firewall blocking connections
@@ -159,6 +171,7 @@ The tests use the CD2-slim.fna dataset:
 
 **Problem:** Analysis timeout after 5 minutes
 **Solution:**
+
 - Check server logs for processing issues
 - Verify test data is valid
 - Consider increasing timeout for complex datasets
@@ -168,6 +181,7 @@ The tests use the CD2-slim.fna dataset:
 
 **Problem:** `script error` events during analysis
 **Solution:**
+
 - Check server logs for detailed error messages
 - Validate FASTA alignment format
 - Verify tree topology matches sequence names
@@ -177,6 +191,7 @@ The tests use the CD2-slim.fna dataset:
 
 **Problem:** Connection established but events not received
 **Solution:**
+
 - Check Socket.IO version compatibility
 - Verify event names match server implementation
 - Ensure proper event handler setup
@@ -185,12 +200,14 @@ The tests use the CD2-slim.fna dataset:
 ## Configuration
 
 ### Test Timeouts
+
 ```javascript
-const CONNECTION_TIMEOUT = 5000;  // 5 seconds
-const ANALYSIS_TIMEOUT = 300000;  // 5 minutes
+const CONNECTION_TIMEOUT = 5000; // 5 seconds
+const ANALYSIS_TIMEOUT = 300000; // 5 minutes
 ```
 
 ### Server URL
+
 ```javascript
 const SERVER_URL = 'http://localhost:7015';
 ```
@@ -207,6 +224,7 @@ These tests are **intentionally excluded** from automated CI/CD pipelines becaus
 4. **Manual Verification:** Results need human interpretation
 
 For CI integration, consider:
+
 - Mock server implementation for unit tests
 - Docker composition with DataMonkey server
 - Separate integration test environment
@@ -230,16 +248,19 @@ Before deploying FEL integration:
 ## Development Workflow
 
 1. **Start DataMonkey Server**
+
    ```bash
    # Start your DataMonkey server on localhost:7015
    ```
 
-2. **Run Integration Tests** 
+2. **Run Integration Tests**
+
    ```bash
    npm run test:fel-backend
    ```
 
 3. **Test Demo Page**
+
    ```bash
    npm run dev
    # Navigate to http://localhost:5173/demo

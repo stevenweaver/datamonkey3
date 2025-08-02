@@ -324,7 +324,10 @@
 
 <div class="fel-visualization">
 	{#if resultData && resultData.tested && resultData.tested.sites && resultData.tested.sites.length > 0}
-		<div bind:this={chartContainer} style="width: 100%; height: 400px; border: 1px solid #e2e8f0; border-radius: 0.5rem; overflow: hidden; background-color: #fff;"></div>
+		<div
+			bind:this={chartContainer}
+			style="width: 100%; height: 400px; border: 1px solid #e2e8f0; border-radius: 0.5rem; overflow: hidden; background-color: #fff;"
+		></div>
 	{/if}
 
 	{#if significantSites.length > 0}

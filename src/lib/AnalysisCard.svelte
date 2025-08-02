@@ -247,10 +247,10 @@
 						</svg>
 					{/if}
 					<span class="capitalize"
-						>{analysis.status === 'completed' 
-							? 'Completed' 
-							: analysis.status === 'cancelled' 
-								? 'Cancelled' 
+						>{analysis.status === 'completed'
+							? 'Completed'
+							: analysis.status === 'cancelled'
+								? 'Cancelled'
 								: analysis.status || 'unknown'}</span
 					>
 				</div>
@@ -402,11 +402,7 @@
 						viewBox="0 0 20 20"
 						fill="currentColor"
 					>
-						<path
-							fill-rule="evenodd"
-							d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
-							clip-rule="evenodd"
-						/>
+						<path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
 						<path
 							fill-rule="evenodd"
 							d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L9.586 12l-2.293 2.293a1 1 0 101.414 1.414L11 13.414l2.293 2.293a1 1 0 001.414-1.414L12.414 12l2.293-2.293z"

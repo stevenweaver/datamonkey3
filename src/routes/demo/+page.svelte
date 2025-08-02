@@ -40,16 +40,19 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 	let usingSampleData = true;
 	let jobId = null;
 
-	// FEL analysis parameters
+	// FEL analysis parameters - corrected to match official DataMonkey specification
 	let felParams = {
 		analysis_type: 'fel',
-		genetic_code: 'Universal',
-		p_value: 0.1,
+		code: 'Universal',
+		pvalue: 0.1,
 		branches: 'All',
-		bootstrap: 1,
-		model: 'HKY85',
-		rate_classes: 3,
-		synonymous_rate_variation: false
+		resample: 1,
+		srv: 'Yes',
+		ci: 'No',
+		'multiple-hits': 'None',
+		'site-multihit': 'Estimate',
+		precision: 'standard',
+		'full-model': 'Yes'
 	};
 
 	onMount(() => {
@@ -69,7 +72,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 	function setupSocketHandlers() {
 		socket.on('connect', () => {
 			isConnected = true;
-			statusMessages = [...statusMessages, { msg: 'Connected to DataMonkey server', type: 'success' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: 'Connected to DataMonkey server', type: 'success' }
+			];
 		});
 
 		socket.on('disconnect', () => {
@@ -79,7 +85,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 
 		socket.on('connect_error', (err) => {
 			error = `Connection error: ${err.message}`;
-			statusMessages = [...statusMessages, { msg: `Connection failed: ${err.message}`, type: 'error' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: `Connection failed: ${err.message}`, type: 'error' }
+			];
 		});
 
 		socket.on('connected', (data) => {
@@ -87,27 +96,39 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 		});
 
 		socket.on('status update', (status) => {
-			statusMessages = [...statusMessages, { 
-				msg: `${status.msg}${status.phase ? ` (Phase: ${status.phase})` : ''}`, 
-				type: 'info' 
-			}];
+			statusMessages = [
+				...statusMessages,
+				{
+					msg: `${status.msg}${status.phase ? ` (Phase: ${status.phase})` : ''}`,
+					type: 'info'
+				}
+			];
 		});
 
 		socket.on('completed', (data) => {
 			isAnalysisRunning = false;
 			results = data;
-			statusMessages = [...statusMessages, { msg: 'Analysis completed successfully!', type: 'success' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: 'Analysis completed successfully!', type: 'success' }
+			];
 		});
 
 		socket.on('script error', (err) => {
 			isAnalysisRunning = false;
 			error = `Analysis failed: ${err.message || err}`;
-			statusMessages = [...statusMessages, { msg: `Analysis error: ${err.message || err}`, type: 'error' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: `Analysis error: ${err.message || err}`, type: 'error' }
+			];
 		});
 
 		socket.on('validated', (result) => {
 			if (result.valid) {
-				statusMessages = [...statusMessages, { msg: 'Parameters validated successfully', type: 'success' }];
+				statusMessages = [
+					...statusMessages,
+					{ msg: 'Parameters validated successfully', type: 'success' }
+				];
 			} else {
 				error = `Invalid parameters: ${result.errors?.join(', ') || 'Unknown validation error'}`;
 				statusMessages = [...statusMessages, { msg: `Validation failed: ${error}`, type: 'error' }];
@@ -115,7 +136,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 		});
 
 		socket.on('job queue', (jobs) => {
-			statusMessages = [...statusMessages, { msg: `Active jobs in queue: ${jobs.length}`, type: 'info' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: `Active jobs in queue: ${jobs.length}`, type: 'info' }
+			];
 		});
 	}
 
@@ -140,7 +164,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 		}
 
 		const fastaData = usingSampleData ? sampleFasta : customFasta;
-		
+
 		if (!fastaData.trim()) {
 			error = 'No FASTA data provided';
 			return;
@@ -193,7 +217,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 
 <div class="container mx-auto max-w-6xl p-6">
 	<h1 class="mb-6 text-3xl font-bold text-gray-900">DataMonkey FEL Analysis Demo</h1>
-	
+
 	<!-- Connection Status -->
 	<div class="mb-6 rounded-lg border p-4">
 		<h2 class="mb-3 text-lg font-semibold">Server Connection</h2>
@@ -204,20 +228,20 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 					{isConnected ? 'Connected' : 'Disconnected'}
 				</span>
 			</div>
-			<input 
-				bind:value={serverUrl} 
+			<input
+				bind:value={serverUrl}
 				placeholder="Server URL"
 				class="rounded border px-3 py-1 text-sm"
 				disabled={isConnected}
 			/>
-			<button 
+			<button
 				on:click={reconnect}
 				class="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600 disabled:opacity-50"
 				disabled={isAnalysisRunning}
 			>
 				{isConnected ? 'Reconnect' : 'Connect'}
 			</button>
-			<button 
+			<button
 				on:click={getJobQueue}
 				class="rounded bg-gray-500 px-3 py-1 text-sm text-white hover:bg-gray-600"
 				disabled={!isConnected}
@@ -232,30 +256,22 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 		<h2 class="mb-3 text-lg font-semibold">FASTA Data</h2>
 		<div class="mb-3 flex gap-4">
 			<label class="flex items-center">
-				<input 
-					type="radio" 
-					bind:group={usingSampleData} 
-					value={true}
-					class="mr-2"
-				/>
+				<input type="radio" bind:group={usingSampleData} value={true} class="mr-2" />
 				Use Sample Data
 			</label>
 			<label class="flex items-center">
-				<input 
-					type="radio" 
-					bind:group={usingSampleData} 
-					value={false}
-					class="mr-2"
-				/>
+				<input type="radio" bind:group={usingSampleData} value={false} class="mr-2" />
 				Custom FASTA
 			</label>
 		</div>
-		
+
 		{#if !usingSampleData}
 			<div class="space-y-4">
 				<div>
-					<label for="custom-fasta" class="block text-sm font-medium text-gray-700 mb-2">FASTA Alignment</label>
-					<textarea 
+					<label for="custom-fasta" class="mb-2 block text-sm font-medium text-gray-700"
+						>FASTA Alignment</label
+					>
+					<textarea
 						id="custom-fasta"
 						bind:value={customFasta}
 						placeholder="Paste your FASTA alignment here..."
@@ -264,8 +280,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 					></textarea>
 				</div>
 				<div>
-					<label for="custom-tree" class="block text-sm font-medium text-gray-700 mb-2">Newick Tree</label>
-					<textarea 
+					<label for="custom-tree" class="mb-2 block text-sm font-medium text-gray-700"
+						>Newick Tree</label
+					>
+					<textarea
 						id="custom-tree"
 						bind:value={customTree}
 						placeholder="Paste your Newick tree here..."
@@ -276,7 +294,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 			</div>
 		{:else}
 			<div class="rounded bg-gray-50 p-3">
-				<p class="text-sm text-gray-600">Using CD2-slim.fna test data (10 mammalian species, 51bp each) with corresponding Newick phylogenetic tree</p>
+				<p class="text-sm text-gray-600">
+					Using CD2-slim.fna test data (10 mammalian species, 51bp each) with corresponding Newick
+					phylogenetic tree
+				</p>
 			</div>
 		{/if}
 	</div>
@@ -286,8 +307,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 		<h2 class="mb-3 text-lg font-semibold">FEL Analysis Parameters</h2>
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 			<div>
-				<label for="genetic-code" class="block text-sm font-medium text-gray-700">Genetic Code</label>
-				<select id="genetic-code" bind:value={felParams.genetic_code} class="mt-1 block w-full rounded border p-2">
+				<label for="genetic-code" class="block text-sm font-medium text-gray-700"
+					>Genetic Code</label
+				>
+				<select
+					id="genetic-code"
+					bind:value={felParams.code}
+					class="mt-1 block w-full rounded border p-2"
+				>
 					<option value="Universal">Universal</option>
 					<option value="Vertebrate Mitochondrial">Vertebrate Mitochondrial</option>
 					<option value="Yeast Mitochondrial">Yeast Mitochondrial</option>
@@ -296,11 +323,13 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 				</select>
 			</div>
 			<div>
-				<label for="p-value" class="block text-sm font-medium text-gray-700">P-value Threshold</label>
-				<input 
+				<label for="p-value" class="block text-sm font-medium text-gray-700"
+					>P-value Threshold</label
+				>
+				<input
 					id="p-value"
-					type="number" 
-					bind:value={felParams.p_value}
+					type="number"
+					bind:value={felParams.pvalue}
 					min="0.01"
 					max="1"
 					step="0.01"
@@ -308,11 +337,13 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 				/>
 			</div>
 			<div>
-				<label for="bootstrap" class="block text-sm font-medium text-gray-700">Bootstrap Replicates</label>
-				<input 
-					id="bootstrap"
-					type="number" 
-					bind:value={felParams.bootstrap}
+				<label for="resample" class="block text-sm font-medium text-gray-700"
+					>Resample Replicates</label
+				>
+				<input
+					id="resample"
+					type="number"
+					bind:value={felParams.resample}
 					min="0"
 					max="1000"
 					step="10"
@@ -320,46 +351,93 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 				/>
 			</div>
 			<div>
-				<label for="model" class="block text-sm font-medium text-gray-700">Model</label>
-				<select id="model" bind:value={felParams.model} class="mt-1 block w-full rounded border p-2">
-					<option value="HKY85">HKY85</option>
-					<option value="GTR">GTR</option>
-					<option value="F81">F81</option>
-					<option value="K80">K80</option>
+				<label for="srv" class="block text-sm font-medium text-gray-700"
+					>Synonymous Rate Variation</label
+				>
+				<select id="srv" bind:value={felParams.srv} class="mt-1 block w-full rounded border p-2">
+					<option value="Yes">Yes</option>
+					<option value="No">No</option>
 				</select>
+				<p class="mt-1 text-xs text-gray-500">Allow synonymous rates to vary across sites</p>
 			</div>
 			<div>
-				<label for="rate-classes" class="block text-sm font-medium text-gray-700">Rate Classes</label>
-				<input 
-					id="rate-classes"
-					type="number" 
-					bind:value={felParams.rate_classes}
-					min="1"
-					max="10"
-					step="1"
+				<label for="ci" class="block text-sm font-medium text-gray-700">Confidence Intervals</label>
+				<select id="ci" bind:value={felParams.ci} class="mt-1 block w-full rounded border p-2">
+					<option value="No">No</option>
+					<option value="Yes">Yes</option>
+				</select>
+				<p class="mt-1 text-xs text-gray-500">Compute confidence intervals for rates</p>
+			</div>
+			<div>
+				<label for="multiple-hits" class="block text-sm font-medium text-gray-700"
+					>Multiple Hits</label
+				>
+				<select
+					id="multiple-hits"
+					bind:value={felParams['multiple-hits']}
 					class="mt-1 block w-full rounded border p-2"
-				/>
+				>
+					<option value="None">None</option>
+					<option value="Double">Double</option>
+					<option value="Double+Triple">Double+Triple</option>
+				</select>
+				<p class="mt-1 text-xs text-gray-500">
+					Include support for multiple nucleotide substitutions
+				</p>
 			</div>
 			<div>
-				<label for="syn-rate-var" class="block text-sm font-medium text-gray-700">Synonymous Rate Variation</label>
-				<select id="syn-rate-var" bind:value={felParams.synonymous_rate_variation} class="mt-1 block w-full rounded border p-2">
-					<option value={false}>No</option>
-					<option value={true}>Yes</option>
+				<label for="site-multihit" class="block text-sm font-medium text-gray-700"
+					>Site Multiple Hits</label
+				>
+				<select
+					id="site-multihit"
+					bind:value={felParams['site-multihit']}
+					class="mt-1 block w-full rounded border p-2"
+				>
+					<option value="Estimate">Estimate</option>
+					<option value="None">None</option>
 				</select>
+				<p class="mt-1 text-xs text-gray-500">Site-level multiple hit model</p>
+			</div>
+			<div>
+				<label for="precision" class="block text-sm font-medium text-gray-700"
+					>Optimization Precision</label
+				>
+				<select
+					id="precision"
+					bind:value={felParams.precision}
+					class="mt-1 block w-full rounded border p-2"
+				>
+					<option value="standard">Standard</option>
+					<option value="high">High</option>
+				</select>
+				<p class="mt-1 text-xs text-gray-500">Numerical optimization precision</p>
+			</div>
+			<div>
+				<label for="full-model" class="block text-sm font-medium text-gray-700">Full Model</label>
+				<select
+					id="full-model"
+					bind:value={felParams['full-model']}
+					class="mt-1 block w-full rounded border p-2"
+				>
+					<option value="Yes">Yes</option>
+					<option value="No">No</option>
+				</select>
+				<p class="mt-1 text-xs text-gray-500">Re-optimize branch lengths on the full model</p>
 			</div>
 		</div>
 	</div>
 
 	<!-- Action Buttons -->
 	<div class="mb-6 flex gap-3">
-		<button 
+		<button
 			on:click={validateParameters}
 			class="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600 disabled:opacity-50"
 			disabled={!isConnected || isAnalysisRunning}
 		>
 			Validate Parameters
 		</button>
-		<button 
+		<button
 			on:click={runFelAnalysis}
 			class="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 disabled:opacity-50"
 			disabled={!isConnected || isAnalysisRunning}
@@ -367,17 +445,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 			{isAnalysisRunning ? 'Running...' : 'Run FEL Analysis'}
 		</button>
 		{#if isAnalysisRunning}
-			<button 
+			<button
 				on:click={cancelAnalysis}
 				class="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
 			>
 				Cancel
 			</button>
 		{/if}
-		<button 
-			on:click={clearLog}
-			class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
-		>
+		<button on:click={clearLog} class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
 			Clear Log
 		</button>
 	</div>
@@ -395,12 +470,15 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGAACATCCCT`;
 		<h2 class="mb-3 text-lg font-semibold">Status Log</h2>
 		<div class="max-h-64 overflow-y-auto rounded bg-gray-50 p-3 font-mono text-sm">
 			{#each statusMessages as message}
-				<div class="mb-1 {
-					message.type === 'error' ? 'text-red-600' :
-					message.type === 'success' ? 'text-green-600' :
-					message.type === 'warning' ? 'text-yellow-600' :
-					'text-gray-800'
-				}">
+				<div
+					class="mb-1 {message.type === 'error'
+						? 'text-red-600'
+						: message.type === 'success'
+							? 'text-green-600'
+							: message.type === 'warning'
+								? 'text-yellow-600'
+								: 'text-gray-800'}"
+				>
 					[{new Date().toLocaleTimeString()}] {message.msg}
 				</div>
 			{/each}

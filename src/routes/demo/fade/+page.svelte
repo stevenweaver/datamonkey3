@@ -71,7 +71,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 	function setupSocketHandlers() {
 		socket.on('connect', () => {
 			isConnected = true;
-			statusMessages = [...statusMessages, { msg: 'Connected to DataMonkey server', type: 'success' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: 'Connected to DataMonkey server', type: 'success' }
+			];
 		});
 
 		socket.on('disconnect', () => {
@@ -81,7 +84,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
 		socket.on('connect_error', (err) => {
 			error = `Connection error: ${err.message}`;
-			statusMessages = [...statusMessages, { msg: `Connection failed: ${err.message}`, type: 'error' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: `Connection failed: ${err.message}`, type: 'error' }
+			];
 		});
 
 		socket.on('connected', (data) => {
@@ -89,27 +95,39 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		});
 
 		socket.on('status update', (status) => {
-			statusMessages = [...statusMessages, { 
-				msg: `${status.msg}${status.phase ? ` (Phase: ${status.phase})` : ''}`, 
-				type: 'info' 
-			}];
+			statusMessages = [
+				...statusMessages,
+				{
+					msg: `${status.msg}${status.phase ? ` (Phase: ${status.phase})` : ''}`,
+					type: 'info'
+				}
+			];
 		});
 
 		socket.on('completed', (data) => {
 			isAnalysisRunning = false;
 			results = data;
-			statusMessages = [...statusMessages, { msg: 'Analysis completed successfully!', type: 'success' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: 'Analysis completed successfully!', type: 'success' }
+			];
 		});
 
 		socket.on('script error', (err) => {
 			isAnalysisRunning = false;
 			error = `Analysis failed: ${err.message || err}`;
-			statusMessages = [...statusMessages, { msg: `Analysis error: ${err.message || err}`, type: 'error' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: `Analysis error: ${err.message || err}`, type: 'error' }
+			];
 		});
 
 		socket.on('validated', (result) => {
 			if (result.valid) {
-				statusMessages = [...statusMessages, { msg: 'Parameters validated successfully', type: 'success' }];
+				statusMessages = [
+					...statusMessages,
+					{ msg: 'Parameters validated successfully', type: 'success' }
+				];
 			} else {
 				error = `Invalid parameters: ${result.errors?.join(', ') || 'Unknown validation error'}`;
 				statusMessages = [...statusMessages, { msg: `Validation failed: ${error}`, type: 'error' }];
@@ -117,7 +135,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		});
 
 		socket.on('job queue', (jobs) => {
-			statusMessages = [...statusMessages, { msg: `Active jobs in queue: ${jobs.length}`, type: 'info' }];
+			statusMessages = [
+				...statusMessages,
+				{ msg: `Active jobs in queue: ${jobs.length}`, type: 'info' }
+			];
 		});
 	}
 
@@ -142,7 +163,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		}
 
 		const fastaData = usingSampleData ? sampleFasta : customFasta;
-		
+
 		if (!fastaData.trim()) {
 			error = 'No FASTA data provided';
 			return;
@@ -151,7 +172,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		error = null;
 		results = null;
 		isAnalysisRunning = true;
-		statusMessages = [...statusMessages, { msg: 'Starting FADE analysis (this may take several minutes)...', type: 'info' }];
+		statusMessages = [
+			...statusMessages,
+			{ msg: 'Starting FADE analysis (this may take several minutes)...', type: 'info' }
+		];
 
 		// Send single object with alignment, tree, and job properties
 		socket.emit('fade:spawn', {
@@ -195,12 +219,17 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
 <div class="container mx-auto max-w-6xl p-6">
 	<h1 class="mb-6 text-3xl font-bold text-gray-900">DataMonkey FADE Analysis Demo</h1>
-	
+
 	<div class="mb-4 rounded-lg bg-blue-50 p-4">
 		<h2 class="text-lg font-semibold text-blue-800">About FADE</h2>
-		<p class="text-blue-700">FADE (FUBAR Approach to Directional Evolution) is a Bayesian method for detecting directional selection at individual sites in protein-coding sequences. It estimates site-specific directional selection coefficients and identifies sites that consistently favor specific amino acid substitutions.</p>
+		<p class="text-blue-700">
+			FADE (FUBAR Approach to Directional Evolution) is a Bayesian method for detecting directional
+			selection at individual sites in protein-coding sequences. It estimates site-specific
+			directional selection coefficients and identifies sites that consistently favor specific amino
+			acid substitutions.
+		</p>
 	</div>
-	
+
 	<!-- Connection Status -->
 	<div class="mb-6 rounded-lg border p-4">
 		<h2 class="mb-3 text-lg font-semibold">Server Connection</h2>
@@ -211,20 +240,20 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 					{isConnected ? 'Connected' : 'Disconnected'}
 				</span>
 			</div>
-			<input 
-				bind:value={serverUrl} 
+			<input
+				bind:value={serverUrl}
 				placeholder="Server URL"
 				class="rounded border px-3 py-1 text-sm"
 				disabled={isConnected}
 			/>
-			<button 
+			<button
 				on:click={reconnect}
 				class="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600 disabled:opacity-50"
 				disabled={isAnalysisRunning}
 			>
 				{isConnected ? 'Reconnect' : 'Connect'}
 			</button>
-			<button 
+			<button
 				on:click={getJobQueue}
 				class="rounded bg-gray-500 px-3 py-1 text-sm text-white hover:bg-gray-600"
 				disabled={!isConnected}
@@ -239,30 +268,22 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		<h2 class="mb-3 text-lg font-semibold">FASTA Data</h2>
 		<div class="mb-3 flex gap-4">
 			<label class="flex items-center">
-				<input 
-					type="radio" 
-					bind:group={usingSampleData} 
-					value={true}
-					class="mr-2"
-				/>
+				<input type="radio" bind:group={usingSampleData} value={true} class="mr-2" />
 				Use Sample Data
 			</label>
 			<label class="flex items-center">
-				<input 
-					type="radio" 
-					bind:group={usingSampleData} 
-					value={false}
-					class="mr-2"
-				/>
+				<input type="radio" bind:group={usingSampleData} value={false} class="mr-2" />
 				Custom FASTA
 			</label>
 		</div>
-		
+
 		{#if !usingSampleData}
 			<div class="space-y-4">
 				<div>
-					<label for="custom-fasta" class="block text-sm font-medium text-gray-700 mb-2">FASTA Alignment</label>
-					<textarea 
+					<label for="custom-fasta" class="mb-2 block text-sm font-medium text-gray-700"
+						>FASTA Alignment</label
+					>
+					<textarea
 						id="custom-fasta"
 						bind:value={customFasta}
 						placeholder="Paste your protein-coding nucleotide alignment here..."
@@ -271,8 +292,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 					></textarea>
 				</div>
 				<div>
-					<label for="custom-tree" class="block text-sm font-medium text-gray-700 mb-2">Newick Tree</label>
-					<textarea 
+					<label for="custom-tree" class="mb-2 block text-sm font-medium text-gray-700"
+						>Newick Tree</label
+					>
+					<textarea
 						id="custom-tree"
 						bind:value={customTree}
 						placeholder="Paste your Newick tree here..."
@@ -283,7 +306,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			</div>
 		{:else}
 			<div class="rounded bg-gray-50 p-3">
-				<p class="text-sm text-gray-600">Using CD2-slim.fna test data (10 mammalian species, 51bp each) with corresponding Newick phylogenetic tree</p>
+				<p class="text-sm text-gray-600">
+					Using CD2-slim.fna test data (10 mammalian species, 51bp each) with corresponding Newick
+					phylogenetic tree
+				</p>
 			</div>
 		{/if}
 	</div>
@@ -293,8 +319,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		<h2 class="mb-3 text-lg font-semibold">FADE Analysis Parameters</h2>
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 			<div>
-				<label for="genetic-code" class="block text-sm font-medium text-gray-700">Genetic Code</label>
-				<select id="genetic-code" bind:value={fadeParams.code} class="mt-1 block w-full rounded border p-2">
+				<label for="genetic-code" class="block text-sm font-medium text-gray-700"
+					>Genetic Code</label
+				>
+				<select
+					id="genetic-code"
+					bind:value={fadeParams.code}
+					class="mt-1 block w-full rounded border p-2"
+				>
 					<option value="Universal">Universal</option>
 					<option value="Vertebrate mtDNA">Vertebrate Mitochondrial</option>
 					<option value="Yeast mtDNA">Yeast Mitochondrial</option>
@@ -303,8 +335,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				</select>
 			</div>
 			<div>
-				<label for="substitution-model" class="block text-sm font-medium text-gray-700">Substitution Model</label>
-				<select id="substitution-model" bind:value={fadeParams['substitution-model']} class="mt-1 block w-full rounded border p-2">
+				<label for="substitution-model" class="block text-sm font-medium text-gray-700"
+					>Substitution Model</label
+				>
+				<select
+					id="substitution-model"
+					bind:value={fadeParams['substitution-model']}
+					class="mt-1 block w-full rounded border p-2"
+				>
 					<option value="JTT">JTT</option>
 					<option value="WAG">WAG</option>
 					<option value="LG">LG</option>
@@ -312,17 +350,25 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				</select>
 			</div>
 			<div>
-				<label for="posterior-estimation-method" class="block text-sm font-medium text-gray-700">Estimation Method</label>
-				<select id="posterior-estimation-method" bind:value={fadeParams['posterior-estimation-method']} class="mt-1 block w-full rounded border p-2">
+				<label for="posterior-estimation-method" class="block text-sm font-medium text-gray-700"
+					>Estimation Method</label
+				>
+				<select
+					id="posterior-estimation-method"
+					bind:value={fadeParams['posterior-estimation-method']}
+					class="mt-1 block w-full rounded border p-2"
+				>
 					<option value="Variational-Bayes">Variational Bayes (Faster)</option>
 					<option value="MCMC">MCMC (More Accurate)</option>
 				</select>
 			</div>
 			<div>
-				<label for="number-of-grid-points" class="block text-sm font-medium text-gray-700">Grid Points</label>
-				<input 
+				<label for="number-of-grid-points" class="block text-sm font-medium text-gray-700"
+					>Grid Points</label
+				>
+				<input
 					id="number-of-grid-points"
-					type="number" 
+					type="number"
 					bind:value={fadeParams['number-of-grid-points']}
 					min="10"
 					max="50"
@@ -332,10 +378,12 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<p class="mt-1 text-xs text-gray-500">Grid resolution for rate discretization</p>
 			</div>
 			<div>
-				<label for="number-of-mcmc-chains" class="block text-sm font-medium text-gray-700">MCMC Chains</label>
-				<input 
+				<label for="number-of-mcmc-chains" class="block text-sm font-medium text-gray-700"
+					>MCMC Chains</label
+				>
+				<input
 					id="number-of-mcmc-chains"
-					type="number" 
+					type="number"
 					bind:value={fadeParams['number-of-mcmc-chains']}
 					min="1"
 					max="10"
@@ -345,10 +393,12 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<p class="mt-1 text-xs text-gray-500">Number of independent MCMC chains</p>
 			</div>
 			<div>
-				<label for="length-of-each-chain" class="block text-sm font-medium text-gray-700">Chain Length</label>
-				<input 
+				<label for="length-of-each-chain" class="block text-sm font-medium text-gray-700"
+					>Chain Length</label
+				>
+				<input
 					id="length-of-each-chain"
-					type="number" 
+					type="number"
 					bind:value={fadeParams['length-of-each-chain']}
 					min="10000"
 					max="5000000"
@@ -358,10 +408,12 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<p class="mt-1 text-xs text-gray-500">Length of each MCMC chain (reduced for testing)</p>
 			</div>
 			<div>
-				<label for="number-of-burn-in-samples" class="block text-sm font-medium text-gray-700">Burn-in Samples</label>
-				<input 
+				<label for="number-of-burn-in-samples" class="block text-sm font-medium text-gray-700"
+					>Burn-in Samples</label
+				>
+				<input
 					id="number-of-burn-in-samples"
-					type="number" 
+					type="number"
 					bind:value={fadeParams['number-of-burn-in-samples']}
 					min="5000"
 					max="2000000"
@@ -371,10 +423,12 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<p class="mt-1 text-xs text-gray-500">Number of burn-in samples to discard</p>
 			</div>
 			<div>
-				<label for="number-of-samples" class="block text-sm font-medium text-gray-700">Final Samples</label>
-				<input 
+				<label for="number-of-samples" class="block text-sm font-medium text-gray-700"
+					>Final Samples</label
+				>
+				<input
 					id="number-of-samples"
-					type="number" 
+					type="number"
 					bind:value={fadeParams['number-of-samples']}
 					min="10"
 					max="1000"
@@ -384,10 +438,13 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<p class="mt-1 text-xs text-gray-500">Number of samples to collect after burn-in</p>
 			</div>
 			<div>
-				<label for="concentration-of-dirichlet-prior" class="block text-sm font-medium text-gray-700">Dirichlet Concentration</label>
-				<input 
+				<label
+					for="concentration-of-dirichlet-prior"
+					class="block text-sm font-medium text-gray-700">Dirichlet Concentration</label
+				>
+				<input
 					id="concentration-of-dirichlet-prior"
-					type="number" 
+					type="number"
 					bind:value={fadeParams['concentration-of-dirichlet-prior']}
 					min="0.1"
 					max="2.0"
@@ -401,14 +458,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
 	<!-- Action Buttons -->
 	<div class="mb-6 flex gap-3">
-		<button 
+		<button
 			on:click={validateParameters}
 			class="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600 disabled:opacity-50"
 			disabled={!isConnected || isAnalysisRunning}
 		>
 			Validate Parameters
 		</button>
-		<button 
+		<button
 			on:click={runFadeAnalysis}
 			class="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 disabled:opacity-50"
 			disabled={!isConnected || isAnalysisRunning}
@@ -416,17 +473,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			{isAnalysisRunning ? 'Running...' : 'Run FADE Analysis'}
 		</button>
 		{#if isAnalysisRunning}
-			<button 
+			<button
 				on:click={cancelAnalysis}
 				class="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
 			>
 				Cancel
 			</button>
 		{/if}
-		<button 
-			on:click={clearLog}
-			class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
-		>
+		<button on:click={clearLog} class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
 			Clear Log
 		</button>
 	</div>
@@ -434,7 +488,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 	<!-- Warning for computational intensity -->
 	<div class="mb-6 rounded-lg border border-orange-200 bg-orange-50 p-4">
 		<h3 class="font-semibold text-orange-800">⚠️ Computational Warning</h3>
-		<p class="text-orange-700">FADE analysis is computationally intensive and may take 10+ minutes to complete, even with reduced parameters. Please be patient during execution.</p>
+		<p class="text-orange-700">
+			FADE analysis is computationally intensive and may take 10+ minutes to complete, even with
+			reduced parameters. Please be patient during execution.
+		</p>
 	</div>
 
 	<!-- Error Display -->
@@ -450,12 +507,15 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		<h2 class="mb-3 text-lg font-semibold">Status Log</h2>
 		<div class="max-h-64 overflow-y-auto rounded bg-gray-50 p-3 font-mono text-sm">
 			{#each statusMessages as message}
-				<div class="mb-1 {
-					message.type === 'error' ? 'text-red-600' :
-					message.type === 'success' ? 'text-green-600' :
-					message.type === 'warning' ? 'text-yellow-600' :
-					'text-gray-800'
-				}">
+				<div
+					class="mb-1 {message.type === 'error'
+						? 'text-red-600'
+						: message.type === 'success'
+							? 'text-green-600'
+							: message.type === 'warning'
+								? 'text-yellow-600'
+								: 'text-gray-800'}"
+				>
 					[{new Date().toLocaleTimeString()}] {message.msg}
 				</div>
 			{/each}

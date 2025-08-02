@@ -1,12 +1,12 @@
 /**
  * Manual test for DataMonkey NRM backend integration
- * 
+ *
  * This test requires a running DataMonkey server on localhost:7015
  * Run with: npm run test:nrm-backend
- * 
+ *
  * This test is excluded from CI/automated testing since it requires
  * an external DataMonkey server to be running.
- * 
+ *
  * NRM (Non-Reversibility of the Evolutionary Process) tests whether
  * the evolutionary process at certain sites is reversible or not.
  */
@@ -130,113 +130,117 @@ describe('DataMonkey NRM Backend Integration', () => {
 		}
 	});
 
-	it.skip('should run NRM analysis successfully (skipped - computational complexity)', async () => {
-		if (!isServerAvailable) {
-			console.log('Skipping test - server not available');
-			return;
-		}
-
-		// This test is skipped by default due to computational complexity
-		// NRM analysis can take several minutes
-		// To enable: remove .skip and be prepared to wait
-
-		// Create a fresh socket connection for this test to avoid event handler conflicts
-		const testSocket = io(SERVER_URL, { forceNew: true });
-		
-		await new Promise((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(new Error('Test socket connection timeout'));
-			}, 5000);
-
-			testSocket.on('connect', () => {
-				clearTimeout(timeout);
-				resolve();
-			});
-
-			testSocket.on('connect_error', (error) => {
-				clearTimeout(timeout);
-				reject(error);
-			});
-		});
-
-		const statusMessages = [];
-		let analysisResult = null;
-		let analysisError = null;
-
-		const analysisPromise = new Promise((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(new Error('Analysis timeout - may need more time for complex datasets'));
-			}, ANALYSIS_TIMEOUT);
-
-			// Track status updates
-			testSocket.on('status update', (status) => {
-				statusMessages.push(status);
-				console.log(`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
-			});
-
-			// Handle successful completion
-			testSocket.on('completed', (data) => {
-				clearTimeout(timeout);
-				analysisResult = data;
-				console.log('✅ Analysis completed successfully');
-				resolve(data);
-			});
-
-			// Handle errors
-			testSocket.on('script error', (error) => {
-				clearTimeout(timeout);
-				analysisError = error;
-				console.error('❌ Analysis failed:', error.message || error);
-				reject(new Error(error.message || error));
-			});
-
-			// Start the analysis
-			console.log('🚀 Starting NRM analysis...');
-			testSocket.emit('nrm:spawn', {
-				alignment: TEST_FASTA,
-				tree: TEST_TREE,
-				job: NRM_PARAMS
-			});
-		});
-
-		// Wait for analysis to complete
-		const result = await analysisPromise;
-
-		// Cleanup
-		testSocket.disconnect();
-
-		// Verify we received status updates
-		expect(statusMessages.length).toBeGreaterThan(0);
-		console.log(`📈 Received ${statusMessages.length} status updates`);
-
-		// Verify analysis completed successfully
-		expect(result).toBeDefined();
-		expect(analysisError).toBeNull();
-
-		// Log summary
-		console.log('📋 Analysis Summary:');
-		console.log(`   - Status updates: ${statusMessages.length}`);
-		console.log(`   - Result keys: ${Object.keys(result || {}).join(', ')}`);
-		
-		// Basic result structure validation for NRM output
-		if (result && typeof result === 'object') {
-			console.log('✅ Analysis result is valid object');
-			
-			// Check for expected NRM output structure
-			if (result.analysis) {
-				console.log('📊 Found analysis metadata');
+	it.skip(
+		'should run NRM analysis successfully (skipped - computational complexity)',
+		async () => {
+			if (!isServerAvailable) {
+				console.log('Skipping test - server not available');
+				return;
 			}
-			if (result['site-specific results']) {
-				console.log('📊 Found site-specific results');
+
+			// This test is skipped by default due to computational complexity
+			// NRM analysis can take several minutes
+			// To enable: remove .skip and be prepared to wait
+
+			// Create a fresh socket connection for this test to avoid event handler conflicts
+			const testSocket = io(SERVER_URL, { forceNew: true });
+
+			await new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(new Error('Test socket connection timeout'));
+				}, 5000);
+
+				testSocket.on('connect', () => {
+					clearTimeout(timeout);
+					resolve();
+				});
+
+				testSocket.on('connect_error', (error) => {
+					clearTimeout(timeout);
+					reject(error);
+				});
+			});
+
+			const statusMessages = [];
+			let analysisResult = null;
+			let analysisError = null;
+
+			const analysisPromise = new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(new Error('Analysis timeout - may need more time for complex datasets'));
+				}, ANALYSIS_TIMEOUT);
+
+				// Track status updates
+				testSocket.on('status update', (status) => {
+					statusMessages.push(status);
+					console.log(`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
+				});
+
+				// Handle successful completion
+				testSocket.on('completed', (data) => {
+					clearTimeout(timeout);
+					analysisResult = data;
+					console.log('✅ Analysis completed successfully');
+					resolve(data);
+				});
+
+				// Handle errors
+				testSocket.on('script error', (error) => {
+					clearTimeout(timeout);
+					analysisError = error;
+					console.error('❌ Analysis failed:', error.message || error);
+					reject(new Error(error.message || error));
+				});
+
+				// Start the analysis
+				console.log('🚀 Starting NRM analysis...');
+				testSocket.emit('nrm:spawn', {
+					alignment: TEST_FASTA,
+					tree: TEST_TREE,
+					job: NRM_PARAMS
+				});
+			});
+
+			// Wait for analysis to complete
+			const result = await analysisPromise;
+
+			// Cleanup
+			testSocket.disconnect();
+
+			// Verify we received status updates
+			expect(statusMessages.length).toBeGreaterThan(0);
+			console.log(`📈 Received ${statusMessages.length} status updates`);
+
+			// Verify analysis completed successfully
+			expect(result).toBeDefined();
+			expect(analysisError).toBeNull();
+
+			// Log summary
+			console.log('📋 Analysis Summary:');
+			console.log(`   - Status updates: ${statusMessages.length}`);
+			console.log(`   - Result keys: ${Object.keys(result || {}).join(', ')}`);
+
+			// Basic result structure validation for NRM output
+			if (result && typeof result === 'object') {
+				console.log('✅ Analysis result is valid object');
+
+				// Check for expected NRM output structure
+				if (result.analysis) {
+					console.log('📊 Found analysis metadata');
+				}
+				if (result['site-specific results']) {
+					console.log('📊 Found site-specific results');
+				}
+				if (result['transition rates']) {
+					console.log('📊 Found transition rates');
+				}
+				if (result['statistical significance']) {
+					console.log('📊 Found statistical significance data');
+				}
 			}
-			if (result['transition rates']) {
-				console.log('📊 Found transition rates');
-			}
-			if (result['statistical significance']) {
-				console.log('📊 Found statistical significance data');
-			}
-		}
-	}, ANALYSIS_TIMEOUT + 10000); // Extra time for test framework
+		},
+		ANALYSIS_TIMEOUT + 10000
+	); // Extra time for test framework
 
 	it('should handle job queue requests (optional)', async () => {
 		if (!isServerAvailable) {
@@ -273,7 +277,7 @@ describe('DataMonkey NRM Backend Integration', () => {
 
 		// Create fresh socket for this test
 		const testSocket = io(SERVER_URL, { forceNew: true });
-		
+
 		await new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Test socket connection timeout'));
@@ -307,7 +311,7 @@ describe('DataMonkey NRM Backend Integration', () => {
 
 		const gotError = await errorPromise;
 		testSocket.disconnect();
-		
+
 		// Don't fail if server accepts malformed data - just log it
 		if (gotError) {
 			console.log('✅ Server validates input data correctly');
@@ -329,7 +333,7 @@ export class NRMBackendTester {
 
 	async connect() {
 		this.socket = io(this.serverUrl);
-		
+
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Connection timeout'));
@@ -394,7 +398,7 @@ export class NRMBackendTester {
 
 	async runAnalysis(fasta = TEST_FASTA, tree = TEST_TREE, params = NRM_PARAMS) {
 		this.statusMessages = [];
-		
+
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Analysis timeout'));

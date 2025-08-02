@@ -1,12 +1,12 @@
 /**
  * Manual test for DataMonkey FADE backend integration
- * 
+ *
  * This test requires a running DataMonkey server on localhost:7015
  * Run with: npm run test:fade-backend
- * 
+ *
  * This test is excluded from CI/automated testing since it requires
  * an external DataMonkey server to be running.
- * 
+ *
  * FADE (FUBAR Approach to Directional Evolution) is computationally intensive
  * and may take several minutes to complete depending on dataset size.
  */
@@ -135,113 +135,117 @@ describe('DataMonkey FADE Backend Integration', () => {
 		}
 	});
 
-	it.skip('should run FADE analysis successfully (skipped - computationally intensive)', async () => {
-		if (!isServerAvailable) {
-			console.log('Skipping test - server not available');
-			return;
-		}
-
-		// This test is skipped by default due to computational complexity
-		// FADE analysis can take 10+ minutes even with reduced parameters
-		// To enable: remove .skip and be prepared to wait
-
-		// Create a fresh socket connection for this test to avoid event handler conflicts
-		const testSocket = io(SERVER_URL, { forceNew: true });
-		
-		await new Promise((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(new Error('Test socket connection timeout'));
-			}, 5000);
-
-			testSocket.on('connect', () => {
-				clearTimeout(timeout);
-				resolve();
-			});
-
-			testSocket.on('connect_error', (error) => {
-				clearTimeout(timeout);
-				reject(error);
-			});
-		});
-
-		const statusMessages = [];
-		let analysisResult = null;
-		let analysisError = null;
-
-		const analysisPromise = new Promise((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(new Error('Analysis timeout - FADE requires significant computational time'));
-			}, ANALYSIS_TIMEOUT);
-
-			// Track status updates
-			testSocket.on('status update', (status) => {
-				statusMessages.push(status);
-				console.log(`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
-			});
-
-			// Handle successful completion
-			testSocket.on('completed', (data) => {
-				clearTimeout(timeout);
-				analysisResult = data;
-				console.log('✅ Analysis completed successfully');
-				resolve(data);
-			});
-
-			// Handle errors
-			testSocket.on('script error', (error) => {
-				clearTimeout(timeout);
-				analysisError = error;
-				console.error('❌ Analysis failed:', error.message || error);
-				reject(new Error(error.message || error));
-			});
-
-			// Start the analysis
-			console.log('🚀 Starting FADE analysis (this may take several minutes)...');
-			testSocket.emit('fade:spawn', {
-				alignment: TEST_FASTA,
-				tree: TEST_TREE,
-				job: FADE_PARAMS
-			});
-		});
-
-		// Wait for analysis to complete
-		const result = await analysisPromise;
-
-		// Cleanup
-		testSocket.disconnect();
-
-		// Verify we received status updates
-		expect(statusMessages.length).toBeGreaterThan(0);
-		console.log(`📈 Received ${statusMessages.length} status updates`);
-
-		// Verify analysis completed successfully
-		expect(result).toBeDefined();
-		expect(analysisError).toBeNull();
-
-		// Log summary
-		console.log('📋 Analysis Summary:');
-		console.log(`   - Status updates: ${statusMessages.length}`);
-		console.log(`   - Result keys: ${Object.keys(result || {}).join(', ')}`);
-		
-		// Basic result structure validation for FADE output
-		if (result && typeof result === 'object') {
-			console.log('✅ Analysis result is valid object');
-			
-			// Check for expected FADE output structure
-			if (result.analysis) {
-				console.log('📊 Found analysis metadata');
+	it.skip(
+		'should run FADE analysis successfully (skipped - computationally intensive)',
+		async () => {
+			if (!isServerAvailable) {
+				console.log('Skipping test - server not available');
+				return;
 			}
-			if (result['posterior results']) {
-				console.log('📊 Found posterior results');
+
+			// This test is skipped by default due to computational complexity
+			// FADE analysis can take 10+ minutes even with reduced parameters
+			// To enable: remove .skip and be prepared to wait
+
+			// Create a fresh socket connection for this test to avoid event handler conflicts
+			const testSocket = io(SERVER_URL, { forceNew: true });
+
+			await new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(new Error('Test socket connection timeout'));
+				}, 5000);
+
+				testSocket.on('connect', () => {
+					clearTimeout(timeout);
+					resolve();
+				});
+
+				testSocket.on('connect_error', (error) => {
+					clearTimeout(timeout);
+					reject(error);
+				});
+			});
+
+			const statusMessages = [];
+			let analysisResult = null;
+			let analysisError = null;
+
+			const analysisPromise = new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(new Error('Analysis timeout - FADE requires significant computational time'));
+				}, ANALYSIS_TIMEOUT);
+
+				// Track status updates
+				testSocket.on('status update', (status) => {
+					statusMessages.push(status);
+					console.log(`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
+				});
+
+				// Handle successful completion
+				testSocket.on('completed', (data) => {
+					clearTimeout(timeout);
+					analysisResult = data;
+					console.log('✅ Analysis completed successfully');
+					resolve(data);
+				});
+
+				// Handle errors
+				testSocket.on('script error', (error) => {
+					clearTimeout(timeout);
+					analysisError = error;
+					console.error('❌ Analysis failed:', error.message || error);
+					reject(new Error(error.message || error));
+				});
+
+				// Start the analysis
+				console.log('🚀 Starting FADE analysis (this may take several minutes)...');
+				testSocket.emit('fade:spawn', {
+					alignment: TEST_FASTA,
+					tree: TEST_TREE,
+					job: FADE_PARAMS
+				});
+			});
+
+			// Wait for analysis to complete
+			const result = await analysisPromise;
+
+			// Cleanup
+			testSocket.disconnect();
+
+			// Verify we received status updates
+			expect(statusMessages.length).toBeGreaterThan(0);
+			console.log(`📈 Received ${statusMessages.length} status updates`);
+
+			// Verify analysis completed successfully
+			expect(result).toBeDefined();
+			expect(analysisError).toBeNull();
+
+			// Log summary
+			console.log('📋 Analysis Summary:');
+			console.log(`   - Status updates: ${statusMessages.length}`);
+			console.log(`   - Result keys: ${Object.keys(result || {}).join(', ')}`);
+
+			// Basic result structure validation for FADE output
+			if (result && typeof result === 'object') {
+				console.log('✅ Analysis result is valid object');
+
+				// Check for expected FADE output structure
+				if (result.analysis) {
+					console.log('📊 Found analysis metadata');
+				}
+				if (result['posterior results']) {
+					console.log('📊 Found posterior results');
+				}
+				if (result['bayes factor']) {
+					console.log('📊 Found Bayes factor data');
+				}
+				if (result['amino acid composition']) {
+					console.log('📊 Found amino acid composition');
+				}
 			}
-			if (result['bayes factor']) {
-				console.log('📊 Found Bayes factor data');
-			}
-			if (result['amino acid composition']) {
-				console.log('📊 Found amino acid composition');
-			}
-		}
-	}, ANALYSIS_TIMEOUT + 10000); // Extra time for test framework
+		},
+		ANALYSIS_TIMEOUT + 10000
+	); // Extra time for test framework
 
 	it('should handle job queue requests (optional)', async () => {
 		if (!isServerAvailable) {
@@ -278,7 +282,7 @@ describe('DataMonkey FADE Backend Integration', () => {
 
 		// Create fresh socket for this test
 		const testSocket = io(SERVER_URL, { forceNew: true });
-		
+
 		await new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Test socket connection timeout'));
@@ -312,7 +316,7 @@ describe('DataMonkey FADE Backend Integration', () => {
 
 		const gotError = await errorPromise;
 		testSocket.disconnect();
-		
+
 		// Don't fail if server accepts malformed data - just log it
 		if (gotError) {
 			console.log('✅ Server validates input data correctly');
@@ -334,7 +338,7 @@ export class FADEBackendTester {
 
 	async connect() {
 		this.socket = io(this.serverUrl);
-		
+
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Connection timeout'));
@@ -399,7 +403,7 @@ export class FADEBackendTester {
 
 	async runAnalysis(fasta = TEST_FASTA, tree = TEST_TREE, params = FADE_PARAMS) {
 		this.statusMessages = [];
-		
+
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
 				reject(new Error('Analysis timeout'));
