@@ -40,15 +40,14 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 	let usingSampleData = true;
 	let jobId = null;
 
-	// CONTRAST-FEL analysis parameters based on backend test configuration
+	// CONTRAST-FEL analysis parameters based on official specification
 	let contrastFelParams = {
-		analysis_type: 'contrast-fel',
-		code: 'Universal',
-		'branch-set': 'Foreground',
+		genetic_code: 'Universal',
+		branch_sets: 'Foreground',
 		srv: 'Yes',
 		permutations: 'Yes',
-		'p-value': 0.05,
-		'q-value': 0.2
+		p_value: 0.05,
+		q_value: 0.2
 	};
 
 	onMount(() => {
@@ -174,14 +173,12 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			{ msg: 'Starting CONTRAST-FEL analysis...', type: 'info' }
 		];
 
-		// Send FASTA and job parameters as separate arguments (tree included in job)
-		const treeData = usingSampleData ? sampleTree : customTree;
-		const contrastFelJobWithTree = {
-			...contrastFelParams,
-			tree: treeData.trim()
-		};
-		
-		socket.emit('cfel:spawn', fastaData, contrastFelJobWithTree);
+		// Send using unified data format
+		socket.emit('cfel:spawn', {
+			alignment: fastaData,
+			tree: usingSampleData ? sampleTree : customTree,
+			job: contrastFelParams
+		});
 	}
 
 	function cancelAnalysis() {
@@ -384,7 +381,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<input
 					id="p-value"
 					type="number"
-					bind:value={contrastFelParams['p-value']}
+					bind:value={contrastFelParams.p_value}
 					min="0.001"
 					max="0.5"
 					step="0.001"
@@ -399,7 +396,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<input
 					id="q-value"
 					type="number"
-					bind:value={contrastFelParams['q-value']}
+					bind:value={contrastFelParams.q_value}
 					min="0.01"
 					max="0.5"
 					step="0.01"

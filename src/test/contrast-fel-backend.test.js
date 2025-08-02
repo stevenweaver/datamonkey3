@@ -40,13 +40,12 @@ const TEST_TREE =
 	`((((Pig:0.147969,Cow:0.213430):0.085099,Horse:0.165787,Cat:0.264806):0.058611,((RhMonkey:0.002015,Baboon:0.003108):0.022733,(Human:0.004349,Chimp:0.000799):0.011873):0.101856):0.340802,Rat:0.050958,Mouse:0.097950);`;
 
 const CONTRAST_FEL_PARAMS = {
-	analysis_type: "contrast-fel",
-	code: "Universal", // Default genetic code
-	"branch-set": "Foreground", // Branch set for analysis
+	genetic_code: "Universal", // Default genetic code
+	branch_sets: "Foreground", // Branch sets for comparison
 	srv: "Yes", // Synonymous rate variation (default: Yes)
 	permutations: "Yes", // Perform permutation tests (default: Yes)
-	"p-value": 0.05, // Significance value for site tests (default: 0.05)
-	"q-value": 0.2, // Significance value for False Discovery Rate reporting (default: 0.20)
+	p_value: 0.05, // P-value threshold (default: 0.05)
+	q_value: 0.2, // Q-value threshold for FDR (default: 0.20)
 };
 
 const SERVER_URL = "http://localhost:7015";
@@ -205,11 +204,11 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 
 				// Start the analysis
 				console.log("🚀 Starting CONTRAST-FEL analysis...");
-				const contrastFelJobWithTree = {
-					...CONTRAST_FEL_PARAMS,
-					tree: TEST_TREE
-				};
-				testSocket.emit("cfel:spawn", TEST_FASTA, contrastFelJobWithTree);
+				testSocket.emit("cfel:spawn", {
+					alignment: TEST_FASTA,
+					tree: TEST_TREE,
+					job: CONTRAST_FEL_PARAMS
+				});
 			});
 
 			// Wait for analysis to complete
@@ -326,11 +325,11 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 			});
 
 			// Send malformed data
-			const malformedJob = {
-				...CONTRAST_FEL_PARAMS,
-				tree: "INVALID_TREE_DATA"
-			};
-			testSocket.emit("cfel:spawn", "INVALID_FASTA_DATA", malformedJob);
+			testSocket.emit("cfel:spawn", {
+				alignment: "INVALID_FASTA_DATA",
+				tree: "INVALID_TREE_DATA",
+				job: CONTRAST_FEL_PARAMS
+			});
 		});
 
 		const gotError = await errorPromise;
@@ -447,11 +446,11 @@ export class CONTRASTFELBackendTester {
 			});
 
 			console.log("🚀 Starting CONTRAST-FEL analysis...");
-			const contrastFelJobWithTree = {
-				...params,
-				tree: tree
-			};
-			this.socket.emit("cfel:spawn", fasta, contrastFelJobWithTree);
+			this.socket.emit("cfel:spawn", {
+				alignment: fasta,
+				tree: tree,
+				job: params
+			});
 		});
 	}
 
