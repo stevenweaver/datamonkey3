@@ -127,7 +127,7 @@ describe('DataMonkey FUBAR Backend Integration', () => {
 		}
 	});
 
-	it.only(
+	it(
 		'should run FUBAR analysis successfully',
 		async () => {
 			if (!isServerAvailable) {

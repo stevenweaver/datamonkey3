@@ -8,7 +8,7 @@
  * an external DataMonkey server to be running.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import io from 'socket.io-client';
 
 // Test data from CD2-slim.fna
@@ -43,6 +43,7 @@ const BGM_PARAMS = {
 	steps: 10000, // Reduced for testing
 	'burn-in': 1000,
 	samples: 50,
+	'chain-sample': 100, // Number of steps to extract from chain sample
 	'max-parents': 1,
 	'min-subs': 1
 };
@@ -128,13 +129,16 @@ describe('DataMonkey BGM Backend Integration', () => {
 		console.log('Validation result:', validationResult);
 		expect(validationResult.valid).toBe(true);
 		if (!validationResult.valid) {
-			console.error('Validation errors:', validationResult.errors || validationResult);
+			console.error(
+				'Validation errors:',
+				validationResult.errors || validationResult
+			);
 		}
 	});
 
 	// Note: BGM can take a very long time to run (MCMC sampling is computationally expensive)
 	// Unskip this test when you specifically need to test BGM analysis
-	it.skip(
+	it.only(
 		'should run BGM analysis successfully',
 		async () => {
 			if (!isServerAvailable) {
@@ -167,7 +171,9 @@ describe('DataMonkey BGM Backend Integration', () => {
 
 			const analysisPromise = new Promise((resolve, reject) => {
 				const timeout = setTimeout(() => {
-					reject(new Error('Analysis timeout - may need more time for MCMC sampling'));
+					reject(
+						new Error('Analysis timeout - may need more time for MCMC sampling')
+					);
 				}, ANALYSIS_TIMEOUT);
 
 				// Track status updates
@@ -262,7 +268,9 @@ describe('DataMonkey BGM Backend Integration', () => {
 		// Job queue is optional - some servers run locally without job management
 		const queueResult = await new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				console.log('📊 Job queue not implemented (running locally) - skipping');
+				console.log(
+					'📊 Job queue not implemented (running locally) - skipping'
+				);
 				resolve([]);
 			}, 3000);
 
@@ -302,13 +310,18 @@ describe('DataMonkey BGM Backend Integration', () => {
 
 		const errorPromise = new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				console.log('⚠️  Server did not reject malformed data (may accept any input)');
+				console.log(
+					'⚠️  Server did not reject malformed data (may accept any input)'
+				);
 				resolve(false); // No error received within timeout
 			}, 8000);
 
 			testSocket.on('script error', (error) => {
 				clearTimeout(timeout);
-				console.log('✅ Server correctly rejected malformed data:', error.message || error);
+				console.log(
+					'✅ Server correctly rejected malformed data:',
+					error.message || error
+				);
 				resolve(true);
 			});
 
@@ -327,7 +340,9 @@ describe('DataMonkey BGM Backend Integration', () => {
 		if (gotError) {
 			console.log('✅ Server validates input data correctly');
 		} else {
-			console.log('ℹ️  Server accepts any input data (validation may be lenient)');
+			console.log(
+				'ℹ️  Server accepts any input data (validation may be lenient)'
+			);
 		}
 	}, 15000);
 });
@@ -367,7 +382,9 @@ export class BGMBackendTester {
 	setupEventHandlers() {
 		this.socket.on('status update', (status) => {
 			this.statusMessages.push(status);
-			console.log(`📊 ${status.msg || 'Processing'}${status.phase ? ` (${status.phase})` : ''}`);
+			console.log(
+				`📊 ${status.msg || 'Processing'}${status.phase ? ` (${status.phase})` : ''}`
+			);
 		});
 
 		this.socket.on('completed', (data) => {
@@ -442,4 +459,4 @@ export class BGMBackendTester {
 }
 
 // Export test data for use in other tests
-export { TEST_FASTA, TEST_TREE, BGM_PARAMS, SERVER_URL };
+export { BGM_PARAMS, SERVER_URL, TEST_FASTA, TEST_TREE };

@@ -49,6 +49,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		steps: 10000,
 		'burn-in': 1000,
 		samples: 50,
+		'chain-sample': 100,
 		'max-parents': 1,
 		'min-subs': 1
 	};
@@ -388,6 +389,19 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 					class="mt-1 block w-full rounded border p-2"
 				/>
 				<p class="mt-1 text-xs text-gray-500">Number of samples to collect</p>
+			</div>
+			<div>
+				<label for="chain-sample" class="block text-sm font-medium text-gray-700">Chain Sample Steps</label>
+				<input
+					id="chain-sample"
+					type="number"
+					bind:value={bgmParams['chain-sample']}
+					min="100"
+					max="1000"
+					step="50"
+					class="mt-1 block w-full rounded border p-2"
+				/>
+				<p class="mt-1 text-xs text-gray-500">Steps to extract from chain sample</p>
 			</div>
 			<div>
 				<label for="max-parents" class="block text-sm font-medium text-gray-700">Max Parents</label>
