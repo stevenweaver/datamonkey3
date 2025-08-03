@@ -8,30 +8,31 @@
  * an external DataMonkey server to be running.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import io from 'socket.io-client';
 
-// Test data from CD2-slim.fna
+// Extended test data for GARD - needs at least 48 sites for 10 sequences
+// Extended from CD2-slim.fna with additional synthetic codon sequences to meet GARD requirements
 const TEST_FASTA = `>Human
-GCCTTGGAAACCTGGGGTGCCTTGGGTCAGGACATCAACTTGGACATTCCT
+GCCTTGGAAACCTGGGGTGCCTTGGGTCAGGACATCAACTTGGACATTCCTAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGGCAACTACGCCAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGACGTGACCTATGGCAAGCTG
 >Chimp
-GCCTTGGAAACCTGGGGTGCCTTGGGTCAGGACATCAACTTGGACATTCCT
+GCCTTGGAAACCTGGGGTGCCTTGGGTCAGGACATCAACTTGGACATTCCTAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGGCAACTACGCCAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGACGTGACCTATGGCAAGCTG
 >Baboon
-GCTTTGGAAACCTGGGGAGCGCTGGGTCAGGACATCAACTTGGACATTCCT
+GCTTTGGAAACCTGGGGAGCGCTGGGTCAGGACATCAACTTGGACATTCCTAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGGCAACTACGCCAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGACGTGACCTATGGCAAGCTG
 >RhMonkey
-GCTTTGGAAACCTGGGGAGCGCTGGGTCAGGACATCGACTTGGACATTCCT
+GCTTTGGAAACCTGGGGAGCGCTGGGTCAGGACATCAACTTGGACATTCCTAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGGCAACTACGCCAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGACGTGACCTATGGCAAGCTG
 >Cow
-AGCATTGTCGTCTGGGGTGCCCTGGATCATGACCTCAACCTGGACATTCCT
+AGCATTGTCGTCTGGGGTGCCCTGGATCATGACCTCAACCTGGACATTCCTAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGGCAACTACGCCAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGACGTGACCTATGGCAAGCTG
 >Pig
-ACTGAGGTTGTCTGGGGCATCGTGGATCAAGACATCAACCTGGACATTCCT
+ACTGAGGTTGTCTGGGGCATCGTGGATCAAGACATCAACCTGGACATTCCTAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGGCAACTACGCCAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGACGTGACCTATGGCAAGCTG
 >Horse
-AATATCACCATCTTGGGTGCCCTGGAACGTGATATCAACCTGGACATTCCT
+AATATCACCATCTTGGGTGCCCTGGAACGTGATATCAACCTGGACATTCCTAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGGCAACTACGCCAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGACGTGACCTATGGCAAGCTG
 >Cat
-GATGATATCGTCTGGGGTACCCTGGGTCAGGACATCAACTTGGACATTCCT
+GATGATATCGTCTGGGGTACCCTGGGTCAGGACATCAACTTGGACATTCCTAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGGCAACTACGCCAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGACGTGACCTATGGCAAGCTG
 >Mouse
-AATGAGACCATCTGGGGTGTCTTGGGTCATGGCATCACCCTGAACATCCCC
+AATGAGACCATCTGGGGTGTCTTGGGTCATGGCATCACCCTGAACATCCCCAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGGCAACTACGCCAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGACGTGACCTATGGCAAGCTG
 >Rat
-AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
+AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCTAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGGCAACTACGCCAAGCTGGGCAACGTGACCGGTTATGCCAAGCTGGGCGACGTGACCTATGGCAAGCTG`;
 
 const GARD_PARAMS = {
 	analysis_type: 'gard',
@@ -123,13 +124,16 @@ describe('DataMonkey GARD Backend Integration', () => {
 		console.log('Validation result:', validationResult);
 		expect(validationResult.valid).toBe(true);
 		if (!validationResult.valid) {
-			console.error('Validation errors:', validationResult.errors || validationResult);
+			console.error(
+				'Validation errors:',
+				validationResult.errors || validationResult
+			);
 		}
 	});
 
 	// Note: GARD can take a very long time to run (computationally expensive)
 	// Unskip this test when you specifically need to test GARD analysis
-	it.skip(
+	it.only(
 		'should run GARD analysis successfully',
 		async () => {
 			if (!isServerAvailable) {
@@ -162,7 +166,11 @@ describe('DataMonkey GARD Backend Integration', () => {
 
 			const analysisPromise = new Promise((resolve, reject) => {
 				const timeout = setTimeout(() => {
-					reject(new Error('Analysis timeout - may need more time for complex datasets'));
+					reject(
+						new Error(
+							'Analysis timeout - may need more time for complex datasets'
+						)
+					);
 				}, ANALYSIS_TIMEOUT);
 
 				// Track status updates
@@ -256,7 +264,9 @@ describe('DataMonkey GARD Backend Integration', () => {
 		// Job queue is optional - some servers run locally without job management
 		const queueResult = await new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				console.log('📊 Job queue not implemented (running locally) - skipping');
+				console.log(
+					'📊 Job queue not implemented (running locally) - skipping'
+				);
 				resolve([]);
 			}, 3000);
 
@@ -296,13 +306,18 @@ describe('DataMonkey GARD Backend Integration', () => {
 
 		const errorPromise = new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				console.log('⚠️  Server did not reject malformed data (may accept any input)');
+				console.log(
+					'⚠️  Server did not reject malformed data (may accept any input)'
+				);
 				resolve(false); // No error received within timeout
 			}, 8000);
 
 			testSocket.on('script error', (error) => {
 				clearTimeout(timeout);
-				console.log('✅ Server correctly rejected malformed data:', error.message || error);
+				console.log(
+					'✅ Server correctly rejected malformed data:',
+					error.message || error
+				);
 				resolve(true);
 			});
 
@@ -320,7 +335,9 @@ describe('DataMonkey GARD Backend Integration', () => {
 		if (gotError) {
 			console.log('✅ Server validates input data correctly');
 		} else {
-			console.log('ℹ️  Server accepts any input data (validation may be lenient)');
+			console.log(
+				'ℹ️  Server accepts any input data (validation may be lenient)'
+			);
 		}
 	}, 15000);
 });
@@ -360,7 +377,9 @@ export class GARDBackendTester {
 	setupEventHandlers() {
 		this.socket.on('status update', (status) => {
 			this.statusMessages.push(status);
-			console.log(`📊 ${status.msg || 'Processing'}${status.phase ? ` (${status.phase})` : ''}`);
+			console.log(
+				`📊 ${status.msg || 'Processing'}${status.phase ? ` (${status.phase})` : ''}`
+			);
 		});
 
 		this.socket.on('completed', (data) => {
@@ -434,4 +453,4 @@ export class GARDBackendTester {
 }
 
 // Export test data for use in other tests
-export { TEST_FASTA, GARD_PARAMS, SERVER_URL };
+export { GARD_PARAMS, SERVER_URL, TEST_FASTA };
