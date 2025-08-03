@@ -9,30 +9,32 @@
 	let results = null;
 	let error = null;
 
-	// Sample FASTA data for testing - using existing CD2-slim.fna test data
+	// Sample PROTEIN FASTA data for FADE testing (translated from CD2-slim.fna)
+	// FADE requires protein alignment data, not nucleotide data
 	const sampleFasta = `>Human
-GCCTTGGAAACCTGGGGTGCCTTGGGTCAGGACATCAACTTGGACATTCCT
+ALETEEWGLEAILEDIP
 >Chimp
-GCCTTGGAAACCTGGGGTGCCTTGGGTCAGGACATCAACTTGGACATTCCT
+ALETEEWGLEAILEDIP
 >Baboon
-GCTTTGGAAACCTGGGGAGCGCTGGGTCAGGACATCAACTTGGACATTCCT
+AFETEEWGLEAILEDIP
 >RhMonkey
-GCTTTGGAAACCTGGGGAGCGCTGGGTCAGGACATCAACTTGGACATTCCT
+AFETEEWGLEAILEDIP
 >Cow
-AGCATTGTCGTCTGGGGTGCCCTGGATCATGACCTCAACCTGGACATTCCT
+SIVWGALDHDFLEDIP
 >Pig
-ACTGAGGTTGTCTGGGGCATCGTGGATCAAGACATCAACCTGGACATTCCT
+TEVVWGIVDQDILEDIP
 >Horse
-AATATCACCATCTTGGGTGCCCTGGAACGTGATATCAACCTGGACATTCCT
+ISLGGALERDIELLEDIP
 >Cat
-GATGATATCGTCTGGGGTACCCTGGGTCAGGACATCAACCTGGACATTCCT
+DIVWGTLGQDIFLEDIP
 >Mouse
-AATGAGACCATCTGGGGTGTCTTGGGTCATGGCATCACCCTGAACATCCCC
+NETIWGVLGHTLELIP
 >Rat
-AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
+SGPCGAAHQDLFLEDIP`;
 
-	// Corresponding Newick tree from CD2-slim.fna
-	const sampleTree = `((((Pig:0.147969,Cow:0.213430):0.085099,Horse:0.165787,Cat:0.264806):0.058611,((RhMonkey:0.002015,Baboon:0.003108):0.022733,(Human:0.004349,Chimp:0.000799):0.011873):0.101856):0.340802,Rat:0.050958,Mouse:0.097950);`;
+	// Rooted Newick tree (FADE requires rooted trees)
+	// Added root with outgroup Mouse and Rat
+	const sampleTree = `(((((Pig:0.147969,Cow:0.213430):0.085099,Horse:0.165787,Cat:0.264806):0.058611,((RhMonkey:0.002015,Baboon:0.003108):0.022733,(Human:0.004349,Chimp:0.000799):0.011873):0.101856):0.340802,Rat:0.050958):0.02,Mouse:0.097950);`;
 
 	let serverUrl = 'http://localhost:7015';
 	let customFasta = '';
@@ -40,18 +42,18 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 	let usingSampleData = true;
 	let jobId = null;
 
-	// FADE analysis parameters based on backend test configuration
+	// FADE analysis parameters based on official API specification
 	let fadeParams = {
-		analysis_type: 'fade',
-		code: 'Universal',
-		'substitution-model': 'JTT',
-		'posterior-estimation-method': 'Variational-Bayes',
-		'number-of-grid-points': 20,
-		'number-of-mcmc-chains': 3,
-		'length-of-each-chain': 100000,
-		'number-of-burn-in-samples': 50000,
-		'number-of-samples': 50,
-		'concentration-of-dirichlet-prior': 0.5
+		substitution_model: 'LG',
+		posterior_estimation_method: 'Metropolis-Hastings',
+		branches: 'All',
+		number_of_grid_points: 20,
+		number_of_mcmc_chains: 5,
+		length_of_each_chain: 5,
+		number_of_burn_in_samples: 1000000,
+		number_of_samples: 100,
+		concentration_of_dirichlet_prior: 0.5,
+		genetic_code: 'Universal'
 	};
 
 	onMount(() => {
@@ -228,6 +230,9 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			directional selection coefficients and identifies sites that consistently favor specific amino
 			acid substitutions.
 		</p>
+		<p class="mt-2 text-sm text-blue-600">
+			<strong>Important:</strong> FADE requires protein alignment data and a rooted phylogenetic tree.
+		</p>
 	</div>
 
 	<!-- Connection Status -->
@@ -281,24 +286,24 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			<div class="space-y-4">
 				<div>
 					<label for="custom-fasta" class="mb-2 block text-sm font-medium text-gray-700"
-						>FASTA Alignment</label
+						>PROTEIN FASTA Alignment</label
 					>
 					<textarea
 						id="custom-fasta"
 						bind:value={customFasta}
-						placeholder="Paste your protein-coding nucleotide alignment here..."
+						placeholder="Paste your PROTEIN alignment here (amino acid sequences)..."
 						class="w-full rounded border p-3 font-mono text-sm"
 						rows="6"
 					></textarea>
 				</div>
 				<div>
 					<label for="custom-tree" class="mb-2 block text-sm font-medium text-gray-700"
-						>Newick Tree</label
+						>ROOTED Newick Tree</label
 					>
 					<textarea
 						id="custom-tree"
 						bind:value={customTree}
-						placeholder="Paste your Newick tree here..."
+						placeholder="Paste your ROOTED Newick tree here..."
 						class="w-full rounded border p-3 font-mono text-sm"
 						rows="3"
 					></textarea>
@@ -307,8 +312,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		{:else}
 			<div class="rounded bg-gray-50 p-3">
 				<p class="text-sm text-gray-600">
-					Using CD2-slim.fna test data (10 mammalian species, 51bp each) with corresponding Newick
-					phylogenetic tree
+					Using protein alignment data (translated from CD2-slim.fna: 10 mammalian species, 17 amino acids each) with corresponding rooted Newick phylogenetic tree
 				</p>
 			</div>
 		{/if}
@@ -324,7 +328,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				>
 				<select
 					id="genetic-code"
-					bind:value={fadeParams.code}
+					bind:value={fadeParams.genetic_code}
 					class="mt-1 block w-full rounded border p-2"
 				>
 					<option value="Universal">Universal</option>
@@ -340,13 +344,20 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				>
 				<select
 					id="substitution-model"
-					bind:value={fadeParams['substitution-model']}
+					bind:value={fadeParams.substitution_model}
 					class="mt-1 block w-full rounded border p-2"
 				>
-					<option value="JTT">JTT</option>
+					<option value="LG">LG (default - recommended)</option>
 					<option value="WAG">WAG</option>
-					<option value="LG">LG</option>
-					<option value="Blosum62">BLOSUM62</option>
+					<option value="JTT">JTT</option>
+					<option value="JC69">JC69</option>
+					<option value="mtMet">mtMet</option>
+					<option value="mtVer">mtVer</option>
+					<option value="mtInv">mtInv</option>
+					<option value="gcpREV">gcpREV</option>
+					<option value="HIVBm">HIVBm</option>
+					<option value="HIVWm">HIVWm</option>
+					<option value="GTR">GTR</option>
 				</select>
 			</div>
 			<div>
@@ -355,12 +366,28 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				>
 				<select
 					id="posterior-estimation-method"
-					bind:value={fadeParams['posterior-estimation-method']}
+					bind:value={fadeParams.posterior_estimation_method}
 					class="mt-1 block w-full rounded border p-2"
 				>
-					<option value="Variational-Bayes">Variational Bayes (Faster)</option>
-					<option value="MCMC">MCMC (More Accurate)</option>
+					<option value="Metropolis-Hastings">Metropolis-Hastings (default)</option>
+					<option value="Collapsed-Gibbs">Collapsed-Gibbs</option>
+					<option value="Variational-Bayes">Variational-Bayes</option>
 				</select>
+			</div>
+			<div>
+				<label for="branches" class="block text-sm font-medium text-gray-700"
+					>Branches to Test</label
+				>
+				<select
+					id="branches"
+					bind:value={fadeParams.branches}
+					class="mt-1 block w-full rounded border p-2"
+				>
+					<option value="All">All Branches</option>
+					<option value="Internal">Internal Branches Only</option>
+					<option value="Leaves">Terminal Branches Only</option>
+				</select>
+				<p class="mt-1 text-xs text-gray-500">Which branches to analyze</p>
 			</div>
 			<div>
 				<label for="number-of-grid-points" class="block text-sm font-medium text-gray-700"
@@ -369,7 +396,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<input
 					id="number-of-grid-points"
 					type="number"
-					bind:value={fadeParams['number-of-grid-points']}
+					bind:value={fadeParams.number_of_grid_points}
 					min="10"
 					max="50"
 					step="5"
@@ -384,7 +411,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<input
 					id="number-of-mcmc-chains"
 					type="number"
-					bind:value={fadeParams['number-of-mcmc-chains']}
+					bind:value={fadeParams.number_of_mcmc_chains}
 					min="1"
 					max="10"
 					step="1"
@@ -399,7 +426,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<input
 					id="length-of-each-chain"
 					type="number"
-					bind:value={fadeParams['length-of-each-chain']}
+					bind:value={fadeParams.length_of_each_chain}
 					min="10000"
 					max="5000000"
 					step="10000"
@@ -408,13 +435,13 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<p class="mt-1 text-xs text-gray-500">Length of each MCMC chain (reduced for testing)</p>
 			</div>
 			<div>
-				<label for="number-of-burn-in-samples" class="block text-sm font-medium text-gray-700"
+				<label for="burn-in" class="block text-sm font-medium text-gray-700"
 					>Burn-in Samples</label
 				>
 				<input
-					id="number-of-burn-in-samples"
+					id="burn-in"
 					type="number"
-					bind:value={fadeParams['number-of-burn-in-samples']}
+					bind:value={fadeParams.number_of_burn_in_samples}
 					min="5000"
 					max="2000000"
 					step="5000"
@@ -423,13 +450,13 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<p class="mt-1 text-xs text-gray-500">Number of burn-in samples to discard</p>
 			</div>
 			<div>
-				<label for="number-of-samples" class="block text-sm font-medium text-gray-700"
+				<label for="samples" class="block text-sm font-medium text-gray-700"
 					>Final Samples</label
 				>
 				<input
-					id="number-of-samples"
+					id="samples"
 					type="number"
-					bind:value={fadeParams['number-of-samples']}
+					bind:value={fadeParams.number_of_samples}
 					min="10"
 					max="1000"
 					step="10"
@@ -443,9 +470,9 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 					class="block text-sm font-medium text-gray-700">Dirichlet Concentration</label
 				>
 				<input
-					id="concentration-of-dirichlet-prior"
+					id="concentration-parameter"
 					type="number"
-					bind:value={fadeParams['concentration-of-dirichlet-prior']}
+					bind:value={fadeParams.concentration_of_dirichlet_prior}
 					min="0.1"
 					max="2.0"
 					step="0.1"

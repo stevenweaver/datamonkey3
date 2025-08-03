@@ -11,44 +11,44 @@
  * and may take several minutes to complete depending on dataset size.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import io from 'socket.io-client';
 
-// Test data from CD2-slim.fna
+// PROTEIN test data (translated from CD2-slim.fna) - FADE requires protein sequences
 const TEST_FASTA = `>Human
-GCCTTGGAAACCTGGGGTGCCTTGGGTCAGGACATCAACTTGGACATTCCT
+ALETEEWGLEAILEDIP
 >Chimp
-GCCTTGGAAACCTGGGGTGCCTTGGGTCAGGACATCAACTTGGACATTCCT
+ALETEEWGLEAILEDIP
 >Baboon
-GCTTTGGAAACCTGGGGAGCGCTGGGTCAGGACATCAACTTGGACATTCCT
+AFETEEWGLEAILEDIP
 >RhMonkey
-GCTTTGGAAACCTGGGGAGCGCTGGGTCAGGACATCAACTTGGACATTCCT
+AFETEEWGLEAILEDIP
 >Cow
-AGCATTGTCGTCTGGGGTGCCCTGGATCATGACCTCAACCTGGACATTCCT
+SIVWGALDHDFLEDIP
 >Pig
-ACTGAGGTTGTCTGGGGCATCGTGGATCAAGACATCAACCTGGACATTCCT
+TEVVWGIVDQDILEDIP
 >Horse
-AATATCACCATCTTGGGTGCCCTGGAACGTGATATCAACCTGGACATTCCT
+ISLGGALERDIELLEDIP
 >Cat
-GATGATATCGTCTGGGGTACCCTGGGTCAGGACATCAACCTGGACATTCCT
+DIVWGTLGQDIFLEDIP
 >Mouse
-AATGAGACCATCTGGGGTGTCTTGGGTCATGGCATCACCCTGAACATCCCC
+NETIWGVLGHTLELIP
 >Rat
-AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
+SGPCGAAHQDLFLEDIP`;
 
-const TEST_TREE = `((((Pig:0.147969,Cow:0.213430):0.085099,Horse:0.165787,Cat:0.264806):0.058611,((RhMonkey:0.002015,Baboon:0.003108):0.022733,(Human:0.004349,Chimp:0.000799):0.011873):0.101856):0.340802,Rat:0.050958,Mouse:0.097950);`;
+const TEST_TREE = `(((((Pig:0.147969,Cow:0.213430):0.085099,Horse:0.165787,Cat:0.264806):0.058611,((RhMonkey:0.002015,Baboon:0.003108):0.022733,(Human:0.004349,Chimp:0.000799):0.011873):0.101856):0.340802,Rat:0.050958):0.02,Mouse:0.097950);`;
 
 const FADE_PARAMS = {
-	analysis_type: 'fade',
-	code: 'Universal',
-	'substitution-model': 'JTT', // Common protein substitution model
-	'posterior-estimation-method': 'Variational-Bayes', // Most efficient option
-	'number-of-grid-points': 20, // Default grid resolution
-	'number-of-mcmc-chains': 3, // Reduced for testing (default: 5)
-	'length-of-each-chain': 100000, // Reduced for testing (default: 2,000,000)
-	'number-of-burn-in-samples': 50000, // Reduced for testing (default: 1,000,000)
-	'number-of-samples': 50, // Reduced for testing (default: 100)
-	'concentration-of-dirichlet-prior': 0.5 // Default concentration parameter
+	substitution_model: 'LG', // Default protein substitution model
+	posterior_estimation_method: 'Metropolis-Hastings', // Default estimation method
+	branches: 'All', // Which branches to analyze
+	number_of_grid_points: 20, // Default grid resolution
+	number_of_mcmc_chains: 5, // Default number of chains
+	length_of_each_chain: 5, // Default chain length
+	number_of_burn_in_samples: 100000, // Default burn-in samples
+	number_of_samples: 100, // Default number of samples
+	concentration_of_dirichlet_prior: 0.5, // Default concentration parameter
+	genetic_code: 'Universal' // Genetic code
 };
 
 const SERVER_URL = 'http://localhost:7015';
@@ -135,7 +135,7 @@ describe('DataMonkey FADE Backend Integration', () => {
 		}
 	});
 
-	it.skip(
+	it.only(
 		'should run FADE analysis successfully (skipped - computationally intensive)',
 		async () => {
 			if (!isServerAvailable) {
@@ -172,13 +172,19 @@ describe('DataMonkey FADE Backend Integration', () => {
 
 			const analysisPromise = new Promise((resolve, reject) => {
 				const timeout = setTimeout(() => {
-					reject(new Error('Analysis timeout - FADE requires significant computational time'));
+					reject(
+						new Error(
+							'Analysis timeout - FADE requires significant computational time'
+						)
+					);
 				}, ANALYSIS_TIMEOUT);
 
 				// Track status updates
 				testSocket.on('status update', (status) => {
 					statusMessages.push(status);
-					console.log(`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
+					console.log(
+						`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`
+					);
 				});
 
 				// Handle successful completion
@@ -198,7 +204,9 @@ describe('DataMonkey FADE Backend Integration', () => {
 				});
 
 				// Start the analysis
-				console.log('🚀 Starting FADE analysis (this may take several minutes)...');
+				console.log(
+					'🚀 Starting FADE analysis (this may take several minutes)...'
+				);
 				testSocket.emit('fade:spawn', {
 					alignment: TEST_FASTA,
 					tree: TEST_TREE,
@@ -256,7 +264,9 @@ describe('DataMonkey FADE Backend Integration', () => {
 		// Job queue is optional - some servers run locally without job management
 		const queueResult = await new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				console.log('📊 Job queue not implemented (running locally) - skipping');
+				console.log(
+					'📊 Job queue not implemented (running locally) - skipping'
+				);
 				resolve([]);
 			}, 3000);
 
@@ -296,13 +306,18 @@ describe('DataMonkey FADE Backend Integration', () => {
 
 		const errorPromise = new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				console.log('⚠️  Server did not reject malformed data (may accept any input)');
+				console.log(
+					'⚠️  Server did not reject malformed data (may accept any input)'
+				);
 				resolve(false); // No error received within timeout
 			}, 8000);
 
 			testSocket.on('script error', (error) => {
 				clearTimeout(timeout);
-				console.log('✅ Server correctly rejected malformed data:', error.message || error);
+				console.log(
+					'✅ Server correctly rejected malformed data:',
+					error.message || error
+				);
 				resolve(true);
 			});
 
@@ -321,7 +336,9 @@ describe('DataMonkey FADE Backend Integration', () => {
 		if (gotError) {
 			console.log('✅ Server validates input data correctly');
 		} else {
-			console.log('ℹ️  Server accepts any input data (validation may be lenient)');
+			console.log(
+				'ℹ️  Server accepts any input data (validation may be lenient)'
+			);
 		}
 	}, 15000);
 });
@@ -361,7 +378,9 @@ export class FADEBackendTester {
 	setupEventHandlers() {
 		this.socket.on('status update', (status) => {
 			this.statusMessages.push(status);
-			console.log(`📊 ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
+			console.log(
+				`📊 ${status.msg}${status.phase ? ` (${status.phase})` : ''}`
+			);
 		});
 
 		this.socket.on('completed', (data) => {
@@ -401,7 +420,11 @@ export class FADEBackendTester {
 		});
 	}
 
-	async runAnalysis(fasta = TEST_FASTA, tree = TEST_TREE, params = FADE_PARAMS) {
+	async runAnalysis(
+		fasta = TEST_FASTA,
+		tree = TEST_TREE,
+		params = FADE_PARAMS
+	) {
 		this.statusMessages = [];
 
 		return new Promise((resolve, reject) => {
@@ -419,7 +442,9 @@ export class FADEBackendTester {
 				reject(new Error(error.message || error));
 			});
 
-			console.log('🚀 Starting FADE analysis (this may take several minutes)...');
+			console.log(
+				'🚀 Starting FADE analysis (this may take several minutes)...'
+			);
 			this.socket.emit('fade:spawn', {
 				alignment: fasta,
 				tree: tree,
@@ -436,4 +461,4 @@ export class FADEBackendTester {
 }
 
 // Export test data for use in other tests
-export { TEST_FASTA, TEST_TREE, FADE_PARAMS, SERVER_URL };
+export { FADE_PARAMS, SERVER_URL, TEST_FASTA, TEST_TREE };
