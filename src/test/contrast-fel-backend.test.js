@@ -11,8 +11,8 @@
  * two or more sets of branches at a particular site in a phylogenetic tree.
  */
 
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import io from "socket.io-client";
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import io from 'socket.io-client';
 
 // Test data from CD2-slim.fna
 const TEST_FASTA = `>Human
@@ -36,23 +36,22 @@ AATGAGACCATCTGGGGTGTCTTGGGTCATGGCATCACCCTGAACATCCCC
 >Rat
 AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 
-const TEST_TREE =
-	`((((Pig:0.147969{Background},Cow:0.213430{Background}):0.085099{Background},Horse:0.165787{Background},Cat:0.264806{Background}):0.058611{Background},((RhMonkey:0.002015{Foreground},Baboon:0.003108{Foreground}):0.022733{Foreground},(Human:0.004349{Foreground},Chimp:0.000799{Foreground}):0.011873{Foreground}):0.101856{Foreground}):0.340802{Background},Rat:0.050958{Background},Mouse:0.097950{Background});`;
+const TEST_TREE = `((((Pig:0.147969{Background},Cow:0.213430{Background}):0.085099{Background},Horse:0.165787{Background},Cat:0.264806{Background}):0.058611{Background},((RhMonkey:0.002015{Foreground},Baboon:0.003108{Foreground}):0.022733{Foreground},(Human:0.004349{Foreground},Chimp:0.000799{Foreground}):0.011873{Foreground}):0.101856{Foreground}):0.340802{Background},Rat:0.050958{Background},Mouse:0.097950{Background});`;
 
 const CONTRAST_FEL_PARAMS = {
-	genetic_code: "Universal", // Default genetic code
-	branch_sets: "Foreground", // Branch sets for comparison
-	srv: "Yes", // Synonymous rate variation (default: Yes)
-	permutations: "Yes", // Perform permutation tests (default: Yes)
+	genetic_code: 'Universal', // Default genetic code
+	branch_sets: 'Foreground', // Branch sets for comparison
+	srv: 'Yes', // Synonymous rate variation (default: Yes)
+	permutations: 'Yes', // Perform permutation tests (default: Yes)
 	p_value: 0.05, // P-value threshold (default: 0.05)
-	q_value: 0.2, // Q-value threshold for FDR (default: 0.20)
+	q_value: 0.2 // Q-value threshold for FDR (default: 0.20)
 };
 
-const SERVER_URL = "http://localhost:7015";
+const SERVER_URL = 'http://localhost:7015';
 const CONNECTION_TIMEOUT = 5000; // 5 seconds
 const ANALYSIS_TIMEOUT = 300000; // 5 minutes
 
-describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
+describe('DataMonkey CONTRAST-FEL Backend Integration', () => {
 	let socket;
 	let isServerAvailable = false;
 
@@ -61,31 +60,31 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 		try {
 			socket = io(SERVER_URL, {
 				timeout: CONNECTION_TIMEOUT,
-				forceNew: true,
+				forceNew: true
 			});
 
 			await new Promise((resolve, reject) => {
 				const timeout = setTimeout(() => {
-					reject(new Error("Server connection timeout"));
+					reject(new Error('Server connection timeout'));
 				}, CONNECTION_TIMEOUT);
 
-				socket.on("connect", () => {
+				socket.on('connect', () => {
 					clearTimeout(timeout);
 					isServerAvailable = true;
-					console.log("✅ DataMonkey server is available");
+					console.log('✅ DataMonkey server is available');
 					resolve();
 				});
 
-				socket.on("connect_error", (error) => {
+				socket.on('connect_error', (error) => {
 					clearTimeout(timeout);
 					reject(new Error(`Server not available: ${error.message}`));
 				});
 			});
 		} catch (error) {
-			console.log("⚠️  DataMonkey server not available, skipping tests");
-			console.log("   To run these tests:");
-			console.log("   1. Start DataMonkey server on localhost:7015");
-			console.log("   2. Run: npm run test:contrast-fel-backend");
+			console.log('⚠️  DataMonkey server not available, skipping tests');
+			console.log('   To run these tests:');
+			console.log('   1. Start DataMonkey server on localhost:7015');
+			console.log('   2. Run: npm run test:contrast-fel-backend');
 			console.log(`   Error: ${error.message}`);
 		}
 	});
@@ -96,47 +95,47 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 		}
 	});
 
-	it("should connect to DataMonkey server", async () => {
+	it('should connect to DataMonkey server', async () => {
 		if (!isServerAvailable) {
-			console.log("Skipping test - server not available");
+			console.log('Skipping test - server not available');
 			return;
 		}
 
 		expect(socket.connected).toBe(true);
 	});
 
-	it("should validate CONTRAST-FEL parameters successfully", async () => {
+	it('should validate CONTRAST-FEL parameters successfully', async () => {
 		if (!isServerAvailable) {
-			console.log("Skipping test - server not available");
+			console.log('Skipping test - server not available');
 			return;
 		}
 
 		const validationResult = await new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
-				reject(new Error("Validation timeout"));
+				reject(new Error('Validation timeout'));
 			}, 10000);
 
-			socket.on("validated", (result) => {
+			socket.on('validated', (result) => {
 				clearTimeout(timeout);
 				resolve(result);
 			});
 
-			socket.emit("cfel:check", {
-				job: CONTRAST_FEL_PARAMS,
+			socket.emit('cfel:check', {
+				job: CONTRAST_FEL_PARAMS
 			});
 		});
 
 		expect(validationResult.valid).toBe(true);
 		if (!validationResult.valid) {
-			console.error("Validation errors:", validationResult.errors);
+			console.error('Validation errors:', validationResult.errors);
 		}
 	});
 
 	it.only(
-		"should run CONTRAST-FEL analysis successfully (skipped - computational complexity)",
+		'should run CONTRAST-FEL analysis successfully (skipped - computational complexity)',
 		async () => {
 			if (!isServerAvailable) {
-				console.log("Skipping test - server not available");
+				console.log('Skipping test - server not available');
 				return;
 			}
 
@@ -149,15 +148,15 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 
 			await new Promise((resolve, reject) => {
 				const timeout = setTimeout(() => {
-					reject(new Error("Test socket connection timeout"));
+					reject(new Error('Test socket connection timeout'));
 				}, 5000);
 
-				testSocket.on("connect", () => {
+				testSocket.on('connect', () => {
 					clearTimeout(timeout);
 					resolve();
 				});
 
-				testSocket.on("connect_error", (error) => {
+				testSocket.on('connect_error', (error) => {
 					clearTimeout(timeout);
 					reject(error);
 				});
@@ -169,42 +168,34 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 
 			const analysisPromise = new Promise((resolve, reject) => {
 				const timeout = setTimeout(() => {
-					reject(
-						new Error(
-							"Analysis timeout - may need more time for complex datasets",
-						),
-					);
+					reject(new Error('Analysis timeout - may need more time for complex datasets'));
 				}, ANALYSIS_TIMEOUT);
 
 				// Track status updates
-				testSocket.on("status update", (status) => {
+				testSocket.on('status update', (status) => {
 					statusMessages.push(status);
-					console.log(
-						`📊 Status: ${status.msg}${
-							status.phase ? ` (${status.phase})` : ""
-						}`,
-					);
+					console.log(`📊 Status: ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
 				});
 
 				// Handle successful completion
-				testSocket.on("completed", (data) => {
+				testSocket.on('completed', (data) => {
 					clearTimeout(timeout);
 					analysisResult = data;
-					console.log("✅ Analysis completed successfully");
+					console.log('✅ Analysis completed successfully');
 					resolve(data);
 				});
 
 				// Handle errors
-				testSocket.on("script error", (error) => {
+				testSocket.on('script error', (error) => {
 					clearTimeout(timeout);
 					analysisError = error;
-					console.error("❌ Analysis failed:", error.message || error);
+					console.error('❌ Analysis failed:', error.message || error);
 					reject(new Error(error.message || error));
 				});
 
 				// Start the analysis
-				console.log("🚀 Starting CONTRAST-FEL analysis...");
-				testSocket.emit("cfel:spawn", {
+				console.log('🚀 Starting CONTRAST-FEL analysis...');
+				testSocket.emit('cfel:spawn', {
 					alignment: TEST_FASTA,
 					tree: TEST_TREE,
 					job: CONTRAST_FEL_PARAMS
@@ -226,59 +217,57 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 			expect(analysisError).toBeNull();
 
 			// Log summary
-			console.log("📋 Analysis Summary:");
+			console.log('📋 Analysis Summary:');
 			console.log(`   - Status updates: ${statusMessages.length}`);
-			console.log(`   - Result keys: ${Object.keys(result || {}).join(", ")}`);
+			console.log(`   - Result keys: ${Object.keys(result || {}).join(', ')}`);
 
 			// Basic result structure validation for CONTRAST-FEL output
-			if (result && typeof result === "object") {
-				console.log("✅ Analysis result is valid object");
+			if (result && typeof result === 'object') {
+				console.log('✅ Analysis result is valid object');
 
 				// Check for expected CONTRAST-FEL output structure
 				if (result.analysis) {
-					console.log("📊 Found analysis metadata");
+					console.log('📊 Found analysis metadata');
 				}
-				if (result["site-by-site results"]) {
-					console.log("📊 Found site-by-site results");
+				if (result['site-by-site results']) {
+					console.log('📊 Found site-by-site results');
 				}
-				if (result["alpha"]) {
-					console.log("📊 Found alpha (synonymous rates)");
+				if (result['alpha']) {
+					console.log('📊 Found alpha (synonymous rates)');
 				}
-				if (result["beta"]) {
-					console.log("📊 Found beta (nonsynonymous rates)");
+				if (result['beta']) {
+					console.log('📊 Found beta (nonsynonymous rates)');
 				}
-				if (result["p-values"]) {
-					console.log("📊 Found p-values");
+				if (result['p-values']) {
+					console.log('📊 Found p-values');
 				}
-				if (result["q-values"]) {
-					console.log("📊 Found q-values");
+				if (result['q-values']) {
+					console.log('📊 Found q-values');
 				}
 			}
 		},
-		ANALYSIS_TIMEOUT + 10000,
+		ANALYSIS_TIMEOUT + 10000
 	); // Extra time for test framework
 
-	it("should handle job queue requests (optional)", async () => {
+	it('should handle job queue requests (optional)', async () => {
 		if (!isServerAvailable) {
-			console.log("Skipping test - server not available");
+			console.log('Skipping test - server not available');
 			return;
 		}
 
 		// Job queue is optional - some servers run locally without job management
 		const queueResult = await new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				console.log(
-					"📊 Job queue not implemented (running locally) - skipping",
-				);
+				console.log('📊 Job queue not implemented (running locally) - skipping');
 				resolve([]);
 			}, 3000);
 
-			socket.on("job queue", (jobs) => {
+			socket.on('job queue', (jobs) => {
 				clearTimeout(timeout);
 				resolve(jobs);
 			});
 
-			socket.emit("job queue", {});
+			socket.emit('job queue', {});
 		});
 
 		// Don't fail if job queue isn't implemented
@@ -287,9 +276,9 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 		}
 	});
 
-	it("should handle malformed data gracefully", async () => {
+	it('should handle malformed data gracefully', async () => {
 		if (!isServerAvailable) {
-			console.log("Skipping test - server not available");
+			console.log('Skipping test - server not available');
 			return;
 		}
 
@@ -298,10 +287,10 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 
 		await new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
-				reject(new Error("Test socket connection timeout"));
+				reject(new Error('Test socket connection timeout'));
 			}, 5000);
 
-			testSocket.on("connect", () => {
+			testSocket.on('connect', () => {
 				clearTimeout(timeout);
 				resolve();
 			});
@@ -309,25 +298,20 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 
 		const errorPromise = new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				console.log(
-					"⚠️  Server did not reject malformed data (may accept any input)",
-				);
+				console.log('⚠️  Server did not reject malformed data (may accept any input)');
 				resolve(false); // No error received within timeout
 			}, 8000);
 
-			testSocket.on("script error", (error) => {
+			testSocket.on('script error', (error) => {
 				clearTimeout(timeout);
-				console.log(
-					"✅ Server correctly rejected malformed data:",
-					error.message || error,
-				);
+				console.log('✅ Server correctly rejected malformed data:', error.message || error);
 				resolve(true);
 			});
 
 			// Send malformed data
-			testSocket.emit("cfel:spawn", {
-				alignment: "INVALID_FASTA_DATA",
-				tree: "INVALID_TREE_DATA",
+			testSocket.emit('cfel:spawn', {
+				alignment: 'INVALID_FASTA_DATA',
+				tree: 'INVALID_TREE_DATA',
 				job: CONTRAST_FEL_PARAMS
 			});
 		});
@@ -337,11 +321,9 @@ describe("DataMonkey CONTRAST-FEL Backend Integration", () => {
 
 		// Don't fail if server accepts malformed data - just log it
 		if (gotError) {
-			console.log("✅ Server validates input data correctly");
+			console.log('✅ Server validates input data correctly');
 		} else {
-			console.log(
-				"ℹ️  Server accepts any input data (validation may be lenient)",
-			);
+			console.log('ℹ️  Server accepts any input data (validation may be lenient)');
 		}
 	}, 15000);
 });
@@ -361,17 +343,17 @@ export class CONTRASTFELBackendTester {
 
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
-				reject(new Error("Connection timeout"));
+				reject(new Error('Connection timeout'));
 			}, CONNECTION_TIMEOUT);
 
-			this.socket.on("connect", () => {
+			this.socket.on('connect', () => {
 				clearTimeout(timeout);
-				console.log("✅ Connected to DataMonkey server");
+				console.log('✅ Connected to DataMonkey server');
 				this.setupEventHandlers();
 				resolve();
 			});
 
-			this.socket.on("connect_error", (error) => {
+			this.socket.on('connect_error', (error) => {
 				clearTimeout(timeout);
 				reject(error);
 			});
@@ -379,31 +361,29 @@ export class CONTRASTFELBackendTester {
 	}
 
 	setupEventHandlers() {
-		this.socket.on("status update", (status) => {
+		this.socket.on('status update', (status) => {
 			this.statusMessages.push(status);
-			console.log(
-				`📊 ${status.msg}${status.phase ? ` (${status.phase})` : ""}`,
-			);
+			console.log(`📊 ${status.msg}${status.phase ? ` (${status.phase})` : ''}`);
 		});
 
-		this.socket.on("completed", (data) => {
-			console.log("✅ Analysis completed!");
-			console.log("Result keys:", Object.keys(data || {}));
+		this.socket.on('completed', (data) => {
+			console.log('✅ Analysis completed!');
+			console.log('Result keys:', Object.keys(data || {}));
 		});
 
-		this.socket.on("script error", (error) => {
-			console.error("❌ Analysis failed:", error.message || error);
+		this.socket.on('script error', (error) => {
+			console.error('❌ Analysis failed:', error.message || error);
 		});
 
-		this.socket.on("validated", (result) => {
+		this.socket.on('validated', (result) => {
 			if (result.valid) {
-				console.log("✅ Parameters validated successfully");
+				console.log('✅ Parameters validated successfully');
 			} else {
-				console.error("❌ Parameter validation failed:", result.errors);
+				console.error('❌ Parameter validation failed:', result.errors);
 			}
 		});
 
-		this.socket.on("job queue", (jobs) => {
+		this.socket.on('job queue', (jobs) => {
 			console.log(`📊 Job queue: ${jobs.length} jobs (optional feature)`);
 		});
 	}
@@ -411,42 +391,38 @@ export class CONTRASTFELBackendTester {
 	async validateParameters(params = CONTRAST_FEL_PARAMS) {
 		return new Promise((resolve) => {
 			const timeout = setTimeout(() => {
-				resolve({ valid: false, error: "Validation timeout" });
+				resolve({ valid: false, error: 'Validation timeout' });
 			}, 10000);
 
-			this.socket.once("validated", (result) => {
+			this.socket.once('validated', (result) => {
 				clearTimeout(timeout);
 				resolve(result);
 			});
 
-			this.socket.emit("cfel:check", { job: params });
+			this.socket.emit('cfel:check', { job: params });
 		});
 	}
 
-	async runAnalysis(
-		fasta = TEST_FASTA,
-		tree = TEST_TREE,
-		params = CONTRAST_FEL_PARAMS,
-	) {
+	async runAnalysis(fasta = TEST_FASTA, tree = TEST_TREE, params = CONTRAST_FEL_PARAMS) {
 		this.statusMessages = [];
 
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
-				reject(new Error("Analysis timeout"));
+				reject(new Error('Analysis timeout'));
 			}, ANALYSIS_TIMEOUT);
 
-			this.socket.once("completed", (data) => {
+			this.socket.once('completed', (data) => {
 				clearTimeout(timeout);
 				resolve(data);
 			});
 
-			this.socket.once("script error", (error) => {
+			this.socket.once('script error', (error) => {
 				clearTimeout(timeout);
 				reject(new Error(error.message || error));
 			});
 
-			console.log("🚀 Starting CONTRAST-FEL analysis...");
-			this.socket.emit("cfel:spawn", {
+			console.log('🚀 Starting CONTRAST-FEL analysis...');
+			this.socket.emit('cfel:spawn', {
 				alignment: fasta,
 				tree: tree,
 				job: params

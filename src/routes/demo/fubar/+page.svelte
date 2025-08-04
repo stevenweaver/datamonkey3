@@ -174,7 +174,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 			...fubarParams,
 			tree: treeData.trim()
 		};
-		
+
 		socket.emit('fubar:spawn', fastaData, fubarJobWithTree);
 	}
 

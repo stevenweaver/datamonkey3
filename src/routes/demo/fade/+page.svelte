@@ -312,7 +312,8 @@ SGPCGAAHQDLFLEDIP`;
 		{:else}
 			<div class="rounded bg-gray-50 p-3">
 				<p class="text-sm text-gray-600">
-					Using protein alignment data (translated from CD2-slim.fna: 10 mammalian species, 17 amino acids each) with corresponding rooted Newick phylogenetic tree
+					Using protein alignment data (translated from CD2-slim.fna: 10 mammalian species, 17 amino
+					acids each) with corresponding rooted Newick phylogenetic tree
 				</p>
 			</div>
 		{/if}
@@ -435,9 +436,7 @@ SGPCGAAHQDLFLEDIP`;
 				<p class="mt-1 text-xs text-gray-500">Length of each MCMC chain (reduced for testing)</p>
 			</div>
 			<div>
-				<label for="burn-in" class="block text-sm font-medium text-gray-700"
-					>Burn-in Samples</label
-				>
+				<label for="burn-in" class="block text-sm font-medium text-gray-700">Burn-in Samples</label>
 				<input
 					id="burn-in"
 					type="number"
@@ -450,9 +449,7 @@ SGPCGAAHQDLFLEDIP`;
 				<p class="mt-1 text-xs text-gray-500">Number of burn-in samples to discard</p>
 			</div>
 			<div>
-				<label for="samples" class="block text-sm font-medium text-gray-700"
-					>Final Samples</label
-				>
+				<label for="samples" class="block text-sm font-medium text-gray-700">Final Samples</label>
 				<input
 					id="samples"
 					type="number"
