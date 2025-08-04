@@ -15,6 +15,19 @@
 		"lint": "prettier --check . && eslint .",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run",
+		"test:fel-backend": "vitest run src/test/fel-backend.test.js --reporter=verbose",
+		"test:slac-backend": "vitest run src/test/slac-backend.test.js --reporter=verbose",
+		"test:meme-backend": "vitest run src/test/meme-backend.test.js --reporter=verbose",
+		"test:fubar-backend": "vitest run src/test/fubar-backend.test.js --reporter=verbose",
+		"test:busted-backend": "vitest run src/test/busted-backend.test.js --reporter=verbose",
+		"test:absrel-backend": "vitest run src/test/absrel-backend.test.js --reporter=verbose",
+		"test:relax-backend": "vitest run src/test/relax-backend.test.js --reporter=verbose",
+		"test:gard-backend": "vitest run src/test/gard-backend.test.js --reporter=verbose",
+		"test:bgm-backend": "vitest run src/test/bgm-backend.test.js --reporter=verbose",
+		"test:fade-backend": "vitest run src/test/fade-backend.test.js --reporter=verbose",
+		"test:multihit-backend": "vitest run src/test/multihit-backend.test.js --reporter=verbose",
+		"test:nrm-backend": "vitest run src/test/nrm-backend.test.js --reporter=verbose",
+		"test:contrast-fel-backend": "vitest run src/test/contrast-fel-backend.test.js --reporter=verbose",
 		"storybook": "storybook dev -p 6006",
 		"build-storybook": "storybook build",
 		"deploy": "wrangler pages deploy .svelte-kit/cloudflare",
@@ -74,6 +87,8 @@
 		"d3": "^7.9.0",
 		"marked": "^15.0.12",
 		"phylotree": "^2.1.0",
+		"socket.io-client": "^4.8.1",
+		"socket.io-stream": "^0.9.1",
 		"toml": "^3.0.0"
 	}
 }

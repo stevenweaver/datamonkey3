@@ -347,7 +347,6 @@
 		</div>
 	{/if}
 
-
 	<!-- Method cards -->
 	<div class="grid grid-cols-1 gap-premium-md md:grid-cols-2 lg:grid-cols-3">
 		{#each filteredMethods as [key, method]}

@@ -10,7 +10,7 @@ import { generateUUID } from './uuid';
 export function storeAnalysisForHyphyEye(analysisData, method) {
 	const analysisId = generateUUID();
 	const storageKey = `hyphy-results-${analysisId}`;
-	
+
 	// Check if analysisData already has the expected HyPhy structure
 	let hyphyEyeData;
 	if (analysisData.MLE && analysisData.input) {
@@ -40,7 +40,7 @@ export function storeAnalysisForHyphyEye(analysisData, method) {
 			}
 		};
 	}
-	
+
 	try {
 		localStorage.setItem(storageKey, JSON.stringify(hyphyEyeData));
 		return analysisId;
@@ -59,7 +59,7 @@ export function storeAnalysisForHyphyEye(analysisData, method) {
 export function openInHyphyEye(analysisId, method, newTab = true) {
 	const methodName = method.toLowerCase().replace('-', '');
 	const url = `${FINAL_HYPHY_EYE_URL}/pages/${methodName}?id=${analysisId}`;
-	
+
 	if (newTab) {
 		window.open(url, '_blank', 'noopener,noreferrer');
 	} else {
@@ -89,11 +89,11 @@ export function shareWithHyphyEye(analysisData, method, newTab = true) {
 export function getHyphyEyeUrl(method, analysisId = null) {
 	const methodName = method.toLowerCase().replace('-', '');
 	let url = `${FINAL_HYPHY_EYE_URL}/pages/${methodName}`;
-	
+
 	if (analysisId) {
 		url += `?id=${analysisId}`;
 	}
-	
+
 	return url;
 }
 
@@ -104,7 +104,7 @@ export function getHyphyEyeUrl(method, analysisId = null) {
  */
 export function getStoredAnalysis(analysisId) {
 	const storageKey = `hyphy-results-${analysisId}`;
-	
+
 	try {
 		const data = localStorage.getItem(storageKey);
 		return data ? JSON.parse(data) : null;
@@ -121,14 +121,14 @@ export function getStoredAnalysis(analysisId) {
 export function cleanupOldAnalysisData(maxAge = 7 * 24 * 60 * 60 * 1000) {
 	const now = Date.now();
 	const keysToRemove = [];
-	
+
 	for (let i = 0; i < localStorage.length; i++) {
 		const key = localStorage.key(i);
 		if (key && key.startsWith('hyphy-results-')) {
 			try {
 				const data = JSON.parse(localStorage.getItem(key));
 				const createdAt = new Date(data.metadata?.created_at).getTime();
-				
+
 				if (now - createdAt > maxAge) {
 					keysToRemove.push(key);
 				}
@@ -138,11 +138,11 @@ export function cleanupOldAnalysisData(maxAge = 7 * 24 * 60 * 60 * 1000) {
 			}
 		}
 	}
-	
-	keysToRemove.forEach(key => {
+
+	keysToRemove.forEach((key) => {
 		localStorage.removeItem(key);
 	});
-	
+
 	return keysToRemove.length;
 }
 
@@ -151,17 +151,7 @@ export function cleanupOldAnalysisData(maxAge = 7 * 24 * 60 * 60 * 1000) {
  * @returns {Array} - Array of supported method names
  */
 export function getSupportedMethods() {
-	return [
-		'fel',
-		'meme',
-		'busted',
-		'absrel',
-		'gard',
-		'nrm',
-		'multihit',
-		'slac',
-		'fubar'
-	];
+	return ['fel', 'meme', 'busted', 'absrel', 'gard', 'nrm', 'multihit', 'slac', 'fubar'];
 }
 
 /**
@@ -180,18 +170,18 @@ export function isMethodSupported(method) {
 export function debugStoredData(analysisId) {
 	const storageKey = `hyphy-results-${analysisId}`;
 	const data = localStorage.getItem(storageKey);
-	
+
 	console.log('=== DEBUGGING STORED DATA ===');
 	console.log('Storage key:', storageKey);
 	console.log('Raw localStorage data:', data);
-	
+
 	if (data) {
 		try {
 			const parsed = JSON.parse(data);
 			console.log('Parsed data:', parsed);
 			console.log('MLE structure:', parsed.MLE);
 			console.log('Input structure:', parsed.input);
-			
+
 			// Check specific properties that hyphy-eye might expect
 			if (parsed.MLE) {
 				console.log('MLE.fits:', parsed.MLE.fits);
@@ -199,7 +189,7 @@ export function debugStoredData(analysisId) {
 				console.log('MLE.content:', parsed.MLE.content);
 				console.log('MLE.analysis:', parsed.MLE.analysis);
 				console.log('MLE.input:', parsed.MLE.input);
-				
+
 				// Check if there's a double nesting issue
 				if (parsed.MLE.MLE) {
 					console.warn('⚠️  DOUBLE NESTING DETECTED! MLE.MLE exists');

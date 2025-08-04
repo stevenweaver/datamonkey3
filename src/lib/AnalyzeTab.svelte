@@ -50,7 +50,6 @@
 </script>
 
 <div class="analyze-tab">
-
 	<!-- File Indicator (visible when a file is selected) -->
 	<FileIndicator />
 

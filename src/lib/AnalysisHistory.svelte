@@ -138,7 +138,6 @@
 </script>
 
 <div class="analysis-history">
-
 	{#if $analysisStore.isLoading}
 		<div class="flex items-center justify-center p-4">
 			<svg
