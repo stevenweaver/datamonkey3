@@ -1,11 +1,12 @@
 import { writable } from 'svelte/store';
 import io from 'socket.io-client';
+import { DATAMONKEY_SERVER_URL } from '../lib/config/env.ts';
 
 // Store for backend connectivity status
 export const backendConnectivity = writable({
 	isConnected: false,
 	isConnecting: false,
-	serverUrl: 'http://localhost:7015',
+	serverUrl: DATAMONKEY_SERVER_URL,
 	lastChecked: null,
 	error: null
 });
@@ -14,7 +15,7 @@ export const backendConnectivity = writable({
 let persistentSocket = null;
 
 // Function to initialize persistent backend connection
-export function initializeBackendConnectivity(serverUrl = 'http://localhost:7015') {
+export function initializeBackendConnectivity(serverUrl = DATAMONKEY_SERVER_URL) {
 	// Clean up existing socket if any
 	if (persistentSocket) {
 		persistentSocket.disconnect();
@@ -138,4 +139,10 @@ export function disconnectBackend() {
 		isConnecting: false,
 		error: null
 	}));
+}
+
+// Function to change server URL and reconnect
+export function changeServerUrl(newServerUrl) {
+	console.log('🔄 Backend connectivity: Changing server URL to', newServerUrl);
+	initializeBackendConnectivity(newServerUrl);
 }
