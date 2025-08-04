@@ -2,39 +2,35 @@
 	import { onMount, onDestroy } from 'svelte';
 	import {
 		backendConnectivity,
-		startPeriodicConnectivityCheck,
-		stopPeriodicConnectivityCheck
+		initializeBackendConnectivity,
+		disconnectBackend
 	} from '../stores/backendConnectivity.js';
 
-	let intervalId = null;
-
 	onMount(() => {
-		// Start checking connectivity when component mounts
-		intervalId = startPeriodicConnectivityCheck(30000); // Check every 30 seconds
+		// Initialize persistent connection when component mounts
+		initializeBackendConnectivity();
 	});
 
 	onDestroy(() => {
 		// Clean up when component is destroyed
-		if (intervalId) {
-			stopPeriodicConnectivityCheck(intervalId);
-		}
+		disconnectBackend();
 	});
 
 	// Reactive statements for status
-	$: status = $backendConnectivity.isChecking
-		? 'checking'
+	$: status = $backendConnectivity.isConnecting
+		? 'connecting'
 		: $backendConnectivity.isConnected
 			? 'connected'
 			: 'disconnected';
 
 	$: statusColor = {
-		checking: 'bg-yellow-400',
+		connecting: 'bg-yellow-400',
 		connected: 'bg-green-500',
 		disconnected: 'bg-red-500'
 	}[status];
 
 	$: tooltipText = {
-		checking: 'Checking DataMonkey server connection...',
+		connecting: 'Connecting to DataMonkey server...',
 		connected: `DataMonkey server connected (${$backendConnectivity.serverUrl})`,
 		disconnected: $backendConnectivity.error
 			? `DataMonkey server disconnected: ${$backendConnectivity.error}`
@@ -49,7 +45,7 @@
 	>
 		<!-- Status dot -->
 		<div
-			class="h-3 w-3 rounded-full {statusColor} {status === 'checking' ? 'animate-pulse' : ''}"
+			class="h-3 w-3 rounded-full {statusColor} {status === 'connecting' ? 'animate-pulse' : ''}"
 		></div>
 
 		<!-- Tooltip -->
