@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import AnalysisStatusIndicator from '../lib/AnalysisStatusIndicator.svelte';
+	import BackendConnectivityIndicator from '../lib/BackendConnectivityIndicator.svelte';
 	let { children } = $props();
 </script>
 
@@ -42,6 +43,9 @@
 
 				<!-- Analysis Status Indicator -->
 				<AnalysisStatusIndicator />
+
+				<!-- Backend Connectivity Indicator -->
+				<BackendConnectivityIndicator />
 			</div>
 		</div>
 	</nav>

@@ -391,7 +391,9 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				<p class="mt-1 text-xs text-gray-500">Number of samples to collect</p>
 			</div>
 			<div>
-				<label for="chain-sample" class="block text-sm font-medium text-gray-700">Chain Sample Steps</label>
+				<label for="chain-sample" class="block text-sm font-medium text-gray-700"
+					>Chain Sample Steps</label
+				>
 				<input
 					id="chain-sample"
 					type="number"

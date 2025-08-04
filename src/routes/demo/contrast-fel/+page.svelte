@@ -333,9 +333,7 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 				</select>
 			</div>
 			<div>
-				<label for="branch-set" class="block text-sm font-medium text-gray-700"
-					>Branch Set</label
-				>
+				<label for="branch-set" class="block text-sm font-medium text-gray-700">Branch Set</label>
 				<select
 					id="branch-set"
 					bind:value={contrastFelParams.branch_sets}
