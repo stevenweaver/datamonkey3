@@ -30,8 +30,10 @@
 		"test:contrast-fel-backend": "vitest run src/test/contrast-fel-backend.test.js --reporter=verbose",
 		"storybook": "storybook dev -p 6006",
 		"build-storybook": "storybook build",
-		"deploy": "wrangler pages deploy .svelte-kit/cloudflare",
-		"wrangler:dev": "wrangler pages dev .svelte-kit/cloudflare"
+		"deploy": "npx wrangler pages deploy .svelte-kit/cloudflare",
+		"deploy:storybook": "npm run build-storybook && npx wrangler pages deploy storybook-static --project-name fasta-validation-storybook",
+		"deploy:all": "./scripts/deploy-with-storybook.sh",
+		"wrangler:dev": "npx wrangler pages dev .svelte-kit/cloudflare"
 	},
 	"devDependencies": {
 		"@chromatic-com/storybook": "^3.2.4",
