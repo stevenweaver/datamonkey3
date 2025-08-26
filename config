@@ -1,0 +1,38 @@
+Host *
+   IdentityFile ~/.ssh/temple
+   ForwardAgent yes
+   Port 22
+
+Host *.ucsd.edu
+   IdentityFile ~/.ssh/sweaver
+   ForwardAgent yes
+   User sweaver
+   Port 22
+
+Host *.temple.edu
+   PreferredAuthentications password
+   PubkeyAuthentication no
+   ForwardAgent yes
+   User tug52522
+   Port 22
+
+Host igemdev
+  Hostname igemdev.cst.temple.edu
+  IdentityFile ~/.ssh/temple
+  ForwardAgent yes
+  User tug52522
+  Port 22
+
+Host proboscis
+   Hostname proboscis
+   IdentityFile ~/.ssh/sweaver
+   User gitolite
+   Port 22
+
+Host kipunji
+    IdentityFile ~/.ssh/sweaver
+
+Host github.com
+    IdentityFile ~/.ssh/sweaver
+
+
