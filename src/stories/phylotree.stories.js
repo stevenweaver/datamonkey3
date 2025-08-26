@@ -10,8 +10,40 @@ const validNJString =
 
 export const Default = {
 	args: {
-		newickString: validNJString, // Pass the NJ string as an argument
-		height: 600, // Optional height property
-		width: 800 // Optional width property
+		newickString: validNJString,
+		height: 600,
+		width: 800,
+		branchTestMode: false,
+		viewerType: 'hyphy-scope'
+	}
+};
+
+export const HyphyScopeViewer = {
+	args: {
+		newickString: validNJString,
+		height: 600,
+		width: 800,
+		branchTestMode: false,
+		viewerType: 'hyphy-scope'
+	}
+};
+
+export const PhylotreeViewer = {
+	args: {
+		newickString: validNJString,
+		height: 600,
+		width: 800,
+		branchTestMode: false,
+		viewerType: 'phylotree'
+	}
+};
+
+export const WithBranchTesting = {
+	args: {
+		newickString: validNJString,
+		height: 600,
+		width: 800,
+		branchTestMode: true,
+		viewerType: 'hyphy-scope'
 	}
 };

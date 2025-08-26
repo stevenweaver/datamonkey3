@@ -2,18 +2,21 @@
 	import { onMount, afterUpdate, createEventDispatcher } from 'svelte';
 	import { phylotree } from 'phylotree';
 	import * as d3 from 'd3';
+	import { PhylogeneticTreeViewer } from 'hyphy-scope';
 
 	export let newickString;
 	export let height = 600;
 	export let width = 800;
 	export let branchTestMode = true;
 	export let selectedBranches = [];
+	export let viewerType = 'hyphy-scope'; // 'hyphy-scope' (default) or 'phylotree'
 
 	let treeContainer;
 	let tree;
 	let renderedTree;
 	let selection_set = []; // For parsed tags
 	let current_selection_id = 0; // Current active selection index
+	let hypyScopeData = null;
 
 	// Color scheme for different tags
 	const color_scheme = d3.scaleOrdinal(d3.schemeCategory10);
@@ -25,10 +28,40 @@
 	});
 
 	afterUpdate(() => {
-		if (newickString && treeContainer) {
+		if (newickString) {
 			renderTree();
 		}
 	});
+
+	// Convert newick string to hyphy-scope compatible data format
+	function convertToHyphyScopeData(newickString) {
+		try {
+			if (!newickString || newickString.trim() === '') {
+				return null;
+			}
+
+			// Create a temporary phylotree to parse the newick string
+			const tempTree = new phylotree(newickString);
+			
+			// hyphy-scope expects data in a specific format
+			// For now, we'll create a basic structure that includes the newick string
+			// In a real implementation, you might want to parse this more thoroughly
+			const data = {
+				input: {
+					trees: [{ newick: newickString }]
+				},
+				trees: [{ newick: newickString }],
+				// Add any additional data structure that hyphy-scope might expect
+				branch_attributes: {},
+				tested: []
+			};
+
+			return data;
+		} catch (error) {
+			console.error('Error converting to hyphy-scope data:', error);
+			return null;
+		}
+	}
 
 	// Node colorizer function that applies colors based on annotations/tags
 	function nodeColorizer(element, data) {
@@ -115,36 +148,46 @@
 				return;
 			}
 
-			// Initialize tree from Newick string
-			tree = new phylotree(newickString);
-
-			// Check for parsed tags in the tree
-			if (tree.parsed_tags && tree.parsed_tags.length) {
-				selection_set = [...tree.parsed_tags];
-
-				// Dispatch the parsed tags to the parent component using a timeout
-				// to avoid the initial rendering error
-				setTimeout(() => {
-					try {
-						dispatch('parsedtags', {
-							parsed_tags: selection_set
-						});
-					} catch (dispatchError) {
-						console.error('Error dispatching parsed tags:', dispatchError);
-					}
-				}, 0);
-
-				// If we have tags and in branch test mode, update selections
-				if (branchTestMode) {
-					try {
-						updateSelectedBranchesFromTags();
-					} catch (updateError) {
-						console.error('Error updating branches from tags:', updateError);
-					}
-				}
+			if (viewerType === 'hyphy-scope') {
+				// Prepare data for hyphy-scope viewer
+				hypyScopeData = convertToHyphyScopeData(newickString);
+			} else {
+				// Original phylotree rendering
+				renderPhylotreeViewer();
 			}
 		} catch (e) {
 			console.error('Error in renderTree:', e);
+		}
+	}
+
+	function renderPhylotreeViewer() {
+		// Initialize tree from Newick string
+		tree = new phylotree(newickString);
+
+		// Check for parsed tags in the tree
+		if (tree.parsed_tags && tree.parsed_tags.length) {
+			selection_set = [...tree.parsed_tags];
+
+			// Dispatch the parsed tags to the parent component using a timeout
+			// to avoid the initial rendering error
+			setTimeout(() => {
+				try {
+					dispatch('parsedtags', {
+						parsed_tags: selection_set
+					});
+				} catch (dispatchError) {
+					console.error('Error dispatching parsed tags:', dispatchError);
+				}
+			}, 0);
+
+			// If we have tags and in branch test mode, update selections
+			if (branchTestMode) {
+				try {
+					updateSelectedBranchesFromTags();
+				} catch (updateError) {
+					console.error('Error updating branches from tags:', updateError);
+				}
+			}
 		}
 
 		// Render the tree with colorizers
@@ -164,21 +207,34 @@
 		});
 
 		// Clear the container and append the SVG element
-		treeContainer.innerHTML = '';
-		treeContainer.appendChild(renderedTree.show());
+		if (treeContainer) {
+			treeContainer.innerHTML = '';
+			treeContainer.appendChild(renderedTree.show());
 
-		// Add click handlers for the nodes
-		d3.select(treeContainer)
-			.selectAll('.node')
-			.on('click', (event, d) => {
-				event.preventDefault();
-				renderedTree.handle_node_click(d, event);
+			// Add click handlers for the nodes
+			d3.select(treeContainer)
+				.selectAll('.node')
+				.on('click', (event, d) => {
+					event.preventDefault();
+					renderedTree.handle_node_click(d, event);
 
-				// If in branch test mode, update selected branches
-				if (branchTestMode) {
-					updateSelectedBranches();
-				}
+					// If in branch test mode, update selected branches
+					if (branchTestMode) {
+						updateSelectedBranches();
+					}
+				});
+		}
+	}
+
+	// Handle hyphy-scope parsed tags
+	function handleHyphyScopeParsedTags(event) {
+		const parsedTags = event.detail;
+		if (parsedTags && parsedTags.length) {
+			selection_set = [...parsedTags];
+			dispatch('parsedtags', {
+				parsed_tags: selection_set
 			});
+		}
 	}
 
 	// Update selected branches based on the current tree selection
@@ -264,11 +320,73 @@
 	}
 </script>
 
-<link rel="stylesheet" href="https://unpkg.com/phylotree@1.0.0-alpha.24/dist/phylotree.css" />
+{#if viewerType === 'phylotree'}
+	<link rel="stylesheet" href="https://unpkg.com/phylotree@1.0.0-alpha.24/dist/phylotree.css" />
+{/if}
 
-<div bind:this={treeContainer} class="tree-container"></div>
+<!-- Viewer Type Toggle (optional - you can show/hide this as needed) -->
+<div class="viewer-controls mb-3">
+	<label class="text-sm text-gray-700">Tree Viewer:</label>
+	<div class="mt-1">
+		<label class="mr-4">
+			<input
+				type="radio"
+				bind:group={viewerType}
+				value="hyphy-scope"
+				on:change={renderTree}
+				class="mr-1"
+			/>
+			HyPhy-Scope
+		</label>
+		<label>
+			<input
+				type="radio"
+				bind:group={viewerType}
+				value="phylotree"
+				on:change={renderTree}
+				class="mr-1"
+			/>
+			Phylotree
+		</label>
+	</div>
+</div>
+
+<!-- Conditional rendering based on viewer type -->
+{#if viewerType === 'hyphy-scope'}
+	{#if hypyScopeData}
+		<div class="hyphy-scope-container">
+			<PhylogeneticTreeViewer
+				{width}
+				{height}
+				data={hypyScopeData}
+				showLabels={true}
+				showScale={true}
+				isRadial={false}
+				on:parsedtags={handleHyphyScopeParsedTags}
+			/>
+		</div>
+	{:else}
+		<div class="text-gray-500 p-4">Loading HyPhy-Scope viewer...</div>
+	{/if}
+{:else}
+	<div bind:this={treeContainer} class="tree-container"></div>
+{/if}
 
 <style>
+	.viewer-controls {
+		border: 1px solid #e2e2e2;
+		border-radius: 0.375rem;
+		padding: 0.75rem;
+		background-color: #f9f9f9;
+	}
+
+	.hyphy-scope-container {
+		border: 1px solid #e2e2e2;
+		border-radius: 0.375rem;
+		padding: 1rem;
+		background-color: white;
+	}
+
 	:global(.dropdown-menu) {
 		position: absolute;
 		background: white;

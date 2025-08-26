@@ -3,7 +3,7 @@
 	import { writable } from 'svelte/store';
 
 	export let methodConfig;
-	export let runMethod = [];
+	export let runMethod = null;
 	export let onConfigureMethod = null; // New prop for configuring a method
 
 	// Method categorization
@@ -142,46 +142,41 @@
 	let showAllMethods = false;
 	let searchQuery = '';
 	let selectedCategory = 'RECOMMENDED';
-	let selectedMethods = writable([]);
+	let selectedMethod = null;
 
 	// Handle method selection
-	function toggleMethodSelection(method) {
-		$selectedMethods = $selectedMethods.includes(method)
-			? $selectedMethods.filter((m) => m !== method)
-			: [...$selectedMethods, method];
+	function selectMethod(method) {
+		selectedMethod = method;
 	}
 
-	// Clear all selected methods
+	// Clear selected method
 	function clearSelection() {
-		$selectedMethods = [];
+		selectedMethod = null;
 	}
 
 	// Run selected method
 	function runMethodHandler(method) {
 		console.log(`Running method: ${method}`);
-		$selectedMethods = [method]; // Set as the only selected method
-		runMethod(method);
+		selectedMethod = method;
+		if (runMethod) {
+			runMethod(method);
+		}
 	}
 
 	// Configure method
 	function configureMethodHandler(method) {
 		console.log(`Configuring method: ${method}`);
+		selectedMethod = method;
 		if (onConfigureMethod) {
-			$selectedMethods = [method]; // Set as the only selected method
 			onConfigureMethod(method);
 		}
 	}
 
-	// Run all selected methods
-	function runSelectedMethods() {
-		console.log(`Running selected methods: ${$selectedMethods}`);
-		// Implementation would depend on how multiple methods should be run
-		if ($selectedMethods.length === 1) {
-			runMethod($selectedMethods[0]);
-		} else {
-			// For multiple methods, additional logic would be needed
-			// This is a placeholder for future implementation
-			alert(`Running multiple methods (${$selectedMethods.length}) is not yet implemented`);
+	// Run currently selected method
+	function runSelectedMethod() {
+		if (selectedMethod && runMethod) {
+			console.log(`Running selected method: ${selectedMethod}`);
+			runMethod(selectedMethod);
 		}
 	}
 
@@ -270,10 +265,10 @@
 			<h3 class="text-premium-header font-semibold text-text-rich">Analysis Methods</h3>
 
 			<!-- Method selection counter -->
-			{#if $selectedMethods.length > 0}
+			{#if selectedMethod}
 				<div class="flex items-center gap-premium-sm">
 					<span class="text-premium-meta font-medium text-brand-royal">
-						{$selectedMethods.length} method{$selectedMethods.length > 1 ? 's' : ''} selected
+						{METHOD_INFO[selectedMethod.toLowerCase()]?.name || selectedMethod.toUpperCase()} selected
 					</span>
 					<button
 						class="text-premium-meta text-text-silver transition-all duration-premium hover:text-brand-royal"
@@ -351,12 +346,12 @@
 	<div class="grid grid-cols-1 gap-premium-md md:grid-cols-2 lg:grid-cols-3">
 		{#each filteredMethods as [key, method]}
 			{@const methodInfo = getMethodInfo(key)}
-			{@const isSelected = $selectedMethods.includes(key)}
+			{@const isSelected = selectedMethod === key}
 			<div
 				class="relative flex flex-col rounded-premium border {isSelected
 					? 'border-brand-royal ring-2 ring-brand-muted'
 					: 'border-border-platinum'} bg-white p-premium-md shadow-premium transition-all duration-premium hover:shadow-premium-hover"
-				on:click={() => toggleMethodSelection(key)}
+				on:click={() => selectMethod(key)}
 			>
 				<!-- Selection indicator -->
 				{#if isSelected}
@@ -431,18 +426,16 @@
 		{/each}
 	</div>
 
-	<!-- Action panel for selected methods -->
-	{#if $selectedMethods.length > 0}
+	<!-- Action panel for selected method -->
+	{#if selectedMethod}
 		<div class="mt-premium-xl rounded-premium bg-brand-whisper p-premium-md shadow-premium">
 			<div class="flex items-center justify-between">
 				<div>
 					<h4 class="text-premium-body font-semibold text-text-rich">
-						Selected Methods ({$selectedMethods.length})
+						Selected Method
 					</h4>
 					<p class="text-premium-meta text-text-slate">
-						{$selectedMethods
-							.map((m) => METHOD_INFO[m.toLowerCase()]?.name || m.toUpperCase())
-							.join(', ')}
+						{METHOD_INFO[selectedMethod.toLowerCase()]?.name || selectedMethod.toUpperCase()}
 					</p>
 				</div>
 				<div class="flex gap-premium-sm">
@@ -452,12 +445,19 @@
 					>
 						Clear
 					</button>
+					{#if methodConfig[selectedMethod]?.options && methodConfig[selectedMethod].options.length > 0 && onConfigureMethod}
+						<button
+							class="rounded-premium-sm border border-brand-royal bg-white px-premium-md py-premium-sm text-premium-body font-medium text-brand-royal transition-all duration-premium hover:bg-brand-whisper"
+							on:click={() => configureMethodHandler(selectedMethod)}
+						>
+							Configure
+						</button>
+					{/if}
 					<button
 						class="transform rounded-premium-sm bg-brand-gradient px-premium-md py-premium-sm text-premium-body font-medium text-white shadow-sm transition-all duration-premium hover:scale-[0.98] hover:bg-brand-deep hover:shadow active:scale-[0.96]"
-						on:click={runSelectedMethods}
-						disabled={$selectedMethods.length === 0}
+						on:click={runSelectedMethod}
 					>
-						{$selectedMethods.length > 1 ? 'Run Selected Methods' : 'Run Method'}
+						Run Method
 					</button>
 				</div>
 			</div>

@@ -12,6 +12,18 @@
 		isMethodSupported,
 		getHyphyEyeUrl
 	} from './utils/hyphyEyeIntegration';
+	import { 
+		FelVisualization as HyphyScopeFel,
+		SimpleFelVisualization,
+		MemeVisualization,
+		AbsrelVisualization,
+		BustedVisualization,
+		RelaxVisualization,
+		SlacVisualization,
+		BgmVisualization,
+		FadeVisualization,
+		GardVisualization
+	} from 'hyphy-scope';
 
 	export let analysisId = null;
 
@@ -85,6 +97,36 @@
 		return new Date(timestamp).toLocaleString();
 	}
 
+	// Get the appropriate hyphy-scope visualization component based on method
+	function getHyphyScopeVisualization(method) {
+		const methodLower = method.toLowerCase();
+		switch (methodLower) {
+			case 'fel':
+				return HyphyScopeFel;
+			case 'meme':
+				return MemeVisualization;
+			case 'absrel':
+			case 'abserel':
+				return AbsrelVisualization;
+			case 'busted':
+				return BustedVisualization;
+			case 'relax':
+				return RelaxVisualization;
+			case 'slac':
+				return SlacVisualization;
+			case 'bgm':
+				return BgmVisualization;
+			case 'fade':
+				return FadeVisualization;
+			case 'gard':
+				return GardVisualization;
+			default:
+				return null;
+		}
+	}
+
+	$: hyphyScopeComponent = analysis?.method ? getHyphyScopeVisualization(analysis.method) : null;
+
 	// Subscribe to store changes to auto-update when analysis status changes
 	$: if (analysisId && $analysisStore.analyses) {
 		// Find the current analysis in the store
@@ -150,6 +192,16 @@
 
 			<div class="result-content p-4">
 				{#if analysis.status === 'completed' && resultData}
+					<!-- HyPhy-Scope visualization for supported methods -->
+					{#if hyphyScopeComponent}
+						<div class="hyphy-scope-container mb-6">
+							<div class="mb-4 rounded-lg bg-white p-4 shadow-sm">
+								<h3 class="mb-4 text-lg font-semibold">{analysis.method.toUpperCase()} Analysis Visualization</h3>
+								<svelte:component this={hyphyScopeComponent} data={resultData} />
+							</div>
+						</div>
+					{/if}
+
 					<!-- Display method-specific results -->
 					{#if analysis.method === 'datareader'}
 						<div class="data-reader-results">
@@ -176,16 +228,16 @@
 							{/if}
 						</div>
 					{:else if ['FEL', 'SLAC', 'MEME', 'BUSTED', 'FUBAR', 'aBSREL', 'GARD', 'MULTI-HIT', 'NRM'].includes(analysis.method)}
-						<!-- Selection analysis results -->
+						<!-- Selection analysis results with fallback legacy visualization for FEL -->
 						<div class="selection-analysis">
 							{#if resultData.input && resultData.input.file}
 								<p><strong>Analysis File:</strong> {resultData.input.file}</p>
 							{/if}
 
-							<!-- FEL-specific visualization for FEL method -->
-							{#if analysis.method === 'FEL'}
+							<!-- Legacy FEL visualization (keeping as fallback) -->
+							{#if analysis.method === 'FEL' && !hyphyScopeComponent}
 								<div class="mb-6 mt-6 rounded-lg bg-white p-4 shadow-sm">
-									<h3 class="mb-4 text-lg font-semibold">FEL Analysis Visualization</h3>
+									<h3 class="mb-4 text-lg font-semibold">FEL Analysis Visualization (Legacy)</h3>
 									<FelVisualization {resultData} />
 								</div>
 							{/if}
@@ -362,5 +414,9 @@
 		100% {
 			transform: rotate(360deg);
 		}
+	}
+
+	.hyphy-scope-container {
+		min-height: 400px;
 	}
 </style>
