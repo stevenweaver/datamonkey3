@@ -87,6 +87,7 @@
 		"@sentry/sveltekit": "^9",
 		"@storybook/addon-controls": "^8.5.4",
 		"d3": "^7.9.0",
+		"hyphy-scope": "^1.2.7",
 		"marked": "^15.0.12",
 		"phylotree": "^2.1.0",
 		"socket.io-client": "^4.8.1",
