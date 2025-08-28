@@ -1,19 +1,6 @@
 import '../app.css';
-import FileIndicator from '../lib/FileIndicator.svelte';
+import FileIndicatorWrapper from './FileIndicatorWrapper.svelte';
 import { writable } from 'svelte/store';
-
-// Create mock stores for the file indicator
-const createFileStore = (file) => {
-	return {
-		subscribe: writable(file).subscribe
-	};
-};
-
-const createMetricsStore = (metrics) => {
-	return {
-		subscribe: writable(metrics).subscribe
-	};
-};
 
 // Mock file data
 const mockFile = {
@@ -65,7 +52,7 @@ const mockSmallMetrics = {
 // Story configuration
 export default {
 	title: 'Progress Indicators/FileIndicator',
-	component: FileIndicator,
+	component: FileIndicatorWrapper,
 	parameters: {
 		docs: {
 			description: {
@@ -88,18 +75,18 @@ export default {
 	}
 };
 
-// Template for all stories
-const Template = (args) => ({
-	Component: FileIndicator,
-	props: args
-});
-
 // Story variants
-export const StandardFile = (args) => {
-	// Override the stores with our mocks for this story
-	window.currentFile = createFileStore(mockFile);
-	window.fileMetricsStore = createMetricsStore(mockMetrics);
-	return Template.bind({})();
+export const StandardFile = () => {
+	const mockCurrentFile = writable(mockFile);
+	const mockFileMetricsStore = writable(mockMetrics);
+	
+	return {
+		Component: FileIndicatorWrapper,
+		props: {
+			mockCurrentFile,
+			mockFileMetricsStore
+		}
+	};
 };
 StandardFile.parameters = {
 	docs: {
@@ -109,10 +96,17 @@ StandardFile.parameters = {
 	}
 };
 
-export const LargeFile = (args) => {
-	window.currentFile = createFileStore(mockLargeFile);
-	window.fileMetricsStore = createMetricsStore(mockLargeMetrics);
-	return Template.bind({})();
+export const LargeFile = () => {
+	const mockCurrentFile = writable(mockLargeFile);
+	const mockFileMetricsStore = writable(mockLargeMetrics);
+	
+	return {
+		Component: FileIndicatorWrapper,
+		props: {
+			mockCurrentFile,
+			mockFileMetricsStore
+		}
+	};
 };
 LargeFile.parameters = {
 	docs: {
@@ -122,10 +116,17 @@ LargeFile.parameters = {
 	}
 };
 
-export const SmallFile = (args) => {
-	window.currentFile = createFileStore(mockSmallFile);
-	window.fileMetricsStore = createMetricsStore(mockSmallMetrics);
-	return Template.bind({})();
+export const SmallFile = () => {
+	const mockCurrentFile = writable(mockSmallFile);
+	const mockFileMetricsStore = writable(mockSmallMetrics);
+	
+	return {
+		Component: FileIndicatorWrapper,
+		props: {
+			mockCurrentFile,
+			mockFileMetricsStore
+		}
+	};
 };
 SmallFile.parameters = {
 	docs: {
@@ -135,10 +136,17 @@ SmallFile.parameters = {
 	}
 };
 
-export const NoMetrics = (args) => {
-	window.currentFile = createFileStore(mockFile);
-	window.fileMetricsStore = createMetricsStore(null);
-	return Template.bind({})();
+export const NoMetrics = () => {
+	const mockCurrentFile = writable(mockFile);
+	const mockFileMetricsStore = writable(null);
+	
+	return {
+		Component: FileIndicatorWrapper,
+		props: {
+			mockCurrentFile,
+			mockFileMetricsStore
+		}
+	};
 };
 NoMetrics.parameters = {
 	docs: {
@@ -148,13 +156,20 @@ NoMetrics.parameters = {
 	}
 };
 
-export const FallbackFile = (args) => {
+export const FallbackFile = () => {
 	// Show without filename property (uses fallback)
 	const fileWithoutFilename = { ...mockFile };
 	delete fileWithoutFilename.filename;
-	window.currentFile = createFileStore(fileWithoutFilename);
-	window.fileMetricsStore = createMetricsStore(mockMetrics);
-	return Template.bind({})();
+	const mockCurrentFile = writable(fileWithoutFilename);
+	const mockFileMetricsStore = writable(mockMetrics);
+	
+	return {
+		Component: FileIndicatorWrapper,
+		props: {
+			mockCurrentFile,
+			mockFileMetricsStore
+		}
+	};
 };
 FallbackFile.parameters = {
 	docs: {
