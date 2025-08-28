@@ -1,13 +1,6 @@
 import '../app.css';
-import BackendConnectivityIndicator from '../lib/BackendConnectivityIndicator.svelte';
+import BackendConnectivityIndicatorWrapper from './BackendConnectivityIndicatorWrapper.svelte';
 import { writable } from 'svelte/store';
-
-// Create a mock store for the connectivity status
-const createConnectivityStore = (data) => {
-	return {
-		subscribe: writable(data).subscribe
-	};
-};
 
 // Mock connectivity states
 const connectedState = {
@@ -45,7 +38,7 @@ const disconnectedNoErrorState = {
 // Story configuration
 export default {
 	title: 'Progress Indicators/BackendConnectivityIndicator',
-	component: BackendConnectivityIndicator,
+	component: BackendConnectivityIndicatorWrapper,
 	parameters: {
 		docs: {
 			description: {
@@ -68,17 +61,16 @@ export default {
 	}
 };
 
-// Template for all stories
-const Template = (args) => ({
-	Component: BackendConnectivityIndicator,
-	props: args
-});
-
 // Story variants
-export const Connected = (args) => {
-	// Override the store with our mock for this story
-	window.backendConnectivity = createConnectivityStore(connectedState);
-	return Template.bind({})();
+export const Connected = () => {
+	const mockBackendConnectivity = writable(connectedState);
+	
+	return {
+		Component: BackendConnectivityIndicatorWrapper,
+		props: {
+			mockBackendConnectivity
+		}
+	};
 };
 Connected.parameters = {
 	docs: {
@@ -88,9 +80,15 @@ Connected.parameters = {
 	}
 };
 
-export const Connecting = (args) => {
-	window.backendConnectivity = createConnectivityStore(connectingState);
-	return Template.bind({})();
+export const Connecting = () => {
+	const mockBackendConnectivity = writable(connectingState);
+	
+	return {
+		Component: BackendConnectivityIndicatorWrapper,
+		props: {
+			mockBackendConnectivity
+		}
+	};
 };
 Connecting.parameters = {
 	docs: {
@@ -100,9 +98,15 @@ Connecting.parameters = {
 	}
 };
 
-export const DisconnectedWithError = (args) => {
-	window.backendConnectivity = createConnectivityStore(disconnectedState);
-	return Template.bind({})();
+export const DisconnectedWithError = () => {
+	const mockBackendConnectivity = writable(disconnectedState);
+	
+	return {
+		Component: BackendConnectivityIndicatorWrapper,
+		props: {
+			mockBackendConnectivity
+		}
+	};
 };
 DisconnectedWithError.parameters = {
 	docs: {
@@ -112,9 +116,15 @@ DisconnectedWithError.parameters = {
 	}
 };
 
-export const DisconnectedNoError = (args) => {
-	window.backendConnectivity = createConnectivityStore(disconnectedNoErrorState);
-	return Template.bind({})();
+export const DisconnectedNoError = () => {
+	const mockBackendConnectivity = writable(disconnectedNoErrorState);
+	
+	return {
+		Component: BackendConnectivityIndicatorWrapper,
+		props: {
+			mockBackendConnectivity
+		}
+	};
 };
 DisconnectedNoError.parameters = {
 	docs: {
