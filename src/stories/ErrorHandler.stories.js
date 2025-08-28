@@ -1,6 +1,8 @@
+import ErrorHandler from '../lib/ErrorHandler.svelte';
+
 export default {
 	title: 'Components/ErrorHandler',
-	component: null,
+	component: ErrorHandler,
 	parameters: {
 		docs: {
 			description: {
@@ -22,17 +24,9 @@ export default {
 	}
 };
 
-const Template = ({ error, level, dismissable, autoDismiss, dismissAfter, showDetails, suggestions }) => ({
-	Component: () => import('../lib/ErrorHandler.svelte'),
-	props: {
-		error,
-		level,
-		dismissable,
-		autoDismiss,
-		dismissAfter,
-		showDetails,
-		suggestions
-	}
+const Template = (args) => ({
+	Component: ErrorHandler,
+	props: args
 });
 
 export const SimpleError = Template.bind({});
