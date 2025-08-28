@@ -1,13 +1,6 @@
 import '../app.css';
-import AnalysisStatusIndicator from '../lib/AnalysisStatusIndicator.svelte';
+import AnalysisStatusIndicatorWrapper from './AnalysisStatusIndicatorWrapper.svelte';
 import { writable } from 'svelte/store';
-
-// Create a mock store for the stories
-const createMockStore = (analyses) => {
-	return {
-		subscribe: writable(analyses).subscribe
-	};
-};
 
 // Mock analyses for different states
 const runningAnalyses = [
@@ -38,7 +31,7 @@ const withDatareaderAnalyses = [
 // Export the default story configuration
 export default {
 	title: 'Progress Indicators/AnalysisStatusIndicator',
-	component: AnalysisStatusIndicator,
+	component: AnalysisStatusIndicatorWrapper,
 	parameters: {
 		docs: {
 			description: {
@@ -65,15 +58,20 @@ export default {
 
 // Create a template for all variants
 const Template = (args) => ({
-	Component: AnalysisStatusIndicator,
+	Component: AnalysisStatusIndicatorWrapper,
 	props: args
 });
 
 // Export story variants
-export const Running = (args) => {
-	// Override the store with our mock for this story
-	window.activeAnalyses = createMockStore(runningAnalyses);
-	return Template.bind({})();
+export const Running = () => {
+	const mockActiveAnalyses = writable(runningAnalyses);
+	
+	return {
+		Component: AnalysisStatusIndicatorWrapper,
+		props: {
+			mockActiveAnalyses
+		}
+	};
 };
 Running.parameters = {
 	docs: {
@@ -83,9 +81,15 @@ Running.parameters = {
 	}
 };
 
-export const Completed = (args) => {
-	window.activeAnalyses = createMockStore(completedAnalyses);
-	return Template.bind({})();
+export const Completed = () => {
+	const mockActiveAnalyses = writable(completedAnalyses);
+	
+	return {
+		Component: AnalysisStatusIndicatorWrapper,
+		props: {
+			mockActiveAnalyses
+		}
+	};
 };
 Completed.parameters = {
 	docs: {
@@ -95,9 +99,15 @@ Completed.parameters = {
 	}
 };
 
-export const Failed = (args) => {
-	window.activeAnalyses = createMockStore(failedAnalyses);
-	return Template.bind({})();
+export const Failed = () => {
+	const mockActiveAnalyses = writable(failedAnalyses);
+	
+	return {
+		Component: AnalysisStatusIndicatorWrapper,
+		props: {
+			mockActiveAnalyses
+		}
+	};
 };
 Failed.parameters = {
 	docs: {
@@ -107,9 +117,15 @@ Failed.parameters = {
 	}
 };
 
-export const Mixed = (args) => {
-	window.activeAnalyses = createMockStore(mixedAnalyses);
-	return Template.bind({})();
+export const Mixed = () => {
+	const mockActiveAnalyses = writable(mixedAnalyses);
+	
+	return {
+		Component: AnalysisStatusIndicatorWrapper,
+		props: {
+			mockActiveAnalyses
+		}
+	};
 };
 Mixed.parameters = {
 	docs: {
@@ -119,9 +135,15 @@ Mixed.parameters = {
 	}
 };
 
-export const WithDatareader = (args) => {
-	window.activeAnalyses = createMockStore(withDatareaderAnalyses);
-	return Template.bind({})();
+export const WithDatareader = () => {
+	const mockActiveAnalyses = writable(withDatareaderAnalyses);
+	
+	return {
+		Component: AnalysisStatusIndicatorWrapper,
+		props: {
+			mockActiveAnalyses
+		}
+	};
 };
 WithDatareader.parameters = {
 	docs: {
@@ -131,9 +153,15 @@ WithDatareader.parameters = {
 	}
 };
 
-export const NoAnalyses = (args) => {
-	window.activeAnalyses = createMockStore([]);
-	return Template.bind({})();
+export const NoAnalyses = () => {
+	const mockActiveAnalyses = writable([]);
+	
+	return {
+		Component: AnalysisStatusIndicatorWrapper,
+		props: {
+			mockActiveAnalyses
+		}
+	};
 };
 NoAnalyses.parameters = {
 	docs: {
