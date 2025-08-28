@@ -1,0 +1,1 @@
+import{i as s,j as o,A as m,B as d}from"./runtime-CsLX-Eqq.js";import{d as h,e as l}from"./template-CIKGjA4E.js";function p(t,f,c,_,v){var n=t,r="",e;s(()=>{r!==(r=f()??"")&&(e!==void 0&&(m(e),e=void 0),r!==""&&(e=o(()=>{var i=r+"",a=h(i);l(d(a),a.lastChild),n.before(a)})))})}export{p as h};
