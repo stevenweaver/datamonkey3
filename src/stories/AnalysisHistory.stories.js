@@ -1,31 +1,6 @@
 import '../app.css';
-import AnalysisHistory from '../lib/AnalysisHistory.svelte';
+import AnalysisHistoryWrapper from './AnalysisHistoryWrapper.svelte';
 import { writable } from 'svelte/store';
-
-// Create mock stores for the stories
-const createAnalysisStore = (analyses, isLoading = false, error = null) => {
-	return {
-		subscribe: writable({ 
-			analyses: analyses || [], 
-			isLoading, 
-			error,
-			currentAnalysisId: null
-		}).subscribe
-	};
-};
-
-const createFileStore = (files) => {
-	return {
-		files: files || [],
-		subscribe: writable(files || []).subscribe
-	};
-};
-
-const createCurrentFileStore = (currentFile) => {
-	return {
-		subscribe: writable(currentFile).subscribe
-	};
-};
 
 // Mock file data
 const mockFiles = [
@@ -151,7 +126,7 @@ const completedAnalyses = [
 // Story configuration
 export default {
 	title: 'Progress Indicators/AnalysisHistory',
-	component: AnalysisHistory,
+	component: AnalysisHistoryWrapper,
 	parameters: {
 		docs: {
 			description: {
@@ -184,25 +159,29 @@ export default {
 	}
 };
 
-// Template for all stories
-const Template = (args) => ({
-	Component: AnalysisHistory,
-	props: args
-});
-
 // Story variants showing different states
-export const LoadingState = (args) => {
-	// Mock loading state
-	window.analysisStore = createAnalysisStore([], true, null);
-	window.persistentFileStore = createFileStore(mockFiles);
-	window.currentFile = createCurrentFileStore(null);
-	
-	return Template.bind({})({
-		onSelectAnalysis: (id) => console.log('Selected analysis:', id),
-		filterByCurrentFile: false,
-		compact: false,
-		redirectToResults: false
+export const LoadingState = () => {
+	const mockAnalysisStore = writable({ 
+		analyses: [], 
+		isLoading: true, 
+		error: null,
+		currentAnalysisId: null
 	});
+	const mockPersistentFileStore = writable({ files: mockFiles });
+	const mockCurrentFile = writable(null);
+	
+	return {
+		Component: AnalysisHistoryWrapper,
+		props: {
+			mockAnalysisStore,
+			mockPersistentFileStore,
+			mockCurrentFile,
+			onSelectAnalysis: (id) => console.log('Selected analysis:', id),
+			filterByCurrentFile: false,
+			compact: false,
+			redirectToResults: false
+		}
+	};
 };
 LoadingState.parameters = {
 	docs: {
@@ -212,18 +191,28 @@ LoadingState.parameters = {
 	}
 };
 
-export const ErrorState = (args) => {
-	// Mock error state
-	window.analysisStore = createAnalysisStore([], false, 'Failed to connect to server');
-	window.persistentFileStore = createFileStore(mockFiles);
-	window.currentFile = createCurrentFileStore(null);
-	
-	return Template.bind({})({
-		onSelectAnalysis: (id) => console.log('Selected analysis:', id),
-		filterByCurrentFile: false,
-		compact: false,
-		redirectToResults: false
+export const ErrorState = () => {
+	const mockAnalysisStore = writable({ 
+		analyses: [], 
+		isLoading: false, 
+		error: 'Failed to connect to server',
+		currentAnalysisId: null
 	});
+	const mockPersistentFileStore = writable({ files: mockFiles });
+	const mockCurrentFile = writable(null);
+	
+	return {
+		Component: AnalysisHistoryWrapper,
+		props: {
+			mockAnalysisStore,
+			mockPersistentFileStore,
+			mockCurrentFile,
+			onSelectAnalysis: (id) => console.log('Selected analysis:', id),
+			filterByCurrentFile: false,
+			compact: false,
+			redirectToResults: false
+		}
+	};
 };
 ErrorState.parameters = {
 	docs: {
@@ -233,18 +222,28 @@ ErrorState.parameters = {
 	}
 };
 
-export const EmptyState = (args) => {
-	// Mock empty state
-	window.analysisStore = createAnalysisStore([], false, null);
-	window.persistentFileStore = createFileStore(mockFiles);
-	window.currentFile = createCurrentFileStore(null);
-	
-	return Template.bind({})({
-		onSelectAnalysis: (id) => console.log('Selected analysis:', id),
-		filterByCurrentFile: false,
-		compact: false,
-		redirectToResults: false
+export const EmptyState = () => {
+	const mockAnalysisStore = writable({ 
+		analyses: [], 
+		isLoading: false, 
+		error: null,
+		currentAnalysisId: null
 	});
+	const mockPersistentFileStore = writable({ files: mockFiles });
+	const mockCurrentFile = writable(null);
+	
+	return {
+		Component: AnalysisHistoryWrapper,
+		props: {
+			mockAnalysisStore,
+			mockPersistentFileStore,
+			mockCurrentFile,
+			onSelectAnalysis: (id) => console.log('Selected analysis:', id),
+			filterByCurrentFile: false,
+			compact: false,
+			redirectToResults: false
+		}
+	};
 };
 EmptyState.parameters = {
 	docs: {
@@ -254,18 +253,28 @@ EmptyState.parameters = {
 	}
 };
 
-export const MixedAnalyses = (args) => {
-	// Mock mixed state with various analysis statuses
-	window.analysisStore = createAnalysisStore(mixedAnalyses, false, null);
-	window.persistentFileStore = createFileStore(mockFiles);
-	window.currentFile = createCurrentFileStore(null);
-	
-	return Template.bind({})({
-		onSelectAnalysis: (id) => console.log('Selected analysis:', id),
-		filterByCurrentFile: false,
-		compact: false,
-		redirectToResults: false
+export const MixedAnalyses = () => {
+	const mockAnalysisStore = writable({ 
+		analyses: mixedAnalyses, 
+		isLoading: false, 
+		error: null,
+		currentAnalysisId: null
 	});
+	const mockPersistentFileStore = writable({ files: mockFiles });
+	const mockCurrentFile = writable(null);
+	
+	return {
+		Component: AnalysisHistoryWrapper,
+		props: {
+			mockAnalysisStore,
+			mockPersistentFileStore,
+			mockCurrentFile,
+			onSelectAnalysis: (id) => console.log('Selected analysis:', id),
+			filterByCurrentFile: false,
+			compact: false,
+			redirectToResults: false
+		}
+	};
 };
 MixedAnalyses.parameters = {
 	docs: {
@@ -275,18 +284,28 @@ MixedAnalyses.parameters = {
 	}
 };
 
-export const FilteredByFile = (args) => {
-	// Mock filtered state for current file
-	window.analysisStore = createAnalysisStore(mixedAnalyses, false, null);
-	window.persistentFileStore = createFileStore(mockFiles);
-	window.currentFile = createCurrentFileStore(mockFiles[0]); // Set first file as current
-	
-	return Template.bind({})({
-		onSelectAnalysis: (id) => console.log('Selected analysis:', id),
-		filterByCurrentFile: true,
-		compact: false,
-		redirectToResults: false
+export const FilteredByFile = () => {
+	const mockAnalysisStore = writable({ 
+		analyses: mixedAnalyses, 
+		isLoading: false, 
+		error: null,
+		currentAnalysisId: null
 	});
+	const mockPersistentFileStore = writable({ files: mockFiles });
+	const mockCurrentFile = writable(mockFiles[0]); // Set first file as current
+	
+	return {
+		Component: AnalysisHistoryWrapper,
+		props: {
+			mockAnalysisStore,
+			mockPersistentFileStore,
+			mockCurrentFile,
+			onSelectAnalysis: (id) => console.log('Selected analysis:', id),
+			filterByCurrentFile: true,
+			compact: false,
+			redirectToResults: false
+		}
+	};
 };
 FilteredByFile.parameters = {
 	docs: {
@@ -296,18 +315,28 @@ FilteredByFile.parameters = {
 	}
 };
 
-export const CompactMode = (args) => {
-	// Mock compact mode
-	window.analysisStore = createAnalysisStore(mixedAnalyses, false, null);
-	window.persistentFileStore = createFileStore(mockFiles);
-	window.currentFile = createCurrentFileStore(null);
-	
-	return Template.bind({})({
-		onSelectAnalysis: (id) => console.log('Selected analysis:', id),
-		filterByCurrentFile: false,
-		compact: true,
-		redirectToResults: false
+export const CompactMode = () => {
+	const mockAnalysisStore = writable({ 
+		analyses: mixedAnalyses, 
+		isLoading: false, 
+		error: null,
+		currentAnalysisId: null
 	});
+	const mockPersistentFileStore = writable({ files: mockFiles });
+	const mockCurrentFile = writable(null);
+	
+	return {
+		Component: AnalysisHistoryWrapper,
+		props: {
+			mockAnalysisStore,
+			mockPersistentFileStore,
+			mockCurrentFile,
+			onSelectAnalysis: (id) => console.log('Selected analysis:', id),
+			filterByCurrentFile: false,
+			compact: true,
+			redirectToResults: false
+		}
+	};
 };
 CompactMode.parameters = {
 	docs: {
@@ -317,18 +346,28 @@ CompactMode.parameters = {
 	}
 };
 
-export const RunningAnalyses = (args) => {
-	// Mock only running analyses
-	window.analysisStore = createAnalysisStore(runningAnalyses, false, null);
-	window.persistentFileStore = createFileStore(mockFiles);
-	window.currentFile = createCurrentFileStore(null);
-	
-	return Template.bind({})({
-		onSelectAnalysis: (id) => console.log('Selected analysis:', id),
-		filterByCurrentFile: false,
-		compact: false,
-		redirectToResults: false
+export const RunningAnalyses = () => {
+	const mockAnalysisStore = writable({ 
+		analyses: runningAnalyses, 
+		isLoading: false, 
+		error: null,
+		currentAnalysisId: null
 	});
+	const mockPersistentFileStore = writable({ files: mockFiles });
+	const mockCurrentFile = writable(null);
+	
+	return {
+		Component: AnalysisHistoryWrapper,
+		props: {
+			mockAnalysisStore,
+			mockPersistentFileStore,
+			mockCurrentFile,
+			onSelectAnalysis: (id) => console.log('Selected analysis:', id),
+			filterByCurrentFile: false,
+			compact: false,
+			redirectToResults: false
+		}
+	};
 };
 RunningAnalyses.parameters = {
 	docs: {
@@ -338,18 +377,28 @@ RunningAnalyses.parameters = {
 	}
 };
 
-export const CompletedAnalyses = (args) => {
-	// Mock only completed analyses
-	window.analysisStore = createAnalysisStore(completedAnalyses, false, null);
-	window.persistentFileStore = createFileStore(mockFiles);
-	window.currentFile = createCurrentFileStore(null);
-	
-	return Template.bind({})({
-		onSelectAnalysis: (id) => console.log('Selected analysis:', id),
-		filterByCurrentFile: false,
-		compact: false,
-		redirectToResults: false
+export const CompletedAnalyses = () => {
+	const mockAnalysisStore = writable({ 
+		analyses: completedAnalyses, 
+		isLoading: false, 
+		error: null,
+		currentAnalysisId: null
 	});
+	const mockPersistentFileStore = writable({ files: mockFiles });
+	const mockCurrentFile = writable(null);
+	
+	return {
+		Component: AnalysisHistoryWrapper,
+		props: {
+			mockAnalysisStore,
+			mockPersistentFileStore,
+			mockCurrentFile,
+			onSelectAnalysis: (id) => console.log('Selected analysis:', id),
+			filterByCurrentFile: false,
+			compact: false,
+			redirectToResults: false
+		}
+	};
 };
 CompletedAnalyses.parameters = {
 	docs: {
@@ -359,18 +408,28 @@ CompletedAnalyses.parameters = {
 	}
 };
 
-export const WithRedirect = (args) => {
-	// Mock with redirect enabled
-	window.analysisStore = createAnalysisStore(completedAnalyses, false, null);
-	window.persistentFileStore = createFileStore(mockFiles);
-	window.currentFile = createCurrentFileStore(null);
-	
-	return Template.bind({})({
-		onSelectAnalysis: (id) => console.log('Selected analysis:', id),
-		filterByCurrentFile: false,
-		compact: false,
-		redirectToResults: true
+export const WithRedirect = () => {
+	const mockAnalysisStore = writable({ 
+		analyses: completedAnalyses, 
+		isLoading: false, 
+		error: null,
+		currentAnalysisId: null
 	});
+	const mockPersistentFileStore = writable({ files: mockFiles });
+	const mockCurrentFile = writable(null);
+	
+	return {
+		Component: AnalysisHistoryWrapper,
+		props: {
+			mockAnalysisStore,
+			mockPersistentFileStore,
+			mockCurrentFile,
+			onSelectAnalysis: (id) => console.log('Selected analysis:', id),
+			filterByCurrentFile: false,
+			compact: false,
+			redirectToResults: true
+		}
+	};
 };
 WithRedirect.parameters = {
 	docs: {
@@ -380,18 +439,28 @@ WithRedirect.parameters = {
 	}
 };
 
-export const EmptyCurrentFile = (args) => {
-	// Mock empty state when filtering by current file
-	window.analysisStore = createAnalysisStore(mixedAnalyses, false, null);
-	window.persistentFileStore = createFileStore(mockFiles);
-	window.currentFile = createCurrentFileStore(mockFiles[2]); // File with no analyses
-	
-	return Template.bind({})({
-		onSelectAnalysis: (id) => console.log('Selected analysis:', id),
-		filterByCurrentFile: true,
-		compact: false,
-		redirectToResults: false
+export const EmptyCurrentFile = () => {
+	const mockAnalysisStore = writable({ 
+		analyses: mixedAnalyses, 
+		isLoading: false, 
+		error: null,
+		currentAnalysisId: null
 	});
+	const mockPersistentFileStore = writable({ files: mockFiles });
+	const mockCurrentFile = writable(mockFiles[2]); // File with no analyses
+	
+	return {
+		Component: AnalysisHistoryWrapper,
+		props: {
+			mockAnalysisStore,
+			mockPersistentFileStore,
+			mockCurrentFile,
+			onSelectAnalysis: (id) => console.log('Selected analysis:', id),
+			filterByCurrentFile: true,
+			compact: false,
+			redirectToResults: false
+		}
+	};
 };
 EmptyCurrentFile.parameters = {
 	docs: {
