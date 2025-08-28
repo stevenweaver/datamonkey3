@@ -11,22 +11,33 @@ const createMockStore = (analyses) => {
 
 // Mock analyses for different states
 const runningAnalyses = [
-	{ id: '1', status: 'running', startTime: new Date().toISOString() },
-	{ id: '2', status: 'mounting', startTime: new Date().toISOString() }
+	{ id: '1', status: 'running', method: 'FEL', startTime: new Date().toISOString() },
+	{ id: '2', status: 'mounting', method: 'SLAC', startTime: new Date().toISOString() }
 ];
 
 const completedAnalyses = [
-	{ id: '3', status: 'completed', completedAt: new Date().getTime() },
-	{ id: '4', status: 'completed', completedAt: new Date().getTime() }
+	{ id: '3', status: 'completed', method: 'MEME', completedAt: new Date().toISOString() },
+	{ id: '4', status: 'completed', method: 'BUSTED', completedAt: new Date().toISOString() },
+	{ id: '5', status: 'completed', method: 'FEL', completedAt: new Date().toISOString() }
 ];
 
-const failedAnalyses = [{ id: '5', status: 'error', completedAt: new Date().getTime() }];
+const failedAnalyses = [
+	{ id: '6', status: 'error', method: 'FEL', completedAt: new Date().toISOString() },
+	{ id: '7', status: 'error', method: 'SLAC', completedAt: new Date().toISOString() }
+];
 
 const mixedAnalyses = [...runningAnalyses, ...completedAnalyses, ...failedAnalyses];
 
+// Mock datareader analyses that should be ignored
+const withDatareaderAnalyses = [
+	...mixedAnalyses,
+	{ id: '8', status: 'running', method: 'datareader', startTime: new Date().toISOString() },
+	{ id: '9', status: 'completed', method: 'datareader', completedAt: new Date().toISOString() }
+];
+
 // Export the default story configuration
 export default {
-	title: 'Analysis/StatusIndicator',
+	title: 'Progress Indicators/AnalysisStatusIndicator',
 	component: AnalysisStatusIndicator,
 	parameters: {
 		docs: {
@@ -35,7 +46,7 @@ export default {
           ## Analysis Status Indicator
           
           A streamlined status indicator that displays in the navigation bar, showing:
-          - Number of running analyses with a blue dot (⚡)
+          - Number of running analyses with a blue pulsing dot
           - Number of completed analyses today with a green checkmark (✓)
           - Number of failed analyses with a warning symbol (⚠)
           
@@ -103,7 +114,31 @@ export const Mixed = (args) => {
 Mixed.parameters = {
 	docs: {
 		description: {
-			story: 'Shows all types of analyses with their respective indicators.'
+			story: 'Shows all types of analyses with their respective indicators: 2 running, 3 completed today, and 2 failed.'
+		}
+	}
+};
+
+export const WithDatareader = (args) => {
+	window.activeAnalyses = createMockStore(withDatareaderAnalyses);
+	return Template.bind({})();
+};
+WithDatareader.parameters = {
+	docs: {
+		description: {
+			story: 'Shows that datareader analyses are correctly filtered out and not displayed in the counts.'
+		}
+	}
+};
+
+export const NoAnalyses = (args) => {
+	window.activeAnalyses = createMockStore([]);
+	return Template.bind({})();
+};
+NoAnalyses.parameters = {
+	docs: {
+		description: {
+			story: 'Component behavior when there are no analyses to display (indicator should be hidden).'
 		}
 	}
 };
