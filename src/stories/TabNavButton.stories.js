@@ -1,6 +1,8 @@
+import TabNavButton from '../lib/TabNavButton.svelte';
+
 export default {
 	title: 'Components/TabNavButton',
-	component: null,
+	component: TabNavButton,
 	parameters: {
 		docs: {
 			description: {
@@ -23,15 +25,11 @@ export default {
 	}
 };
 
-const Template = ({ direction, label, disabled, tooltip, step, onClick }) => ({
-	Component: () => import('../lib/TabNavButton.svelte'),
+const Template = (args) => ({
+	Component: TabNavButton,
 	props: {
-		direction,
-		label,
-		disabled,
-		tooltip,
-		step,
-		onClick: onClick || (() => console.log('Button clicked'))
+		...args,
+		onClick: args.onClick || (() => console.log('Button clicked'))
 	}
 });
 
