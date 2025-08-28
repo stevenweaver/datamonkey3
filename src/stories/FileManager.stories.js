@@ -1,8 +1,9 @@
+import FileManager from '../lib/FileManager.svelte';
 import { writable } from 'svelte/store';
 
 export default {
 	title: 'Components/FileManager',
-	component: null,
+	component: FileManager,
 	parameters: {
 		docs: {
 			description: {
@@ -52,28 +53,32 @@ const mockPersistentFileStore = writable({
 const mockCurrentFile = writable(null);
 const mockAnalysisStore = writable({ analyses: [] });
 
-const Template = ({ onSelectFile }) => ({
-	Component: () => import('../lib/FileManager.svelte'),
-	props: {
-		onSelectFile: onSelectFile || (() => console.log('File selected'))
-	}
+const Template = (args) => ({
+	Component: FileManager,
+	props: args
 });
 
 export const WithFiles = Template.bind({});
-WithFiles.args = {};
+WithFiles.args = {
+	onSelectFile: (file) => console.log('File selected:', file)
+};
 
 export const EmptyState = Template.bind({});
-EmptyState.args = {};
-// This would need custom mock stores with empty arrays
+EmptyState.args = {
+	onSelectFile: (file) => console.log('File selected:', file)
+};
 
 export const LoadingState = Template.bind({});
-LoadingState.args = {};
-// This would need to mock the loading state
+LoadingState.args = {
+	onSelectFile: (file) => console.log('File selected:', file)
+};
 
 export const SingleFile = Template.bind({});
-SingleFile.args = {};
-// This would need custom mock stores with single file
+SingleFile.args = {
+	onSelectFile: (file) => console.log('File selected:', file)
+};
 
 export const ManyFiles = Template.bind({});
-ManyFiles.args = {};
-// This would need custom mock stores with many files for testing performance
+ManyFiles.args = {
+	onSelectFile: (file) => console.log('File selected:', file)
+};
