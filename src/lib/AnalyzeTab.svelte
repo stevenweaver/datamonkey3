@@ -4,12 +4,14 @@
 	import { persistentFileStore } from '../stores/fileInfo';
 	import { analysisStore, activeAnalysisProgress } from '../stores/analyses';
 	import { treeStore } from '../stores/tree';
+	import { backendConnectivity, initializeBackendConnectivity } from '../stores/backendConnectivity.js';
 	import MethodSelector from './MethodSelector.svelte';
 	import AnalysisTimingEstimate from './AnalysisTimingEstimate.svelte';
 	import FileIndicator from './FileIndicator.svelte';
 	import TabNavigation from './TabNavigation.svelte';
 	import TreePrompt from './TreePrompt.svelte';
 	import TreeInferenceSection from './TreeInferenceSection.svelte';
+	import backendAnalysisRunner from './services/BackendAnalysisRunner.js';
 
 	// Props
 	export let methodConfig = {};
@@ -36,14 +38,56 @@
 	let currentSelectedMethod = null;
 	let currentMethodOptions = {};
 	let currentGeneticCode = 'Universal';
+	let currentExecutionMode = 'local';
 
 	// Handle method selection changes from MethodSelector
 	function handleMethodChange(event) {
-		const { method, options, geneticCode } = event.detail;
+		const { method, options, geneticCode, executionMode } = event.detail;
 		currentSelectedMethod = method;
 		currentMethodOptions = options || {};
 		currentGeneticCode = geneticCode || 'Universal';
+		currentExecutionMode = executionMode || 'local';
 	}
+
+	// Enhanced runMethod that handles both local and backend execution
+	async function enhancedRunMethod(method, config) {
+		try {
+			if (config.executionMode === 'backend') {
+				// Backend execution
+				if (!$backendConnectivity.isConnected) {
+					throw new Error('Backend server is not connected');
+				}
+
+				// Get current file data
+				const fastaData = $currentFile?.content || '';
+				const treeData = $treeStore?.usertree || $treeStore?.nj || '';
+
+				if (!fastaData) {
+					throw new Error('No sequence data available');
+				}
+
+				if (!treeData) {
+					throw new Error('No tree data available. Please generate or upload a tree first.');
+				}
+
+				const result = await backendAnalysisRunner.runAnalysis(method, config, fastaData, treeData);
+				console.log('✅ Backend analysis submitted:', result);
+				
+			} else {
+				// Local execution - use existing runMethod
+				runMethod(method, config);
+			}
+		} catch (error) {
+			console.error('❌ Analysis execution failed:', error);
+			// Could show error notification to user
+			alert(`Analysis failed: ${error.message}`);
+		}
+	}
+
+	// Initialize backend connectivity on mount
+	onMount(() => {
+		initializeBackendConnectivity();
+	});
 
 	// Handle tree generation prompt
 	function handleGenerateTreeClick() {
@@ -113,7 +157,7 @@
 			<div class="p-premium-lg">
 				{#if $currentFile}
 					<!-- Method Selector -->
-					<MethodSelector {methodConfig} {runMethod} on:methodChange={handleMethodChange} />
+					<MethodSelector {methodConfig} runMethod={enhancedRunMethod} on:methodChange={handleMethodChange} />
 
 					<!-- Analysis Timing Estimate -->
 					{#if currentSelectedMethod}

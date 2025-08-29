@@ -1,6 +1,7 @@
 <!-- src/lib/MethodSelector.svelte -->
 <script>
 	import { createEventDispatcher } from 'svelte';
+	import { backendConnectivity } from '../stores/backendConnectivity.js';
 
 	export let methodConfig;
 	export let runMethod = null;
@@ -8,78 +9,95 @@
 
 	const dispatch = createEventDispatcher();
 
+	// Supported methods - easy to update when methods are implemented
+	const SUPPORTED_METHODS = ['fel', 'slac'];
+
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
 		fel: {
 			name: 'FEL',
 			fullName: 'Fixed Effects Likelihood',
-			shortDescription: 'Detect selection at individual sites'
+			shortDescription: 'Detect selection at individual sites',
+			supported: true
 		},
 		meme: {
 			name: 'MEME',
 			fullName: 'Mixed Effects Model of Evolution',
-			shortDescription: 'Detect episodic selection at individual sites'
+			shortDescription: 'Detect episodic selection at individual sites',
+			supported: false
 		},
 		slac: {
 			name: 'SLAC',
 			fullName: 'Single-Likelihood Ancestor Counting',
-			shortDescription: 'Fast approximate method for detecting selection'
+			shortDescription: 'Fast approximate method for detecting selection',
+			supported: true
 		},
 		fubar: {
 			name: 'FUBAR',
 			fullName: 'Fast Unconstrained Bayesian AppRoximation',
-			shortDescription: 'Bayesian approach to detect selection'
+			shortDescription: 'Bayesian approach to detect selection',
+			supported: false
 		},
 		absrel: {
 			name: 'aBSREL',
 			fullName: 'adaptive Branch-Site Random Effects Likelihood',
-			shortDescription: 'Test for selection on specific branches'
+			shortDescription: 'Test for selection on specific branches',
+			supported: false
 		},
 		busted: {
 			name: 'BUSTED',
 			fullName: 'Branch-site Unrestricted Statistical Test for Episodic Diversification',
-			shortDescription: 'Test for gene-wide selection'
+			shortDescription: 'Test for gene-wide selection',
+			supported: false
 		},
 		gard: {
 			name: 'GARD',
 			fullName: 'Genetic Algorithm for Recombination Detection',
-			shortDescription: 'Detect recombination breakpoints'
+			shortDescription: 'Detect recombination breakpoints',
+			supported: false
 		},
 		bgm: {
 			name: 'BGM',
 			fullName: 'Bayesian Graphical Model',
-			shortDescription: 'Detect correlated substitution patterns'
+			shortDescription: 'Detect correlated substitution patterns',
+			supported: false
 		},
 		fade: {
 			name: 'FADE',
 			fullName: 'FUBAR Approach to Directional Evolution',
-			shortDescription: 'Detect directional selection'
+			shortDescription: 'Detect directional selection',
+			supported: false
 		},
 		relax: {
 			name: 'RELAX',
 			fullName: 'Relaxation Test',
-			shortDescription: 'Test for relaxed or intensified selection'
+			shortDescription: 'Test for relaxed or intensified selection',
+			supported: false
 		},
 		'multi-hit': {
 			name: 'MULTI-HIT',
 			fullName: 'Multiple Hit Model',
-			shortDescription: 'Account for multiple substitutions'
+			shortDescription: 'Account for multiple substitutions',
+			supported: false
 		},
 		nrm: {
 			name: 'NRM',
 			fullName: 'Non-Reversible Model',
-			shortDescription: 'Directional evolution analysis'
+			shortDescription: 'Directional evolution analysis',
+			supported: false
 		},
 		'contrast-fel': {
 			name: 'Contrast-FEL',
 			fullName: 'Contrast Fixed Effects Likelihood',
-			shortDescription: 'Compare selection between groups'
+			shortDescription: 'Compare selection between groups',
+			supported: false
 		}
 	};
 
 	// State management
 	let selectedMethod = null;
 	let geneticCode = 'Universal';
+	let executionMode = 'local'; // 'local' or 'backend'
 
 	// Method-specific advanced options configurations
 	const METHOD_ADVANCED_OPTIONS = {
@@ -383,11 +401,12 @@
 	}
 
 	// Dispatch method changes for parent components (like timing estimates)
-	$: if (selectedMethod || geneticCode || methodOptions) {
+	$: if (selectedMethod || geneticCode || methodOptions || executionMode) {
 		dispatch('methodChange', {
 			method: selectedMethod,
 			options: selectedMethod ? methodOptions[selectedMethod] : {},
-			geneticCode
+			geneticCode,
+			executionMode
 		});
 	}
 
@@ -409,7 +428,8 @@
 			METHOD_INFO[key.toLowerCase()] || {
 				name: key.toUpperCase(),
 				fullName: key,
-				shortDescription: ''
+				shortDescription: '',
+				supported: false
 			}
 		);
 	}
@@ -420,11 +440,17 @@
 			const analysisConfig = {
 				method: selectedMethod,
 				geneticCode,
+				executionMode,
 				...(methodOptions[selectedMethod] || {})
 			};
 			console.log(`Running analysis with config:`, analysisConfig);
 			runMethod(selectedMethod, analysisConfig);
 		}
+	}
+
+	// Smart default: suggest backend for larger datasets  
+	function getSmartDefault(fileSequenceCount = 0) {
+		return fileSequenceCount > 1000 ? 'backend' : 'local';
 	}
 </script>
 
@@ -436,8 +462,9 @@
 			<select bind:value={selectedMethod} class="method-dropdown">
 				<option value={null}>Select an analysis method</option>
 				{#each availableMethods as method}
-					<option value={method.id}>
+					<option value={method.id} disabled={!method.info.supported}>
 						{method.info.name} - {method.info.fullName}
+						{#if !method.info.supported}(Coming Soon){/if}
 					</option>
 				{/each}
 			</select>
@@ -447,6 +474,59 @@
 		{#if currentMethod}
 			<div class="method-description">
 				{currentMethod.info.shortDescription}
+				{#if !currentMethod.info.supported}
+					<div class="coming-soon-badge">
+						<span class="badge-text">Coming Soon</span>
+					</div>
+				{/if}
+			</div>
+		{/if}
+
+		<!-- Execution Mode Selection -->
+		{#if selectedMethod && currentMethod?.info.supported}
+			<div class="execution-mode-section">
+				<h4 class="execution-mode-title">Execution Mode</h4>
+				<div class="execution-mode-options">
+					<label class="execution-mode-option">
+						<input
+							type="radio"
+							bind:group={executionMode}
+							value="local"
+							class="execution-mode-radio"
+						/>
+						<div class="execution-mode-content">
+							<div class="execution-mode-name">Local (Browser)</div>
+							<div class="execution-mode-desc">Fast • Small datasets</div>
+						</div>
+					</label>
+					<label class="execution-mode-option">
+						<input
+							type="radio"
+							bind:group={executionMode}
+							value="backend"
+							class="execution-mode-radio"
+							disabled={!$backendConnectivity.isConnected}
+						/>
+						<div class="execution-mode-content">
+							<div class="execution-mode-name">Backend Server</div>
+							<div class="execution-mode-desc">
+								{#if $backendConnectivity.isConnected}
+									Powerful • Large datasets
+								{:else}
+									Server unavailable
+								{/if}
+							</div>
+						</div>
+					</label>
+				</div>
+				{#if !$backendConnectivity.isConnected}
+					<div class="backend-status-warning">
+						<svg class="warning-icon" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+						</svg>
+						<span>Server temporarily unavailable. Please use Local mode.</span>
+					</div>
+				{/if}
 			</div>
 		{/if}
 
@@ -478,8 +558,16 @@
 						</label>
 					</div>
 
-					<button class="run-button" on:click={runAnalysis} disabled={!selectedMethod}>
-						Run Analysis
+					<button
+						class="run-button"
+						on:click={runAnalysis}
+						disabled={!selectedMethod || !currentMethod?.info.supported}
+					>
+						{#if currentMethod?.info.supported}
+							Run Analysis
+						{:else}
+							Coming Soon
+						{/if}
 					</button>
 				</div>
 
@@ -602,11 +690,131 @@
 		box-shadow: 0 0 0 1px #4299e1;
 	}
 
+	.method-dropdown option:disabled {
+		color: #a0aec0;
+		background-color: #f7fafc;
+		font-style: italic;
+	}
+
 	.method-description {
 		font-size: 13px;
 		color: #4a5568;
 		margin-bottom: 24px;
 		padding: 8px 0;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.coming-soon-badge {
+		display: inline-flex;
+		align-items: center;
+		padding: 2px 8px;
+		background: #fef3c7;
+		border: 1px solid #f59e0b;
+		border-radius: 12px;
+		font-size: 11px;
+		font-weight: 500;
+		color: #92400e;
+		text-transform: uppercase;
+		letter-spacing: 0.025em;
+	}
+
+	.badge-text {
+		line-height: 1;
+	}
+
+	.execution-mode-section {
+		margin-bottom: 24px;
+		padding: 16px 0;
+		border-top: 1px solid #f7fafc;
+	}
+
+	.execution-mode-title {
+		font-size: 13px;
+		font-weight: 500;
+		color: #4a5568;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin-bottom: 12px;
+	}
+
+	.execution-mode-options {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 12px;
+	}
+
+	.execution-mode-option {
+		display: flex;
+		align-items: flex-start;
+		gap: 12px;
+		padding: 12px;
+		border: 1px solid #e2e8f0;
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.execution-mode-option:hover {
+		border-color: #cbd5e0;
+		background-color: #f7fafc;
+	}
+
+	.execution-mode-option:has(:checked) {
+		border-color: #4299e1;
+		background-color: #ebf8ff;
+	}
+
+	.execution-mode-option:has(:disabled) {
+		opacity: 0.6;
+		cursor: not-allowed;
+		background-color: #f9fafb;
+	}
+
+	.execution-mode-radio {
+		margin-top: 2px;
+		cursor: pointer;
+	}
+
+	.execution-mode-radio:disabled {
+		cursor: not-allowed;
+	}
+
+	.execution-mode-content {
+		flex: 1;
+	}
+
+	.execution-mode-name {
+		font-size: 14px;
+		font-weight: 500;
+		color: #2d3748;
+		margin-bottom: 2px;
+	}
+
+	.execution-mode-desc {
+		font-size: 12px;
+		color: #718096;
+	}
+
+	.backend-status-warning {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-top: 12px;
+		padding: 8px 12px;
+		background-color: #fef3cd;
+		border: 1px solid #f59e0b;
+		border-radius: 4px;
+		font-size: 12px;
+		color: #92400e;
+	}
+
+	.warning-icon {
+		width: 16px;
+		height: 16px;
+		flex-shrink: 0;
+		color: #f59e0b;
 	}
 
 	.options-container {
