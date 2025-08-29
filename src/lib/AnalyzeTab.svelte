@@ -58,17 +58,35 @@
 					throw new Error('Backend server is not connected');
 				}
 
-				// Get current file data
-				const fastaData = $currentFile?.content || '';
-				const treeData = $treeStore?.usertree || $treeStore?.nj || '';
-
-				if (!fastaData) {
-					throw new Error('No sequence data available');
+				// Check if we have a current file selected
+				if (!$currentFile || !$currentFile.id) {
+					throw new Error('No file selected for analysis');
 				}
 
+				// Get full file data including content from storage
+				const fullFileData = await persistentFileStore.getFile($currentFile.id);
+				if (!fullFileData) {
+					throw new Error('Unable to load file data');
+				}
+
+				// Convert file to text to get FASTA data
+				const fastaData = await fullFileData.text();
+				if (!fastaData || !fastaData.trim()) {
+					throw new Error('No sequence data available in selected file');
+				}
+
+				// Get tree data
+				const treeData = $treeStore?.usertree || $treeStore?.nj || '';
 				if (!treeData) {
 					throw new Error('No tree data available. Please generate or upload a tree first.');
 				}
+
+				console.log('📤 Submitting to backend with data:', {
+					method,
+					fastaLength: fastaData.length,
+					treeLength: treeData.length,
+					fileName: $currentFile.filename
+				});
 
 				const result = await backendAnalysisRunner.runAnalysis(method, config, fastaData, treeData);
 				console.log('✅ Backend analysis submitted:', result);

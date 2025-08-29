@@ -107,8 +107,25 @@ class BackendAnalysisRunner {
 	 * Run analysis on backend server
 	 */
 	async runAnalysis(method, config, fastaData, treeData) {
+		console.log('🚀 BackendAnalysisRunner.runAnalysis called with:', {
+			method,
+			fastaDataLength: fastaData?.length || 0,
+			treeDataLength: treeData?.length || 0,
+			configKeys: Object.keys(config || {})
+		});
+
 		if (!this.socket || !this.socket.connected) {
+			console.log('🔌 Socket not connected, attempting to connect...');
 			await this.connect();
+		}
+
+		// Validate input data
+		if (!fastaData || !fastaData.trim()) {
+			throw new Error('FASTA data is empty or invalid');
+		}
+
+		if (!treeData || !treeData.trim()) {
+			throw new Error('Tree data is empty or invalid');
 		}
 
 		// Create analysis entry in store
@@ -133,16 +150,22 @@ class BackendAnalysisRunner {
 			
 			// Submit to backend
 			const eventName = `${method.toLowerCase()}:spawn`;
-			console.log(`📤 Submitting ${method} analysis to backend:`, eventName);
+			console.log(`📤 Submitting ${method} analysis to backend:`, eventName, {
+				alignmentLength: fastaData.length,
+				treeLength: treeData.length,
+				jobParams: analysisParams
+			});
 
-			this.socket.emit(eventName, {
+			const submitData = {
 				alignment: fastaData,
 				tree: treeData,
 				job: {
 					...analysisParams,
 					jobId: jobId
 				}
-			});
+			};
+
+			this.socket.emit(eventName, submitData);
 
 			// Update analysis with job ID
 			analysisStore.updateProgress(analysisId, {
