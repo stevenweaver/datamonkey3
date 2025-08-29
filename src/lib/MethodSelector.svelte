@@ -1,114 +1,79 @@
 <!-- src/lib/MethodSelector.svelte -->
 <script>
+	import { createEventDispatcher } from 'svelte';
+
 	export let methodConfig;
 	export let runMethod = null;
 	export let onConfigureMethod = null;
+
+	const dispatch = createEventDispatcher();
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
 		fel: {
 			name: 'FEL',
 			fullName: 'Fixed Effects Likelihood',
-			shortDescription: 'Detect selection at individual sites',
-			estimatedTime: 'Fast (2-5 min)',
-			speed: 'fast',
-			icon: '⚡'
+			shortDescription: 'Detect selection at individual sites'
 		},
 		meme: {
 			name: 'MEME',
 			fullName: 'Mixed Effects Model of Evolution',
-			shortDescription: 'Detect episodic selection at individual sites',
-			estimatedTime: 'Medium (5-15 min)',
-			speed: 'medium',
-			icon: '⏱️'
+			shortDescription: 'Detect episodic selection at individual sites'
 		},
 		slac: {
 			name: 'SLAC',
 			fullName: 'Single-Likelihood Ancestor Counting',
-			shortDescription: 'Fast approximate method for detecting selection',
-			estimatedTime: 'Very Fast (1-2 min)',
-			speed: 'very fast',
-			icon: '⚡⚡'
+			shortDescription: 'Fast approximate method for detecting selection'
 		},
 		fubar: {
 			name: 'FUBAR',
 			fullName: 'Fast Unconstrained Bayesian AppRoximation',
-			shortDescription: 'Bayesian approach to detect selection',
-			estimatedTime: 'Medium (10-20 min)',
-			speed: 'medium',
-			icon: '⏱️'
+			shortDescription: 'Bayesian approach to detect selection'
 		},
 		absrel: {
 			name: 'aBSREL',
 			fullName: 'adaptive Branch-Site Random Effects Likelihood',
-			shortDescription: 'Test for selection on specific branches',
-			estimatedTime: 'Slow (20-60 min)',
-			speed: 'slow',
-			icon: '🐢'
+			shortDescription: 'Test for selection on specific branches'
 		},
 		busted: {
 			name: 'BUSTED',
 			fullName: 'Branch-site Unrestricted Statistical Test for Episodic Diversification',
-			shortDescription: 'Test for gene-wide selection',
-			estimatedTime: 'Slow (15-45 min)',
-			speed: 'slow',
-			icon: '🐢'
+			shortDescription: 'Test for gene-wide selection'
 		},
 		gard: {
 			name: 'GARD',
 			fullName: 'Genetic Algorithm for Recombination Detection',
-			shortDescription: 'Detect recombination breakpoints',
-			estimatedTime: 'Very Slow (1-4 hours)',
-			speed: 'very slow',
-			icon: '🐌'
+			shortDescription: 'Detect recombination breakpoints'
 		},
 		bgm: {
 			name: 'BGM',
 			fullName: 'Bayesian Graphical Model',
-			shortDescription: 'Detect correlated substitution patterns',
-			estimatedTime: 'Very Slow (2-8 hours)',
-			speed: 'very slow',
-			icon: '🐌'
+			shortDescription: 'Detect correlated substitution patterns'
 		},
 		fade: {
 			name: 'FADE',
 			fullName: 'FUBAR Approach to Directional Evolution',
-			shortDescription: 'Detect directional selection',
-			estimatedTime: 'Slow (30-90 min)',
-			speed: 'slow',
-			icon: '🐢'
+			shortDescription: 'Detect directional selection'
 		},
 		relax: {
 			name: 'RELAX',
 			fullName: 'Relaxation Test',
-			shortDescription: 'Test for relaxed or intensified selection',
-			estimatedTime: 'Slow (20-60 min)',
-			speed: 'slow',
-			icon: '🐢'
+			shortDescription: 'Test for relaxed or intensified selection'
 		},
 		'multi-hit': {
 			name: 'MULTI-HIT',
 			fullName: 'Multiple Hit Model',
-			shortDescription: 'Account for multiple substitutions',
-			estimatedTime: 'Slow (15-45 min)',
-			speed: 'slow',
-			icon: '🐢'
+			shortDescription: 'Account for multiple substitutions'
 		},
 		nrm: {
 			name: 'NRM',
 			fullName: 'Non-Reversible Model',
-			shortDescription: 'Directional evolution analysis',
-			estimatedTime: 'Slow (20-60 min)',
-			speed: 'slow',
-			icon: '🐢'
+			shortDescription: 'Directional evolution analysis'
 		},
 		'contrast-fel': {
 			name: 'Contrast-FEL',
 			fullName: 'Contrast Fixed Effects Likelihood',
-			shortDescription: 'Compare selection between groups',
-			estimatedTime: 'Medium (10-30 min)',
-			speed: 'medium',
-			icon: '⏱️'
+			shortDescription: 'Compare selection between groups'
 		}
 	};
 
@@ -116,10 +81,275 @@
 	let selectedMethod = null;
 	let geneticCode = 'Universal';
 
-	// Advanced options state
-	let confidenceIntervals = false;
-	let resample = 0;
-	let multipleHits = 'None';
+	// Method-specific advanced options configurations
+	const METHOD_ADVANCED_OPTIONS = {
+		fel: {
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.1,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			confidenceLevel: {
+				type: 'number',
+				label: 'Confidence level',
+				default: 0.95,
+				min: 0.8,
+				max: 0.99,
+				step: 0.01
+			},
+			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
+			confidenceIntervals: {
+				type: 'boolean',
+				label: 'Include confidence intervals',
+				default: false
+			}
+		},
+		meme: {
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.1,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			confidenceLevel: {
+				type: 'number',
+				label: 'Confidence level',
+				default: 0.95,
+				min: 0.8,
+				max: 0.99,
+				step: 0.01
+			},
+			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
+			siteToSiteRateVariation: {
+				type: 'boolean',
+				label: 'Site-to-site rate variation',
+				default: true
+			}
+		},
+		slac: {
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.1,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			confidenceLevel: {
+				type: 'number',
+				label: 'Confidence level',
+				default: 0.95,
+				min: 0.8,
+				max: 0.99,
+				step: 0.01
+			},
+			ancestralSequences: { type: 'boolean', label: 'Include ancestral sequences', default: false }
+		},
+		fubar: {
+			posteriorThreshold: {
+				type: 'number',
+				label: 'Posterior threshold',
+				default: 0.9,
+				min: 0.5,
+				max: 0.99,
+				step: 0.01
+			},
+			gridPoints: { type: 'number', label: 'Grid points', default: 20, min: 5, max: 50 },
+			mcmcChains: { type: 'number', label: 'MCMC chains', default: 5, min: 2, max: 20 },
+			mcmcSamples: {
+				type: 'number',
+				label: 'MCMC samples',
+				default: 2000000,
+				min: 100000,
+				max: 10000000,
+				step: 100000
+			}
+		},
+		absrel: {
+			branchesType: {
+				type: 'select',
+				label: 'Test branches',
+				default: 'All',
+				options: ['All', 'Internal', 'Leaves', 'Unlabeled-branches', 'Test']
+			},
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.05,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			synonymousRateVariation: {
+				type: 'boolean',
+				label: 'Synonymous rate variation',
+				default: true
+			},
+			multipleHits: {
+				type: 'select',
+				label: 'Multiple hits',
+				default: 'Double',
+				options: ['None', 'Double', 'Double+Triple']
+			}
+		},
+		busted: {
+			branchesType: {
+				type: 'select',
+				label: 'Test branches',
+				default: 'All',
+				options: ['All', 'Internal', 'Leaves', 'Unlabeled-branches', 'Test']
+			},
+			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
+			synonymousRateVariation: {
+				type: 'boolean',
+				label: 'Synonymous rate variation',
+				default: true
+			},
+			multipleHits: {
+				type: 'select',
+				label: 'Multiple hits',
+				default: 'Double',
+				options: ['None', 'Double', 'Double+Triple']
+			}
+		},
+		gard: {
+			rateClasses: { type: 'number', label: 'Rate classes', default: 4, min: 2, max: 10 },
+			modelSelection: {
+				type: 'select',
+				label: 'Model selection',
+				default: 'AIC',
+				options: ['AIC', 'AICc', 'BIC']
+			},
+			breakpointMethod: {
+				type: 'select',
+				label: 'Breakpoint method',
+				default: 'GA',
+				options: ['GA', 'Exhaustive']
+			},
+			maxBreakpoints: { type: 'number', label: 'Max breakpoints', default: 10, min: 1, max: 50 }
+		},
+		bgm: {
+			chainLength: {
+				type: 'number',
+				label: 'Chain length',
+				default: 2500000,
+				min: 100000,
+				max: 10000000,
+				step: 100000
+			},
+			burnIn: {
+				type: 'number',
+				label: 'Burn-in samples',
+				default: 1000000,
+				min: 50000,
+				max: 5000000,
+				step: 50000
+			},
+			samples: { type: 'number', label: 'Samples', default: 100, min: 50, max: 1000 },
+			substitutionModel: {
+				type: 'select',
+				label: 'Substitution model',
+				default: 'GTR',
+				options: ['JC69', 'HKY85', 'TN93', 'GTR']
+			}
+		},
+		fade: {
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.1,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			gridPoints: { type: 'number', label: 'Grid points', default: 20, min: 5, max: 50 },
+			mcmcChains: { type: 'number', label: 'MCMC chains', default: 5, min: 2, max: 20 },
+			mcmcSamples: {
+				type: 'number',
+				label: 'MCMC samples',
+				default: 2000000,
+				min: 100000,
+				max: 10000000,
+				step: 100000
+			}
+		},
+		relax: {
+			testBranches: {
+				type: 'select',
+				label: 'Test branches',
+				default: 'Test',
+				options: ['Test', 'All', 'Internal', 'Leaves']
+			},
+			referenceBranches: {
+				type: 'select',
+				label: 'Reference branches',
+				default: 'Reference',
+				options: ['Reference', 'All-except-test', 'Internal', 'Leaves']
+			},
+			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
+			modelSelection: { type: 'boolean', label: 'Perform model selection', default: true }
+		},
+		'multi-hit': {
+			tripleHits: { type: 'boolean', label: 'Include triple hits', default: false },
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.05,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			confidenceLevel: {
+				type: 'number',
+				label: 'Confidence level',
+				default: 0.95,
+				min: 0.8,
+				max: 0.99,
+				step: 0.01
+			}
+		},
+		nrm: {
+			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
+			modelSelection: {
+				type: 'select',
+				label: 'Model selection',
+				default: 'AIC',
+				options: ['AIC', 'AICc', 'BIC']
+			},
+			equilibriumFrequencies: {
+				type: 'boolean',
+				label: 'Estimate equilibrium frequencies',
+				default: true
+			}
+		},
+		'contrast-fel': {
+			branchSets: { type: 'select', label: 'Branch sets', default: '2', options: ['2', '3', '4'] },
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.1,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			confidenceLevel: {
+				type: 'number',
+				label: 'Confidence level',
+				default: 0.95,
+				min: 0.8,
+				max: 0.99,
+				step: 0.01
+			}
+		}
+	};
+
+	// Method-specific advanced options state
+	let methodOptions = {};
 
 	// Get available methods sorted by recommendation
 	$: availableMethods = Object.entries(methodConfig)
@@ -142,16 +372,44 @@
 	// Get current method details
 	$: currentMethod = selectedMethod ? availableMethods.find((m) => m.id === selectedMethod) : null;
 
+	// Get current method's advanced options
+	$: currentMethodOptions = selectedMethod
+		? METHOD_ADVANCED_OPTIONS[selectedMethod.toLowerCase()] || {}
+		: {};
+
+	// Initialize method options when method changes
+	$: if (selectedMethod && !methodOptions[selectedMethod]) {
+		initializeMethodOptions(selectedMethod);
+	}
+
+	// Dispatch method changes for parent components (like timing estimates)
+	$: if (selectedMethod || geneticCode || methodOptions) {
+		dispatch('methodChange', {
+			method: selectedMethod,
+			options: selectedMethod ? methodOptions[selectedMethod] : {},
+			geneticCode
+		});
+	}
+
+	// Initialize default values for a method's options
+	function initializeMethodOptions(method) {
+		const options = METHOD_ADVANCED_OPTIONS[method.toLowerCase()];
+		if (options) {
+			methodOptions[method] = {};
+			for (const [key, config] of Object.entries(options)) {
+				methodOptions[method][key] = config.default;
+			}
+			methodOptions = { ...methodOptions }; // Trigger reactivity
+		}
+	}
+
 	// Get method info helper
 	function getMethodInfo(key) {
 		return (
 			METHOD_INFO[key.toLowerCase()] || {
 				name: key.toUpperCase(),
 				fullName: key,
-				shortDescription: '',
-				estimatedTime: 'Unknown',
-				speed: 'unknown',
-				icon: '⏱️'
+				shortDescription: ''
 			}
 		);
 	}
@@ -159,8 +417,13 @@
 	// Run analysis
 	function runAnalysis() {
 		if (selectedMethod && runMethod) {
-			console.log(`Running analysis with method: ${selectedMethod}`);
-			runMethod(selectedMethod);
+			const analysisConfig = {
+				method: selectedMethod,
+				geneticCode,
+				...(methodOptions[selectedMethod] || {})
+			};
+			console.log(`Running analysis with config:`, analysisConfig);
+			runMethod(selectedMethod, analysisConfig);
 		}
 	}
 </script>
@@ -178,13 +441,6 @@
 					</option>
 				{/each}
 			</select>
-
-			{#if currentMethod}
-				<span class="method-timing">
-					{currentMethod.info.icon}
-					{currentMethod.info.estimatedTime}
-				</span>
-			{/if}
 		</div>
 
 		<!-- Method Description -->
@@ -237,36 +493,49 @@
 					</div>
 
 					<div class="advanced-content">
-						<div class="option-group">
-							<label class="option-label">
-								Resample:
-								<input
-									type="number"
-									bind:value={resample}
-									min="0"
-									max="1000"
-									class="option-input"
-								/>
-							</label>
-						</div>
-
-						<div class="option-group">
-							<label class="option-checkbox">
-								<input type="checkbox" bind:checked={confidenceIntervals} />
-								Confidence intervals
-							</label>
-						</div>
-
-						<div class="option-group">
-							<label class="option-label">
-								Multiple Hits:
-								<select bind:value={multipleHits} class="option-select">
-									<option>None</option>
-									<option>Double</option>
-									<option>Double+Triple</option>
-								</select>
-							</label>
-						</div>
+						{#if Object.keys(currentMethodOptions).length > 0}
+							{#each Object.entries(currentMethodOptions) as [optionKey, optionConfig]}
+								<div class="option-group">
+									{#if optionConfig.type === 'number'}
+										<label class="option-label">
+											{optionConfig.label}:
+											<input
+												type="number"
+												bind:value={methodOptions[selectedMethod][optionKey]}
+												min={optionConfig.min || 0}
+												max={optionConfig.max || 1000}
+												step={optionConfig.step || 1}
+												class="option-input"
+											/>
+										</label>
+									{:else if optionConfig.type === 'boolean'}
+										<label class="option-checkbox">
+											<input
+												type="checkbox"
+												bind:checked={methodOptions[selectedMethod][optionKey]}
+											/>
+											{optionConfig.label}
+										</label>
+									{:else if optionConfig.type === 'select'}
+										<label class="option-label">
+											{optionConfig.label}:
+											<select
+												bind:value={methodOptions[selectedMethod][optionKey]}
+												class="option-select"
+											>
+												{#each optionConfig.options as option}
+													<option value={option}>{option}</option>
+												{/each}
+											</select>
+										</label>
+									{/if}
+								</div>
+							{/each}
+						{:else}
+							<div class="no-options">
+								<span class="no-options-text">This method uses default parameters</span>
+							</div>
+						{/if}
 					</div>
 				</div>
 			</div>
@@ -331,12 +600,6 @@
 		outline: none;
 		border-color: #4299e1;
 		box-shadow: 0 0 0 1px #4299e1;
-	}
-
-	.method-timing {
-		font-size: 13px;
-		color: #718096;
-		white-space: nowrap;
 	}
 
 	.method-description {
@@ -483,5 +746,19 @@
 
 	.help-text {
 		flex: 1;
+	}
+
+	.no-options {
+		padding: 16px;
+		text-align: center;
+		color: #718096;
+		background: #f7fafc;
+		border-radius: 4px;
+		border: 1px solid #e2e8f0;
+	}
+
+	.no-options-text {
+		font-size: 13px;
+		font-style: italic;
 	}
 </style>

@@ -5,6 +5,7 @@
 	import { analysisStore, activeAnalysisProgress } from '../stores/analyses';
 	import { treeStore } from '../stores/tree';
 	import MethodSelector from './MethodSelector.svelte';
+	import AnalysisTimingEstimate from './AnalysisTimingEstimate.svelte';
 	import FileIndicator from './FileIndicator.svelte';
 	import TabNavigation from './TabNavigation.svelte';
 	import TreePrompt from './TreePrompt.svelte';
@@ -30,6 +31,19 @@
 
 	// Tree inference state
 	let treeGenerated = false;
+
+	// Track current method selection and options for timing estimates
+	let currentSelectedMethod = null;
+	let currentMethodOptions = {};
+	let currentGeneticCode = 'Universal';
+
+	// Handle method selection changes from MethodSelector
+	function handleMethodChange(event) {
+		const { method, options, geneticCode } = event.detail;
+		currentSelectedMethod = method;
+		currentMethodOptions = options || {};
+		currentGeneticCode = geneticCode || 'Universal';
+	}
 
 	// Handle tree generation prompt
 	function handleGenerateTreeClick() {
@@ -99,7 +113,18 @@
 			<div class="p-premium-lg">
 				{#if $currentFile}
 					<!-- Method Selector -->
-					<MethodSelector {methodConfig} {runMethod} />
+					<MethodSelector {methodConfig} {runMethod} on:methodChange={handleMethodChange} />
+
+					<!-- Analysis Timing Estimate -->
+					{#if currentSelectedMethod}
+						<div class="mt-premium-md">
+							<AnalysisTimingEstimate
+								method={currentSelectedMethod}
+								methodOptions={currentMethodOptions}
+								geneticCode={currentGeneticCode}
+							/>
+						</div>
+					{/if}
 
 					<!-- Console output (conditionally shown) -->
 					{#if isStdOutVisible}
