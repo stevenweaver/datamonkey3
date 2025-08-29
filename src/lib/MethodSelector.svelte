@@ -1,527 +1,764 @@
 <!-- src/lib/MethodSelector.svelte -->
 <script>
-	import { writable } from 'svelte/store';
+	import { createEventDispatcher } from 'svelte';
 
 	export let methodConfig;
 	export let runMethod = null;
-	export let onConfigureMethod = null; // New prop for configuring a method
+	export let onConfigureMethod = null;
 
-	// Method categorization
-	const METHOD_CATEGORIES = {
-		RECOMMENDED: {
-			name: 'Recommended Methods',
-			description: 'Commonly used analysis methods suitable for most datasets',
-			methods: ['fel', 'meme', 'fubar']
-		},
-		SELECTION: {
-			name: 'Selection Analysis',
-			description: 'Methods for detecting selection pressure at individual sites',
-			methods: ['fel', 'slac', 'meme', 'fubar', 'absrel', 'busted']
-		},
-		RECOMBINATION: {
-			name: 'Recombination Detection',
-			description: 'Methods for identifying recombination events',
-			methods: ['gard']
-		},
-		SPECIALIZED: {
-			name: 'Specialized Analysis',
-			description: 'Methods for specific evolutionary patterns',
-			methods: ['bgm', 'fade', 'relax', 'multi-hit', 'nrm', 'contrast-fel']
-		}
-	};
+	const dispatch = createEventDispatcher();
 
-	// Method info with simplified descriptions
+	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
 		fel: {
 			name: 'FEL',
 			fullName: 'Fixed Effects Likelihood',
-			shortDescription: 'Detect selection at individual sites',
-			complexity: 'medium',
-			speed: 'fast',
-			tag: 'recommended'
+			shortDescription: 'Detect selection at individual sites'
 		},
 		meme: {
 			name: 'MEME',
 			fullName: 'Mixed Effects Model of Evolution',
-			shortDescription: 'Detect episodic selection at individual sites',
-			complexity: 'medium',
-			speed: 'medium',
-			tag: 'recommended'
+			shortDescription: 'Detect episodic selection at individual sites'
 		},
 		slac: {
 			name: 'SLAC',
 			fullName: 'Single-Likelihood Ancestor Counting',
-			shortDescription: 'Fast approximate method for detecting selection',
-			complexity: 'low',
-			speed: 'very fast',
-			tag: 'basic'
+			shortDescription: 'Fast approximate method for detecting selection'
 		},
 		fubar: {
 			name: 'FUBAR',
 			fullName: 'Fast Unconstrained Bayesian AppRoximation',
-			shortDescription: 'Bayesian approach to detect selection',
-			complexity: 'medium',
-			speed: 'medium',
-			tag: 'recommended'
+			shortDescription: 'Bayesian approach to detect selection'
 		},
 		absrel: {
 			name: 'aBSREL',
 			fullName: 'adaptive Branch-Site Random Effects Likelihood',
-			shortDescription: 'Test for selection on specific branches',
-			complexity: 'high',
-			speed: 'slow',
-			tag: 'advanced'
+			shortDescription: 'Test for selection on specific branches'
 		},
 		busted: {
 			name: 'BUSTED',
 			fullName: 'Branch-site Unrestricted Statistical Test for Episodic Diversification',
-			shortDescription: 'Test for gene-wide selection',
-			complexity: 'high',
-			speed: 'slow',
-			tag: 'advanced'
+			shortDescription: 'Test for gene-wide selection'
 		},
 		gard: {
 			name: 'GARD',
 			fullName: 'Genetic Algorithm for Recombination Detection',
-			shortDescription: 'Detect recombination breakpoints',
-			complexity: 'high',
-			speed: 'very slow',
-			tag: 'specialized'
+			shortDescription: 'Detect recombination breakpoints'
 		},
 		bgm: {
 			name: 'BGM',
 			fullName: 'Bayesian Graphical Model',
-			shortDescription: 'Detect correlated substitution patterns',
-			complexity: 'very high',
-			speed: 'very slow',
-			tag: 'specialized'
+			shortDescription: 'Detect correlated substitution patterns'
 		},
 		fade: {
 			name: 'FADE',
 			fullName: 'FUBAR Approach to Directional Evolution',
-			shortDescription: 'Detect directional selection',
-			complexity: 'high',
-			speed: 'slow',
-			tag: 'specialized'
+			shortDescription: 'Detect directional selection'
 		},
 		relax: {
 			name: 'RELAX',
 			fullName: 'Relaxation Test',
-			shortDescription: 'Test for relaxed or intensified selection',
-			complexity: 'high',
-			speed: 'slow',
-			tag: 'specialized'
+			shortDescription: 'Test for relaxed or intensified selection'
 		},
 		'multi-hit': {
 			name: 'MULTI-HIT',
 			fullName: 'Multiple Hit Model',
-			shortDescription: 'Account for multiple substitutions',
-			complexity: 'high',
-			speed: 'slow',
-			tag: 'specialized'
+			shortDescription: 'Account for multiple substitutions'
 		},
 		nrm: {
 			name: 'NRM',
 			fullName: 'Non-Reversible Model',
-			shortDescription: 'Directional evolution analysis',
-			complexity: 'high',
-			speed: 'slow',
-			tag: 'specialized'
+			shortDescription: 'Directional evolution analysis'
 		},
 		'contrast-fel': {
 			name: 'Contrast-FEL',
 			fullName: 'Contrast Fixed Effects Likelihood',
-			shortDescription: 'Compare selection between groups',
-			complexity: 'high',
-			speed: 'medium',
-			tag: 'specialized'
+			shortDescription: 'Compare selection between groups'
 		}
 	};
 
-	// Interface state management
-	let showAllMethods = false;
-	let searchQuery = '';
-	let selectedCategory = 'RECOMMENDED';
+	// State management
 	let selectedMethod = null;
+	let geneticCode = 'Universal';
 
-	// Handle method selection
-	function selectMethod(method) {
-		selectedMethod = method;
-	}
-
-	// Clear selected method
-	function clearSelection() {
-		selectedMethod = null;
-	}
-
-	// Run selected method
-	function runMethodHandler(method) {
-		console.log(`Running method: ${method}`);
-		selectedMethod = method;
-		if (runMethod) {
-			runMethod(method);
-		}
-	}
-
-	// Configure method
-	function configureMethodHandler(method) {
-		console.log(`Configuring method: ${method}`);
-		selectedMethod = method;
-		if (onConfigureMethod) {
-			onConfigureMethod(method);
-		}
-	}
-
-	// Run currently selected method
-	function runSelectedMethod() {
-		if (selectedMethod && runMethod) {
-			console.log(`Running selected method: ${selectedMethod}`);
-			runMethod(selectedMethod);
-		}
-	}
-
-	// Filter methods based on search and category
-	$: filteredMethods = Object.entries(methodConfig)
-		.filter(([key, method]) => {
-			// Filter by search query
-			if (searchQuery) {
-				const query = searchQuery.toLowerCase();
-				return (
-					key.toLowerCase().includes(query) ||
-					method.description.toLowerCase().includes(query) ||
-					(METHOD_INFO[key.toLowerCase()]?.fullName || '').toLowerCase().includes(query)
-				);
+	// Method-specific advanced options configurations
+	const METHOD_ADVANCED_OPTIONS = {
+		fel: {
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.1,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			confidenceLevel: {
+				type: 'number',
+				label: 'Confidence level',
+				default: 0.95,
+				min: 0.8,
+				max: 0.99,
+				step: 0.01
+			},
+			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
+			confidenceIntervals: {
+				type: 'boolean',
+				label: 'Include confidence intervals',
+				default: false
 			}
+		},
+		meme: {
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.1,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			confidenceLevel: {
+				type: 'number',
+				label: 'Confidence level',
+				default: 0.95,
+				min: 0.8,
+				max: 0.99,
+				step: 0.01
+			},
+			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
+			siteToSiteRateVariation: {
+				type: 'boolean',
+				label: 'Site-to-site rate variation',
+				default: true
+			}
+		},
+		slac: {
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.1,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			confidenceLevel: {
+				type: 'number',
+				label: 'Confidence level',
+				default: 0.95,
+				min: 0.8,
+				max: 0.99,
+				step: 0.01
+			},
+			ancestralSequences: { type: 'boolean', label: 'Include ancestral sequences', default: false }
+		},
+		fubar: {
+			posteriorThreshold: {
+				type: 'number',
+				label: 'Posterior threshold',
+				default: 0.9,
+				min: 0.5,
+				max: 0.99,
+				step: 0.01
+			},
+			gridPoints: { type: 'number', label: 'Grid points', default: 20, min: 5, max: 50 },
+			mcmcChains: { type: 'number', label: 'MCMC chains', default: 5, min: 2, max: 20 },
+			mcmcSamples: {
+				type: 'number',
+				label: 'MCMC samples',
+				default: 2000000,
+				min: 100000,
+				max: 10000000,
+				step: 100000
+			}
+		},
+		absrel: {
+			branchesType: {
+				type: 'select',
+				label: 'Test branches',
+				default: 'All',
+				options: ['All', 'Internal', 'Leaves', 'Unlabeled-branches', 'Test']
+			},
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.05,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			synonymousRateVariation: {
+				type: 'boolean',
+				label: 'Synonymous rate variation',
+				default: true
+			},
+			multipleHits: {
+				type: 'select',
+				label: 'Multiple hits',
+				default: 'Double',
+				options: ['None', 'Double', 'Double+Triple']
+			}
+		},
+		busted: {
+			branchesType: {
+				type: 'select',
+				label: 'Test branches',
+				default: 'All',
+				options: ['All', 'Internal', 'Leaves', 'Unlabeled-branches', 'Test']
+			},
+			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
+			synonymousRateVariation: {
+				type: 'boolean',
+				label: 'Synonymous rate variation',
+				default: true
+			},
+			multipleHits: {
+				type: 'select',
+				label: 'Multiple hits',
+				default: 'Double',
+				options: ['None', 'Double', 'Double+Triple']
+			}
+		},
+		gard: {
+			rateClasses: { type: 'number', label: 'Rate classes', default: 4, min: 2, max: 10 },
+			modelSelection: {
+				type: 'select',
+				label: 'Model selection',
+				default: 'AIC',
+				options: ['AIC', 'AICc', 'BIC']
+			},
+			breakpointMethod: {
+				type: 'select',
+				label: 'Breakpoint method',
+				default: 'GA',
+				options: ['GA', 'Exhaustive']
+			},
+			maxBreakpoints: { type: 'number', label: 'Max breakpoints', default: 10, min: 1, max: 50 }
+		},
+		bgm: {
+			chainLength: {
+				type: 'number',
+				label: 'Chain length',
+				default: 2500000,
+				min: 100000,
+				max: 10000000,
+				step: 100000
+			},
+			burnIn: {
+				type: 'number',
+				label: 'Burn-in samples',
+				default: 1000000,
+				min: 50000,
+				max: 5000000,
+				step: 50000
+			},
+			samples: { type: 'number', label: 'Samples', default: 100, min: 50, max: 1000 },
+			substitutionModel: {
+				type: 'select',
+				label: 'Substitution model',
+				default: 'GTR',
+				options: ['JC69', 'HKY85', 'TN93', 'GTR']
+			}
+		},
+		fade: {
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.1,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			gridPoints: { type: 'number', label: 'Grid points', default: 20, min: 5, max: 50 },
+			mcmcChains: { type: 'number', label: 'MCMC chains', default: 5, min: 2, max: 20 },
+			mcmcSamples: {
+				type: 'number',
+				label: 'MCMC samples',
+				default: 2000000,
+				min: 100000,
+				max: 10000000,
+				step: 100000
+			}
+		},
+		relax: {
+			testBranches: {
+				type: 'select',
+				label: 'Test branches',
+				default: 'Test',
+				options: ['Test', 'All', 'Internal', 'Leaves']
+			},
+			referenceBranches: {
+				type: 'select',
+				label: 'Reference branches',
+				default: 'Reference',
+				options: ['Reference', 'All-except-test', 'Internal', 'Leaves']
+			},
+			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
+			modelSelection: { type: 'boolean', label: 'Perform model selection', default: true }
+		},
+		'multi-hit': {
+			tripleHits: { type: 'boolean', label: 'Include triple hits', default: false },
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.05,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			confidenceLevel: {
+				type: 'number',
+				label: 'Confidence level',
+				default: 0.95,
+				min: 0.8,
+				max: 0.99,
+				step: 0.01
+			}
+		},
+		nrm: {
+			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
+			modelSelection: {
+				type: 'select',
+				label: 'Model selection',
+				default: 'AIC',
+				options: ['AIC', 'AICc', 'BIC']
+			},
+			equilibriumFrequencies: {
+				type: 'boolean',
+				label: 'Estimate equilibrium frequencies',
+				default: true
+			}
+		},
+		'contrast-fel': {
+			branchSets: { type: 'select', label: 'Branch sets', default: '2', options: ['2', '3', '4'] },
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.1,
+				min: 0.001,
+				max: 1,
+				step: 0.001
+			},
+			confidenceLevel: {
+				type: 'number',
+				label: 'Confidence level',
+				default: 0.95,
+				min: 0.8,
+				max: 0.99,
+				step: 0.01
+			}
+		}
+	};
 
-			// Filter by selected category or show all
-			if (showAllMethods) return true;
+	// Method-specific advanced options state
+	let methodOptions = {};
 
-			return METHOD_CATEGORIES[selectedCategory].methods.includes(key.toLowerCase());
-		})
+	// Get available methods sorted by recommendation
+	$: availableMethods = Object.entries(methodConfig)
+		.map(([key, method]) => ({
+			id: key,
+			info: getMethodInfo(key),
+			config: method
+		}))
 		.sort((a, b) => {
-			// Sort by recommended tag first, then alphabetically
-			const aInfo = METHOD_INFO[a[0].toLowerCase()] || {};
-			const bInfo = METHOD_INFO[b[0].toLowerCase()] || {};
-
-			if (aInfo.tag === 'recommended' && bInfo.tag !== 'recommended') return -1;
-			if (aInfo.tag !== 'recommended' && bInfo.tag === 'recommended') return 1;
-
-			return a[0].localeCompare(b[0]);
+			// Prioritize commonly used methods
+			const priority = ['fel', 'meme', 'slac', 'fubar'];
+			const aIndex = priority.indexOf(a.id);
+			const bIndex = priority.indexOf(b.id);
+			if (aIndex !== -1 && bIndex === -1) return -1;
+			if (aIndex === -1 && bIndex !== -1) return 1;
+			if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+			return a.info.name.localeCompare(b.info.name);
 		});
 
-	// Function to get method info if available
+	// Get current method details
+	$: currentMethod = selectedMethod ? availableMethods.find((m) => m.id === selectedMethod) : null;
+
+	// Get current method's advanced options
+	$: currentMethodOptions = selectedMethod
+		? METHOD_ADVANCED_OPTIONS[selectedMethod.toLowerCase()] || {}
+		: {};
+
+	// Initialize method options when method changes
+	$: if (selectedMethod && !methodOptions[selectedMethod]) {
+		initializeMethodOptions(selectedMethod);
+	}
+
+	// Dispatch method changes for parent components (like timing estimates)
+	$: if (selectedMethod || geneticCode || methodOptions) {
+		dispatch('methodChange', {
+			method: selectedMethod,
+			options: selectedMethod ? methodOptions[selectedMethod] : {},
+			geneticCode
+		});
+	}
+
+	// Initialize default values for a method's options
+	function initializeMethodOptions(method) {
+		const options = METHOD_ADVANCED_OPTIONS[method.toLowerCase()];
+		if (options) {
+			methodOptions[method] = {};
+			for (const [key, config] of Object.entries(options)) {
+				methodOptions[method][key] = config.default;
+			}
+			methodOptions = { ...methodOptions }; // Trigger reactivity
+		}
+	}
+
+	// Get method info helper
 	function getMethodInfo(key) {
 		return (
 			METHOD_INFO[key.toLowerCase()] || {
 				name: key.toUpperCase(),
 				fullName: key,
-				shortDescription: '',
-				complexity: 'unknown',
-				speed: 'unknown',
-				tag: ''
+				shortDescription: ''
 			}
 		);
 	}
 
-	// Function to get badge color based on tag
-	function getBadgeColor(tag) {
-		switch (tag) {
-			case 'recommended':
-				return 'bg-accent-copper text-white border-accent-copper';
-			case 'basic':
-				return 'bg-brand-muted text-white border-brand-muted';
-			case 'advanced':
-				return 'bg-brand-deep text-white border-brand-deep';
-			case 'specialized':
-				return 'bg-accent-warm text-white border-accent-warm';
-			default:
-				return 'bg-text-silver text-white border-text-silver';
-		}
-	}
-
-	// Function to get speed indicator
-	function getSpeedIndicator(speed) {
-		switch (speed) {
-			case 'very fast':
-				return '⚡⚡ Very Fast';
-			case 'fast':
-				return '⚡ Fast';
-			case 'medium':
-				return '⏱️ Medium';
-			case 'slow':
-				return '🐢 Slow';
-			case 'very slow':
-				return '🐌 Very Slow';
-			default:
-				return '⏱️ Unknown';
+	// Run analysis
+	function runAnalysis() {
+		if (selectedMethod && runMethod) {
+			const analysisConfig = {
+				method: selectedMethod,
+				geneticCode,
+				...(methodOptions[selectedMethod] || {})
+			};
+			console.log(`Running analysis with config:`, analysisConfig);
+			runMethod(selectedMethod, analysisConfig);
 		}
 	}
 </script>
 
-<div class="method-selector rounded-premium bg-white p-premium-xl shadow-premium">
-	<!-- Header and Controls -->
-	<div class="mb-premium-xl flex flex-col gap-premium-md">
-		<div class="flex items-center justify-between">
-			<h3 class="text-premium-header font-semibold text-text-rich">Analysis Methods</h3>
-
-			<!-- Method selection counter -->
-			{#if selectedMethod}
-				<div class="flex items-center gap-premium-sm">
-					<span class="text-premium-meta font-medium text-brand-royal">
-						{METHOD_INFO[selectedMethod.toLowerCase()]?.name || selectedMethod.toUpperCase()} selected
-					</span>
-					<button
-						class="text-premium-meta text-text-silver transition-all duration-premium hover:text-brand-royal"
-						on:click={clearSelection}
-					>
-						Clear
-					</button>
-				</div>
-			{/if}
-		</div>
-
-		<!-- Search and filtering -->
-		<div class="flex gap-premium-md">
-			<div class="relative flex-1">
-				<input
-					type="text"
-					placeholder="Search methods..."
-					bind:value={searchQuery}
-					class="w-full rounded-premium-sm border border-border-platinum px-premium-md py-premium-sm pl-10 text-premium-body"
-				/>
-				<svg
-					class="absolute left-3 top-2.5 h-5 w-5 text-text-silver"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-					></path>
-				</svg>
-			</div>
-
-			<!-- Category selector -->
-			<div class="flex gap-premium-sm">
-				{#each Object.keys(METHOD_CATEGORIES) as category}
-					<button
-						class="rounded-premium-xl px-premium-md py-premium-xs text-premium-meta font-medium tracking-premium-wide transition-all duration-premium {selectedCategory ===
-						category
-							? 'bg-brand-royal text-white'
-							: 'bg-brand-whisper text-text-slate hover:bg-brand-ghost hover:text-brand-royal'}"
-						on:click={() => {
-							selectedCategory = category;
-							showAllMethods = false;
-						}}
-					>
-						{METHOD_CATEGORIES[category].name.split(' ')[0]}
-					</button>
+<div class="method-selector">
+	<!-- Unified Interface Container -->
+	<div class="interface-container">
+		<!-- Method Selection Row -->
+		<div class="method-selection">
+			<select bind:value={selectedMethod} class="method-dropdown">
+				<option value={null}>Select an analysis method</option>
+				{#each availableMethods as method}
+					<option value={method.id}>
+						{method.info.name} - {method.info.fullName}
+					</option>
 				{/each}
-				<button
-					class="rounded-premium-xl px-premium-md py-premium-xs text-premium-meta font-medium tracking-premium-wide transition-all duration-premium {showAllMethods
-						? 'bg-brand-royal text-white'
-						: 'bg-brand-whisper text-text-slate hover:bg-brand-ghost hover:text-brand-royal'}"
-					on:click={() => (showAllMethods = true)}
-				>
-					All
-				</button>
-			</div>
+			</select>
 		</div>
+
+		<!-- Method Description -->
+		{#if currentMethod}
+			<div class="method-description">
+				{currentMethod.info.shortDescription}
+			</div>
+		{/if}
+
+		<!-- Options Container -->
+		{#if selectedMethod}
+			<div class="options-container">
+				<!-- Essential Options -->
+				<div class="essential-options">
+					<div class="options-header">
+						<span class="options-label">Essential</span>
+					</div>
+
+					<div class="option-group">
+						<label class="option-label">
+							Genetic Code:
+							<select bind:value={geneticCode} class="option-select">
+								<option>Universal</option>
+								<option>Vertebrate mitochondrial</option>
+								<option>Yeast mitochondrial</option>
+								<option>Mold mitochondrial</option>
+								<option>Invertebrate mitochondrial</option>
+								<option>Ciliate nuclear</option>
+								<option>Echinoderm mitochondrial</option>
+								<option>Euplotid nuclear</option>
+								<option>Alternative yeast nuclear</option>
+								<option>Ascidian mitochondrial</option>
+								<option>Flatworm mitochondrial</option>
+							</select>
+						</label>
+					</div>
+
+					<button class="run-button" on:click={runAnalysis} disabled={!selectedMethod}>
+						Run Analysis
+					</button>
+				</div>
+
+				<!-- Divider -->
+				<div class="options-divider"></div>
+
+				<!-- Advanced Options -->
+				<div class="advanced-options">
+					<div class="options-header">
+						<span class="options-label">Advanced</span>
+					</div>
+
+					<div class="advanced-content">
+						{#if Object.keys(currentMethodOptions).length > 0}
+							{#each Object.entries(currentMethodOptions) as [optionKey, optionConfig]}
+								<div class="option-group">
+									{#if optionConfig.type === 'number'}
+										<label class="option-label">
+											{optionConfig.label}:
+											<input
+												type="number"
+												bind:value={methodOptions[selectedMethod][optionKey]}
+												min={optionConfig.min || 0}
+												max={optionConfig.max || 1000}
+												step={optionConfig.step || 1}
+												class="option-input"
+											/>
+										</label>
+									{:else if optionConfig.type === 'boolean'}
+										<label class="option-checkbox">
+											<input
+												type="checkbox"
+												bind:checked={methodOptions[selectedMethod][optionKey]}
+											/>
+											{optionConfig.label}
+										</label>
+									{:else if optionConfig.type === 'select'}
+										<label class="option-label">
+											{optionConfig.label}:
+											<select
+												bind:value={methodOptions[selectedMethod][optionKey]}
+												class="option-select"
+											>
+												{#each optionConfig.options as option}
+													<option value={option}>{option}</option>
+												{/each}
+											</select>
+										</label>
+									{/if}
+								</div>
+							{/each}
+						{:else}
+							<div class="no-options">
+								<span class="no-options-text">This method uses default parameters</span>
+							</div>
+						{/if}
+					</div>
+				</div>
+			</div>
+		{/if}
 	</div>
 
-	<!-- Category description -->
-	{#if !showAllMethods && !searchQuery}
-		<div
-			class="mb-premium-md rounded-premium bg-brand-whisper p-premium-md text-premium-body text-text-slate"
-		>
-			<p>{METHOD_CATEGORIES[selectedCategory].description}</p>
+	<!-- Help hint (subtle) -->
+	{#if !selectedMethod}
+		<div class="help-hint">
+			<span class="help-icon">?</span>
+			<span class="help-text">
+				For detecting selection at sites, try FEL or MEME. For recombination detection, use GARD.
+			</span>
 		</div>
 	{/if}
-
-	<!-- Method cards -->
-	<div class="grid grid-cols-1 gap-premium-md md:grid-cols-2 lg:grid-cols-3">
-		{#each filteredMethods as [key, method]}
-			{@const methodInfo = getMethodInfo(key)}
-			{@const isSelected = selectedMethod === key}
-			<div
-				class="relative flex flex-col rounded-premium border {isSelected
-					? 'border-brand-royal ring-2 ring-brand-muted'
-					: 'border-border-platinum'} bg-white p-premium-md shadow-premium transition-all duration-premium hover:shadow-premium-hover"
-				on:click={() => selectMethod(key)}
-			>
-				<!-- Selection indicator -->
-				{#if isSelected}
-					<div
-						class="absolute right-premium-sm top-premium-sm flex h-6 w-6 items-center justify-center rounded-full bg-brand-royal text-white"
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="h-4 w-4"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-								clip-rule="evenodd"
-							/>
-						</svg>
-					</div>
-				{/if}
-
-				<!-- Method header -->
-				<div class="mb-premium-sm flex items-start justify-between">
-					<div>
-						<h4 class="text-premium-title font-semibold text-text-rich">{methodInfo.name}</h4>
-						<p class="text-premium-caption text-text-silver">{methodInfo.fullName}</p>
-					</div>
-					{#if methodInfo.tag}
-						<span
-							class="ml-premium-sm rounded-premium-xl border px-premium-sm py-0.5 text-premium-caption font-medium tracking-premium-badge {getBadgeColor(
-								methodInfo.tag
-							)}"
-						>
-							{methodInfo.tag}
-						</span>
-					{/if}
-				</div>
-
-				<!-- Method info -->
-				<div class="mb-premium-md flex-1">
-					<p class="text-premium-body text-text-slate">
-						{methodInfo.shortDescription || method.description.substring(0, 100)}
-					</p>
-
-					<div class="mt-premium-sm flex flex-wrap gap-premium-sm">
-						<span
-							class="inline-flex items-center rounded-premium-sm bg-brand-whisper px-premium-sm py-premium-xs text-premium-caption text-text-slate"
-						>
-							{getSpeedIndicator(methodInfo.speed)}
-						</span>
-					</div>
-				</div>
-
-				<!-- Action buttons -->
-				<div class="mt-auto flex gap-premium-sm">
-					{#if method.options && method.options.length > 0 && onConfigureMethod}
-						<button
-							class="flex-1 rounded-premium-sm border border-brand-royal bg-white px-premium-md py-premium-sm text-premium-body font-medium text-brand-royal transition-all duration-premium hover:bg-brand-whisper"
-							on:click|stopPropagation={() => configureMethodHandler(key)}
-						>
-							Configure
-						</button>
-					{/if}
-					<button
-						class="flex-1 transform rounded-premium-sm bg-brand-gradient px-premium-md py-premium-sm text-premium-body font-medium text-white shadow-sm transition-all duration-premium hover:scale-[0.98] hover:bg-brand-deep hover:shadow active:scale-[0.96]"
-						on:click|stopPropagation={() => runMethodHandler(key)}
-					>
-						Run
-					</button>
-				</div>
-			</div>
-		{/each}
-	</div>
-
-	<!-- Action panel for selected method -->
-	{#if selectedMethod}
-		<div class="mt-premium-xl rounded-premium bg-brand-whisper p-premium-md shadow-premium">
-			<div class="flex items-center justify-between">
-				<div>
-					<h4 class="text-premium-body font-semibold text-text-rich">
-						Selected Method
-					</h4>
-					<p class="text-premium-meta text-text-slate">
-						{METHOD_INFO[selectedMethod.toLowerCase()]?.name || selectedMethod.toUpperCase()}
-					</p>
-				</div>
-				<div class="flex gap-premium-sm">
-					<button
-						class="rounded-premium-sm border border-border-platinum bg-white px-premium-md py-premium-sm text-premium-body font-medium text-text-slate transition-all duration-premium hover:bg-brand-whisper"
-						on:click={clearSelection}
-					>
-						Clear
-					</button>
-					{#if methodConfig[selectedMethod]?.options && methodConfig[selectedMethod].options.length > 0 && onConfigureMethod}
-						<button
-							class="rounded-premium-sm border border-brand-royal bg-white px-premium-md py-premium-sm text-premium-body font-medium text-brand-royal transition-all duration-premium hover:bg-brand-whisper"
-							on:click={() => configureMethodHandler(selectedMethod)}
-						>
-							Configure
-						</button>
-					{/if}
-					<button
-						class="transform rounded-premium-sm bg-brand-gradient px-premium-md py-premium-sm text-premium-body font-medium text-white shadow-sm transition-all duration-premium hover:scale-[0.98] hover:bg-brand-deep hover:shadow active:scale-[0.96]"
-						on:click={runSelectedMethod}
-					>
-						Run Method
-					</button>
-				</div>
-			</div>
-		</div>
-	{/if}
-
-	<!-- Help me choose wizard (simplified version) -->
-	<div
-		class="mt-premium-xl rounded-premium border border-border-platinum bg-brand-whisper p-premium-md"
-	>
-		<h4 class="text-premium-body font-semibold text-text-rich">Need help choosing?</h4>
-		<p class="mb-premium-md text-premium-meta text-text-slate">
-			Not sure which method to use? Here are some common scenarios:
-		</p>
-		<div class="grid grid-cols-1 gap-premium-md text-premium-meta md:grid-cols-2">
-			<button
-				class="rounded-premium bg-white p-premium-sm text-left shadow-premium transition-all duration-premium hover:bg-brand-whisper"
-				on:click={() => {
-					selectedCategory = 'RECOMMENDED';
-					showAllMethods = false;
-					searchQuery = '';
-				}}
-			>
-				<span class="font-medium text-text-rich">Detection of selection at individual sites</span>
-				<span class="block text-text-slate">Use FEL or MEME</span>
-			</button>
-			<button
-				class="rounded-premium bg-white p-premium-sm text-left shadow-premium transition-all duration-premium hover:bg-brand-whisper"
-				on:click={() => {
-					showAllMethods = false;
-					searchQuery = 'gard';
-				}}
-			>
-				<span class="font-medium text-text-rich">Detection of recombination</span>
-				<span class="block text-text-slate">Use GARD</span>
-			</button>
-			<button
-				class="rounded-premium bg-white p-premium-sm text-left shadow-premium transition-all duration-premium hover:bg-brand-whisper"
-				on:click={() => {
-					showAllMethods = false;
-					searchQuery = 'absrel';
-				}}
-			>
-				<span class="font-medium text-text-rich">Detection of selection on specific branches</span>
-				<span class="block text-text-slate">Use aBSREL</span>
-			</button>
-			<button
-				class="rounded-premium bg-white p-premium-sm text-left shadow-premium transition-all duration-premium hover:bg-brand-whisper"
-				on:click={() => {
-					showAllMethods = false;
-					searchQuery = 'busted';
-				}}
-			>
-				<span class="font-medium text-text-rich">Gene-wide tests for selection</span>
-				<span class="block text-text-slate">Use BUSTED</span>
-			</button>
-		</div>
-	</div>
 </div>
 
 <style>
-	/* Add any additional custom styles here */
-	:global(.method-selector) {
-		max-width: 1200px;
-		margin: 0 auto;
+	.method-selector {
+		width: 100%;
+		padding: 0;
+	}
+
+	.interface-container {
+		background: transparent;
+		border: none;
+		border-radius: 0;
+		padding: 0;
+		box-shadow: none;
+	}
+
+	.interface-header {
+		margin-bottom: 20px;
+	}
+
+	.interface-title {
+		font-size: 18px;
+		font-weight: 600;
+		color: #1a202c;
+		margin: 0;
+	}
+
+	.method-selection {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		margin-bottom: 12px;
+	}
+
+	.method-dropdown {
+		flex: 1;
+		padding: 8px 12px;
+		border: 1px solid #cbd5e0;
+		border-radius: 6px;
+		font-size: 14px;
+		background: white;
+		color: #2d3748;
+		cursor: pointer;
+	}
+
+	.method-dropdown:focus {
+		outline: none;
+		border-color: #4299e1;
+		box-shadow: 0 0 0 1px #4299e1;
+	}
+
+	.method-description {
+		font-size: 13px;
+		color: #4a5568;
+		margin-bottom: 24px;
+		padding: 8px 0;
+	}
+
+	.options-container {
+		display: flex;
+		gap: 24px;
+		border-top: 1px solid #f7fafc;
+		padding-top: 20px;
+	}
+
+	.essential-options,
+	.advanced-options {
+		flex: 1;
+	}
+
+	.options-divider {
+		width: 1px;
+		background: #e2e8f0;
+		margin: -8px 0;
+	}
+
+	.options-header {
+		margin-bottom: 16px;
+	}
+
+	.options-label {
+		font-size: 13px;
+		font-weight: 500;
+		color: #4a5568;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.option-group {
+		margin-bottom: 16px;
+	}
+
+	.option-label {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		font-size: 13px;
+		color: #2d3748;
+		font-weight: 500;
+	}
+
+	.option-select,
+	.option-input {
+		padding: 6px 10px;
+		border: 1px solid #cbd5e0;
+		border-radius: 4px;
+		font-size: 13px;
+		background: white;
+		color: #2d3748;
+	}
+
+	.option-select:focus,
+	.option-input:focus {
+		outline: none;
+		border-color: #4299e1;
+		box-shadow: 0 0 0 1px #4299e1;
+	}
+
+	.option-input {
+		width: 100%;
+	}
+
+	.option-checkbox {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 13px;
+		color: #2d3748;
+		font-weight: 500;
+		cursor: pointer;
+	}
+
+	.option-checkbox input {
+		cursor: pointer;
+	}
+
+	.run-button {
+		background: #2563eb;
+		color: white;
+		padding: 8px 20px;
+		border: none;
+		border-radius: 6px;
+		font-size: 14px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background 0.2s ease;
+		margin-top: 8px;
+	}
+
+	.run-button:hover:not(:disabled) {
+		background: #1d4ed8;
+	}
+
+	.run-button:active:not(:disabled) {
+		transform: translateY(1px);
+	}
+
+	.run-button:disabled {
+		background: #cbd5e0;
+		cursor: not-allowed;
+	}
+
+	.advanced-content {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+	}
+
+	.help-hint {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-top: 12px;
+		padding: 12px 16px;
+		background: #f7fafc;
+		border-radius: 6px;
+		font-size: 13px;
+		color: #4a5568;
+	}
+
+	.help-icon {
+		width: 16px;
+		height: 16px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #cbd5e0;
+		color: white;
+		border-radius: 50%;
+		font-size: 11px;
+		font-weight: 600;
+	}
+
+	.help-text {
+		flex: 1;
+	}
+
+	.no-options {
+		padding: 16px;
+		text-align: center;
+		color: #718096;
+		background: #f7fafc;
+		border-radius: 4px;
+		border: 1px solid #e2e8f0;
+	}
+
+	.no-options-text {
+		font-size: 13px;
+		font-style: italic;
 	}
 </style>

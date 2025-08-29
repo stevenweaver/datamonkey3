@@ -8,7 +8,6 @@
 	import ErrorHandler from './ErrorHandler.svelte';
 	import DemoFileSelector from './DemoFileSelector.svelte';
 	import TabNavigation from './TabNavigation.svelte';
-	import TreeInferenceSection from './TreeInferenceSection.svelte';
 
 	// Props
 	export let handleFileUpload = () => {};
@@ -21,13 +20,6 @@
 	// Tab navigation
 	export let activeTab = 'data';
 	export let onChange = (tab) => {};
-
-	// Tree inference
-	let treeGenerated = false;
-
-	function handleTreeGenerated() {
-		treeGenerated = true;
-	}
 
 	// Computed props
 	$: hasFileMetrics = !!fileMetricsJSON && Object.keys(fileMetricsJSON).length > 0;
@@ -102,9 +94,6 @@
 		{/if}
 
 		<!-- Export functionality moved to Results tab for unified export experience -->
-
-		<!-- Tree Inference Section -->
-		<TreeInferenceSection onTreeGenerated={handleTreeGenerated} />
 	{:else}
 		<div
 			class="my-premium-xl rounded-premium border border-border-platinum bg-brand-whisper p-premium-xl text-center"
