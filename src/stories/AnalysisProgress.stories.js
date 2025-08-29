@@ -10,7 +10,8 @@ const baseMockAnalysis = {
 	progress: 45,
 	method: 'FEL',
 	fileName: 'HIV1_env.fasta',
-	message: '## Running Analysis\nMethod: FEL (Fixed Effects Likelihood)\nAnalyzing codon 45 of 120...',
+	message:
+		'## Running Analysis\nMethod: FEL (Fixed Effects Likelihood)\nAnalyzing codon 45 of 120...',
 	metadata: {
 		method: 'FEL',
 		filename: 'HIV1_env.fasta',
@@ -20,12 +21,14 @@ const baseMockAnalysis = {
 		{
 			time: new Date(Date.now() - 45000).toISOString(),
 			status: 'initializing',
-			message: '## Initializing Analysis\nMethod: **FEL** (Fixed Effects Likelihood)\nPreparing analysis environment...'
+			message:
+				'## Initializing Analysis\nMethod: **FEL** (Fixed Effects Likelihood)\nPreparing analysis environment...'
 		},
 		{
 			time: new Date(Date.now() - 35000).toISOString(),
 			status: 'running',
-			message: '## Loading Input Data\nReading sequence alignment from file.\n**Summary:**\n- Format: FASTA\n- Sequences: 25\n- Sites: 450'
+			message:
+				'## Loading Input Data\nReading sequence alignment from file.\n**Summary:**\n- Format: FASTA\n- Sequences: 25\n- Sites: 450'
 		},
 		{
 			time: new Date(Date.now() - 25000).toISOString(),
@@ -67,7 +70,8 @@ const completedAnalysis = {
 	...baseMockAnalysis,
 	status: 'completed',
 	progress: 100,
-	message: '## Analysis Complete\n**Found 5 sites under positive selection**\n- Site 42: p = 0.023\n- Site 67: p = 0.011\n- Site 89: p = 0.045\n- Site 102: p = 0.008\n- Site 134: p = 0.031',
+	message:
+		'## Analysis Complete\n**Found 5 sites under positive selection**\n- Site 42: p = 0.023\n- Site 67: p = 0.011\n- Site 89: p = 0.045\n- Site 102: p = 0.008\n- Site 134: p = 0.031',
 	completedAt: new Date().toISOString(),
 	logs: [
 		...baseMockAnalysis.logs,
@@ -88,7 +92,8 @@ const errorAnalysis = {
 	...baseMockAnalysis,
 	status: 'error',
 	progress: 60,
-	message: '## Analysis Failed\n**Error:** Failed to converge during optimization\n\nPossible causes:\n- Sequences may be too divergent\n- Insufficient variation in the data\n- Numerical instability in likelihood calculations',
+	message:
+		'## Analysis Failed\n**Error:** Failed to converge during optimization\n\nPossible causes:\n- Sequences may be too divergent\n- Insufficient variation in the data\n- Numerical instability in likelihood calculations',
 	logs: [
 		...baseMockAnalysis.logs,
 		{
@@ -145,7 +150,7 @@ const Template = (args) => ({
 export const Running = () => {
 	const mockActiveAnalysisProgress = writable(runningAnalysis);
 	const mockAnalysisStore = writable({ analyses: [mockAnalysisInStore] });
-	
+
 	return {
 		Component: AnalysisProgressWrapper,
 		props: {
@@ -159,15 +164,18 @@ Running.storyName = 'Running';
 Running.parameters = {
 	docs: {
 		description: {
-			story: 'Progress indicator for a running analysis, showing real-time updates with an indeterminate progress animation.'
+			story:
+				'Progress indicator for a running analysis, showing real-time updates with an indeterminate progress animation.'
 		}
 	}
 };
 
 export const Processing = () => {
 	const mockActiveAnalysisProgress = writable(processingAnalysis);
-	const mockAnalysisStore = writable({ analyses: [{ ...mockAnalysisInStore, status: 'processing' }] });
-	
+	const mockAnalysisStore = writable({
+		analyses: [{ ...mockAnalysisInStore, status: 'processing' }]
+	});
+
 	return {
 		Component: AnalysisProgressWrapper,
 		props: {
@@ -188,8 +196,10 @@ Processing.parameters = {
 
 export const Completed = () => {
 	const mockActiveAnalysisProgress = writable(completedAnalysis);
-	const mockAnalysisStore = writable({ analyses: [{ ...mockAnalysisInStore, status: 'completed' }] });
-	
+	const mockAnalysisStore = writable({
+		analyses: [{ ...mockAnalysisInStore, status: 'completed' }]
+	});
+
 	return {
 		Component: AnalysisProgressWrapper,
 		props: {
@@ -203,7 +213,8 @@ Completed.storyName = 'Completed';
 Completed.parameters = {
 	docs: {
 		description: {
-			story: 'Progress indicator for a completed analysis, showing results summary with Markdown formatting.'
+			story:
+				'Progress indicator for a completed analysis, showing results summary with Markdown formatting.'
 		}
 	}
 };
@@ -211,7 +222,7 @@ Completed.parameters = {
 export const Error = () => {
 	const mockActiveAnalysisProgress = writable(errorAnalysis);
 	const mockAnalysisStore = writable({ analyses: [{ ...mockAnalysisInStore, status: 'error' }] });
-	
+
 	return {
 		Component: AnalysisProgressWrapper,
 		props: {
@@ -225,7 +236,8 @@ Error.storyName = 'Error';
 Error.parameters = {
 	docs: {
 		description: {
-			story: 'Progress indicator for an analysis that encountered an error, with detailed error information.'
+			story:
+				'Progress indicator for an analysis that encountered an error, with detailed error information.'
 		}
 	}
 };
@@ -233,7 +245,7 @@ Error.parameters = {
 export const GlobalProgress = () => {
 	const mockActiveAnalysisProgress = writable(runningAnalysis);
 	const mockAnalysisStore = writable({ analyses: [mockAnalysisInStore] });
-	
+
 	return {
 		Component: AnalysisProgressWrapper,
 		props: {
@@ -246,15 +258,22 @@ GlobalProgress.storyName = 'Global Progress';
 GlobalProgress.parameters = {
 	docs: {
 		description: {
-			story: 'Progress indicator showing the global active analysis without specifying a particular analysis ID.'
+			story:
+				'Progress indicator showing the global active analysis without specifying a particular analysis ID.'
 		}
 	}
 };
 
 export const NoActiveAnalysis = () => {
-	const mockActiveAnalysisProgress = writable({ id: null, status: null, progress: 0, message: '', logs: [] });
+	const mockActiveAnalysisProgress = writable({
+		id: null,
+		status: null,
+		progress: 0,
+		message: '',
+		logs: []
+	});
 	const mockAnalysisStore = writable({ analyses: [] });
-	
+
 	return {
 		Component: AnalysisProgressWrapper,
 		props: {

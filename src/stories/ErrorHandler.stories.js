@@ -6,13 +6,14 @@ export default {
 	parameters: {
 		docs: {
 			description: {
-				component: 'A comprehensive error handling component with dismissal, details, and suggestions.'
+				component:
+					'A comprehensive error handling component with dismissal, details, and suggestions.'
 			}
 		}
 	},
 	argTypes: {
 		error: { control: 'object' },
-		level: { 
+		level: {
 			control: 'select',
 			options: ['error', 'warning', 'info']
 		},
@@ -44,7 +45,8 @@ export const DetailedError = Template.bind({});
 DetailedError.args = {
 	error: {
 		message: 'Invalid FASTA format detected',
-		details: 'Line 15: Expected sequence identifier starting with ">" but found "ATGC". Please ensure all sequences have proper headers.'
+		details:
+			'Line 15: Expected sequence identifier starting with ">" but found "ATGC". Please ensure all sequences have proper headers.'
 	},
 	level: 'error',
 	dismissable: true,
@@ -123,7 +125,8 @@ export const ComplexError = Template.bind({});
 ComplexError.args = {
 	error: {
 		message: 'Phylogenetic analysis failed',
-		details: 'Error in tree construction: Maximum likelihood estimation failed to converge after 1000 iterations. This may be due to insufficient sequence variation or inappropriate substitution model selection. Consider using a different model or checking sequence alignment quality.'
+		details:
+			'Error in tree construction: Maximum likelihood estimation failed to converge after 1000 iterations. This may be due to insufficient sequence variation or inappropriate substitution model selection. Consider using a different model or checking sequence alignment quality.'
 	},
 	level: 'error',
 	dismissable: true,

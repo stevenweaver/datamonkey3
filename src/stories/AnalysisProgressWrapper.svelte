@@ -5,11 +5,11 @@
 	import { slide } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { marked } from 'marked';
-	
+
 	export let analysisId = null;
 	export let mockActiveAnalysisProgress = null;
 	export let mockAnalysisStore = null;
-	
+
 	// Create default mocks if not provided
 	const defaultActiveAnalysisProgress = writable({
 		id: null,
@@ -19,14 +19,14 @@
 		logs: [],
 		metadata: null
 	});
-	
+
 	const defaultAnalysisStore = writable({
 		analyses: [],
 		currentAnalysisId: null,
 		isLoading: false,
 		error: null
 	});
-	
+
 	// Use provided mocks or defaults - simulate the real stores
 	const activeAnalysisProgress = mockActiveAnalysisProgress || defaultActiveAnalysisProgress;
 	const analysisStore = mockAnalysisStore || defaultAnalysisStore;

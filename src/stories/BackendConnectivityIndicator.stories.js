@@ -64,7 +64,7 @@ export default {
 // Story variants
 export const Connected = () => {
 	const mockBackendConnectivity = writable(connectedState);
-	
+
 	return {
 		Component: BackendConnectivityIndicatorWrapper,
 		props: {
@@ -82,7 +82,7 @@ Connected.parameters = {
 
 export const Connecting = () => {
 	const mockBackendConnectivity = writable(connectingState);
-	
+
 	return {
 		Component: BackendConnectivityIndicatorWrapper,
 		props: {
@@ -100,7 +100,7 @@ Connecting.parameters = {
 
 export const DisconnectedWithError = () => {
 	const mockBackendConnectivity = writable(disconnectedState);
-	
+
 	return {
 		Component: BackendConnectivityIndicatorWrapper,
 		props: {
@@ -118,7 +118,7 @@ DisconnectedWithError.parameters = {
 
 export const DisconnectedNoError = () => {
 	const mockBackendConnectivity = writable(disconnectedNoErrorState);
-	
+
 	return {
 		Component: BackendConnectivityIndicatorWrapper,
 		props: {

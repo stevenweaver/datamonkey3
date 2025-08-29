@@ -97,10 +97,13 @@ WithoutRepairOption.args = {
 
 export const ProteinSequence = Template.bind({});
 ProteinSequence.args = {
-	file: createMockFile('protein.fasta', `>protein1
+	file: createMockFile(
+		'protein.fasta',
+		`>protein1
 MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEKAVQVKVKAL
 >protein2
-PDGLAVLGIFLKVGSAKPGLQKVVDVLDSIKTKGKSADFTNFDPRGLLPESLDYWTYPGSLTT`),
+PDGLAVLGIFLKVGSAKPGLQKVVDVLDSIKTKGKSADFTNFDPRGLLPESLDYWTYPGSLTT`
+	),
 	autoValidate: true,
 	showRepair: true
 };
@@ -114,10 +117,9 @@ EmptyFile.args = {
 
 export const LargeFile = Template.bind({});
 LargeFile.args = {
-	file: createMockFile('large.fasta', 
-		Array.from({ length: 100 }, (_, i) => 
-			`>sequence${i + 1}\n${'ATGC'.repeat(250)}`
-		).join('\n')
+	file: createMockFile(
+		'large.fasta',
+		Array.from({ length: 100 }, (_, i) => `>sequence${i + 1}\n${'ATGC'.repeat(250)}`).join('\n')
 	),
 	autoValidate: true,
 	showRepair: true

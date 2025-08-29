@@ -65,7 +65,7 @@ const Template = (args) => ({
 // Export story variants
 export const Running = () => {
 	const mockActiveAnalyses = writable(runningAnalyses);
-	
+
 	return {
 		Component: AnalysisStatusIndicatorWrapper,
 		props: {
@@ -83,7 +83,7 @@ Running.parameters = {
 
 export const Completed = () => {
 	const mockActiveAnalyses = writable(completedAnalyses);
-	
+
 	return {
 		Component: AnalysisStatusIndicatorWrapper,
 		props: {
@@ -101,7 +101,7 @@ Completed.parameters = {
 
 export const Failed = () => {
 	const mockActiveAnalyses = writable(failedAnalyses);
-	
+
 	return {
 		Component: AnalysisStatusIndicatorWrapper,
 		props: {
@@ -119,7 +119,7 @@ Failed.parameters = {
 
 export const Mixed = () => {
 	const mockActiveAnalyses = writable(mixedAnalyses);
-	
+
 	return {
 		Component: AnalysisStatusIndicatorWrapper,
 		props: {
@@ -130,14 +130,15 @@ export const Mixed = () => {
 Mixed.parameters = {
 	docs: {
 		description: {
-			story: 'Shows all types of analyses with their respective indicators: 2 running, 3 completed today, and 2 failed.'
+			story:
+				'Shows all types of analyses with their respective indicators: 2 running, 3 completed today, and 2 failed.'
 		}
 	}
 };
 
 export const WithDatareader = () => {
 	const mockActiveAnalyses = writable(withDatareaderAnalyses);
-	
+
 	return {
 		Component: AnalysisStatusIndicatorWrapper,
 		props: {
@@ -148,14 +149,15 @@ export const WithDatareader = () => {
 WithDatareader.parameters = {
 	docs: {
 		description: {
-			story: 'Shows that datareader analyses are correctly filtered out and not displayed in the counts.'
+			story:
+				'Shows that datareader analyses are correctly filtered out and not displayed in the counts.'
 		}
 	}
 };
 
 export const NoAnalyses = () => {
 	const mockActiveAnalyses = writable([]);
-	
+
 	return {
 		Component: AnalysisStatusIndicatorWrapper,
 		props: {
@@ -166,7 +168,8 @@ export const NoAnalyses = () => {
 NoAnalyses.parameters = {
 	docs: {
 		description: {
-			story: 'Component behavior when there are no analyses to display (indicator should be hidden).'
+			story:
+				'Component behavior when there are no analyses to display (indicator should be hidden).'
 		}
 	}
 };

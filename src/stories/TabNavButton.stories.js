@@ -11,14 +11,14 @@ export default {
 		}
 	},
 	argTypes: {
-		direction: { 
+		direction: {
 			control: 'select',
 			options: ['forward', 'back']
 		},
 		label: { control: 'text' },
 		disabled: { control: 'boolean' },
 		tooltip: { control: 'text' },
-		step: { 
+		step: {
 			control: 'select',
 			options: [null, 1, 2, 3]
 		}

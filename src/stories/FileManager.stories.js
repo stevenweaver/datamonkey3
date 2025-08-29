@@ -7,7 +7,8 @@ export default {
 	parameters: {
 		docs: {
 			description: {
-				component: 'A comprehensive file management component with sorting, filtering, and batch operations.'
+				component:
+					'A comprehensive file management component with sorting, filtering, and batch operations.'
 			}
 		}
 	},

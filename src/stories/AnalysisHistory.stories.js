@@ -81,7 +81,7 @@ const mixedAnalyses = [
 	}
 ];
 
-const currentFileAnalyses = mixedAnalyses.filter(a => a.fileId === 'file-123');
+const currentFileAnalyses = mixedAnalyses.filter((a) => a.fileId === 'file-123');
 
 const runningAnalyses = [
 	{
@@ -161,15 +161,15 @@ export default {
 
 // Story variants showing different states
 export const LoadingState = () => {
-	const mockAnalysisStore = writable({ 
-		analyses: [], 
-		isLoading: true, 
+	const mockAnalysisStore = writable({
+		analyses: [],
+		isLoading: true,
 		error: null,
 		currentAnalysisId: null
 	});
 	const mockPersistentFileStore = writable({ files: mockFiles });
 	const mockCurrentFile = writable(null);
-	
+
 	return {
 		Component: AnalysisHistoryWrapper,
 		props: {
@@ -192,15 +192,15 @@ LoadingState.parameters = {
 };
 
 export const ErrorState = () => {
-	const mockAnalysisStore = writable({ 
-		analyses: [], 
-		isLoading: false, 
+	const mockAnalysisStore = writable({
+		analyses: [],
+		isLoading: false,
 		error: 'Failed to connect to server',
 		currentAnalysisId: null
 	});
 	const mockPersistentFileStore = writable({ files: mockFiles });
 	const mockCurrentFile = writable(null);
-	
+
 	return {
 		Component: AnalysisHistoryWrapper,
 		props: {
@@ -223,15 +223,15 @@ ErrorState.parameters = {
 };
 
 export const EmptyState = () => {
-	const mockAnalysisStore = writable({ 
-		analyses: [], 
-		isLoading: false, 
+	const mockAnalysisStore = writable({
+		analyses: [],
+		isLoading: false,
 		error: null,
 		currentAnalysisId: null
 	});
 	const mockPersistentFileStore = writable({ files: mockFiles });
 	const mockCurrentFile = writable(null);
-	
+
 	return {
 		Component: AnalysisHistoryWrapper,
 		props: {
@@ -254,15 +254,15 @@ EmptyState.parameters = {
 };
 
 export const MixedAnalyses = () => {
-	const mockAnalysisStore = writable({ 
-		analyses: mixedAnalyses, 
-		isLoading: false, 
+	const mockAnalysisStore = writable({
+		analyses: mixedAnalyses,
+		isLoading: false,
 		error: null,
 		currentAnalysisId: null
 	});
 	const mockPersistentFileStore = writable({ files: mockFiles });
 	const mockCurrentFile = writable(null);
-	
+
 	return {
 		Component: AnalysisHistoryWrapper,
 		props: {
@@ -279,21 +279,22 @@ export const MixedAnalyses = () => {
 MixedAnalyses.parameters = {
 	docs: {
 		description: {
-			story: 'Shows mixed analyses grouped by file with different status indicators (running, completed, error, cancelled).'
+			story:
+				'Shows mixed analyses grouped by file with different status indicators (running, completed, error, cancelled).'
 		}
 	}
 };
 
 export const FilteredByFile = () => {
-	const mockAnalysisStore = writable({ 
-		analyses: mixedAnalyses, 
-		isLoading: false, 
+	const mockAnalysisStore = writable({
+		analyses: mixedAnalyses,
+		isLoading: false,
 		error: null,
 		currentAnalysisId: null
 	});
 	const mockPersistentFileStore = writable({ files: mockFiles });
 	const mockCurrentFile = writable(mockFiles[0]); // Set first file as current
-	
+
 	return {
 		Component: AnalysisHistoryWrapper,
 		props: {
@@ -316,15 +317,15 @@ FilteredByFile.parameters = {
 };
 
 export const CompactMode = () => {
-	const mockAnalysisStore = writable({ 
-		analyses: mixedAnalyses, 
-		isLoading: false, 
+	const mockAnalysisStore = writable({
+		analyses: mixedAnalyses,
+		isLoading: false,
 		error: null,
 		currentAnalysisId: null
 	});
 	const mockPersistentFileStore = writable({ files: mockFiles });
 	const mockCurrentFile = writable(null);
-	
+
 	return {
 		Component: AnalysisHistoryWrapper,
 		props: {
@@ -347,15 +348,15 @@ CompactMode.parameters = {
 };
 
 export const RunningAnalyses = () => {
-	const mockAnalysisStore = writable({ 
-		analyses: runningAnalyses, 
-		isLoading: false, 
+	const mockAnalysisStore = writable({
+		analyses: runningAnalyses,
+		isLoading: false,
 		error: null,
 		currentAnalysisId: null
 	});
 	const mockPersistentFileStore = writable({ files: mockFiles });
 	const mockCurrentFile = writable(null);
-	
+
 	return {
 		Component: AnalysisHistoryWrapper,
 		props: {
@@ -378,15 +379,15 @@ RunningAnalyses.parameters = {
 };
 
 export const CompletedAnalyses = () => {
-	const mockAnalysisStore = writable({ 
-		analyses: completedAnalyses, 
-		isLoading: false, 
+	const mockAnalysisStore = writable({
+		analyses: completedAnalyses,
+		isLoading: false,
 		error: null,
 		currentAnalysisId: null
 	});
 	const mockPersistentFileStore = writable({ files: mockFiles });
 	const mockCurrentFile = writable(null);
-	
+
 	return {
 		Component: AnalysisHistoryWrapper,
 		props: {
@@ -409,15 +410,15 @@ CompletedAnalyses.parameters = {
 };
 
 export const WithRedirect = () => {
-	const mockAnalysisStore = writable({ 
-		analyses: completedAnalyses, 
-		isLoading: false, 
+	const mockAnalysisStore = writable({
+		analyses: completedAnalyses,
+		isLoading: false,
 		error: null,
 		currentAnalysisId: null
 	});
 	const mockPersistentFileStore = writable({ files: mockFiles });
 	const mockCurrentFile = writable(null);
-	
+
 	return {
 		Component: AnalysisHistoryWrapper,
 		props: {
@@ -440,15 +441,15 @@ WithRedirect.parameters = {
 };
 
 export const EmptyCurrentFile = () => {
-	const mockAnalysisStore = writable({ 
-		analyses: mixedAnalyses, 
-		isLoading: false, 
+	const mockAnalysisStore = writable({
+		analyses: mixedAnalyses,
+		isLoading: false,
 		error: null,
 		currentAnalysisId: null
 	});
 	const mockPersistentFileStore = writable({ files: mockFiles });
 	const mockCurrentFile = writable(mockFiles[2]); // File with no analyses
-	
+
 	return {
 		Component: AnalysisHistoryWrapper,
 		props: {
@@ -465,7 +466,8 @@ export const EmptyCurrentFile = () => {
 EmptyCurrentFile.parameters = {
 	docs: {
 		description: {
-			story: 'Shows empty state with specific message when filtering by current file but no analyses exist for it.'
+			story:
+				'Shows empty state with specific message when filtering by current file but no analyses exist for it.'
 		}
 	}
 };

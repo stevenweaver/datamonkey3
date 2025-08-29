@@ -79,7 +79,7 @@ export default {
 export const StandardFile = () => {
 	const mockCurrentFile = writable(mockFile);
 	const mockFileMetricsStore = writable(mockMetrics);
-	
+
 	return {
 		Component: FileIndicatorWrapper,
 		props: {
@@ -99,7 +99,7 @@ StandardFile.parameters = {
 export const LargeFile = () => {
 	const mockCurrentFile = writable(mockLargeFile);
 	const mockFileMetricsStore = writable(mockLargeMetrics);
-	
+
 	return {
 		Component: FileIndicatorWrapper,
 		props: {
@@ -119,7 +119,7 @@ LargeFile.parameters = {
 export const SmallFile = () => {
 	const mockCurrentFile = writable(mockSmallFile);
 	const mockFileMetricsStore = writable(mockSmallMetrics);
-	
+
 	return {
 		Component: FileIndicatorWrapper,
 		props: {
@@ -139,7 +139,7 @@ SmallFile.parameters = {
 export const NoMetrics = () => {
 	const mockCurrentFile = writable(mockFile);
 	const mockFileMetricsStore = writable(null);
-	
+
 	return {
 		Component: FileIndicatorWrapper,
 		props: {
@@ -162,7 +162,7 @@ export const FallbackFile = () => {
 	delete fileWithoutFilename.filename;
 	const mockCurrentFile = writable(fileWithoutFilename);
 	const mockFileMetricsStore = writable(mockMetrics);
-	
+
 	return {
 		Component: FileIndicatorWrapper,
 		props: {
@@ -174,7 +174,8 @@ export const FallbackFile = () => {
 FallbackFile.parameters = {
 	docs: {
 		description: {
-			story: 'Shows the component using the fallback filename when the file object lacks a filename property.'
+			story:
+				'Shows the component using the fallback filename when the file object lacks a filename property.'
 		}
 	}
 };

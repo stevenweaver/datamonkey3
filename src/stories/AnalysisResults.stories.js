@@ -95,8 +95,8 @@ const mockDataReaderResults = {
 		sites: 450
 	},
 	FILE_PARTITION_INFO: {
-		'1': { sites: 300, sequences: 12, type: 'codon' },
-		'2': { sites: 150, sequences: 12, type: 'nucleotide' }
+		1: { sites: 300, sequences: 12, type: 'codon' },
+		2: { sites: 150, sequences: 12, type: 'nucleotide' }
 	}
 };
 
@@ -159,7 +159,8 @@ DataReaderResults.args = {
 DataReaderResults.parameters = {
 	docs: {
 		description: {
-			story: 'Shows DataReader results displaying file information and partition details for uploaded sequences.'
+			story:
+				'Shows DataReader results displaying file information and partition details for uploaded sequences.'
 		}
 	}
 };
@@ -189,7 +190,8 @@ SlacAnalysisCompleted.args = {
 SlacAnalysisCompleted.parameters = {
 	docs: {
 		description: {
-			story: 'Shows a completed SLAC analysis with site-specific selection results and alpha/beta parameters.'
+			story:
+				'Shows a completed SLAC analysis with site-specific selection results and alpha/beta parameters.'
 		}
 	}
 };
@@ -205,9 +207,7 @@ MemeAnalysisCompleted.args = {
 	file: mockFile,
 	resultData: {
 		input: { file: 'meme_data.fasta', sequences: 15, sites: 400 },
-		fits: [
-			{ model: 'General model', log_likelihood: -2345.67, parameters: 38, AIC: 4767.34 }
-		],
+		fits: [{ model: 'General model', log_likelihood: -2345.67, parameters: 38, AIC: 4767.34 }],
 		tested: {
 			sites: [
 				{ site_index: 1, p: 0.001, alpha: 0.1, beta: 5.2 },
@@ -220,7 +220,8 @@ MemeAnalysisCompleted.args = {
 MemeAnalysisCompleted.parameters = {
 	docs: {
 		description: {
-			story: 'Shows a completed MEME analysis detecting episodic positive selection with site results.'
+			story:
+				'Shows a completed MEME analysis detecting episodic positive selection with site results.'
 		}
 	}
 };
@@ -272,7 +273,7 @@ GenericAnalysisResults.args = {
 	file: mockFile,
 	resultData: {
 		custom_field: 'Custom analysis result',
-		parameters: { 
+		parameters: {
 			substitution_model: 'HKY85',
 			branch_lengths: 'optimized',
 			significance_level: 0.05
@@ -288,7 +289,8 @@ GenericAnalysisResults.args = {
 GenericAnalysisResults.parameters = {
 	docs: {
 		description: {
-			story: 'Shows a generic analysis result that falls back to JSON display for custom or unsupported methods.'
+			story:
+				'Shows a generic analysis result that falls back to JSON display for custom or unsupported methods.'
 		}
 	}
 };

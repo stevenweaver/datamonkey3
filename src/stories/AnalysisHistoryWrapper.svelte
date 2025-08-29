@@ -16,9 +16,9 @@
 	export let redirectToResults = false; // Whether to redirect to Results tab when selecting an analysis
 
 	// Use mocked stores if provided, otherwise create defaults
-	const defaultAnalysisStore = writable({ 
-		analyses: [], 
-		isLoading: false, 
+	const defaultAnalysisStore = writable({
+		analyses: [],
+		isLoading: false,
 		error: null,
 		currentAnalysisId: null
 	});
@@ -37,7 +37,7 @@
 		filterByCurrentFile && $currentFile
 			? $analysisStore.analyses.filter(
 					(analysis) => analysis.fileId === $currentFile.id && analysis.method !== 'datareader'
-			  )
+				)
 			: $analysisStore.analyses.filter((analysis) => analysis.method !== 'datareader');
 
 	// Sort analyses by creation date (most recent first)
@@ -71,13 +71,13 @@
 
 <div class="analysis-history">
 	{#if $analysisStore.isLoading}
-		<div class="loading-state text-center p-8">
-			<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+		<div class="loading-state p-8 text-center">
+			<div class="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
 			<p class="mt-4 text-gray-600">Loading analysis history...</p>
 		</div>
 	{:else if $analysisStore.error}
-		<div class="error-state text-center p-8">
-			<div class="text-red-600 mb-4">
+		<div class="error-state p-8 text-center">
+			<div class="mb-4 text-red-600">
 				<svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path
 						stroke-linecap="round"
@@ -87,12 +87,12 @@
 					/>
 				</svg>
 			</div>
-			<h3 class="text-lg font-medium text-gray-900 mb-2">Error Loading Analysis History</h3>
+			<h3 class="mb-2 text-lg font-medium text-gray-900">Error Loading Analysis History</h3>
 			<p class="text-gray-600">{$analysisStore.error}</p>
 		</div>
 	{:else if sortedAnalyses.length === 0}
-		<div class="empty-state text-center p-8">
-			<div class="text-gray-400 mb-4">
+		<div class="empty-state p-8 text-center">
+			<div class="mb-4 text-gray-400">
 				<svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path
 						stroke-linecap="round"
@@ -102,7 +102,7 @@
 					/>
 				</svg>
 			</div>
-			<h3 class="text-lg font-medium text-gray-900 mb-2">No Analysis History</h3>
+			<h3 class="mb-2 text-lg font-medium text-gray-900">No Analysis History</h3>
 			<p class="text-gray-600">
 				{filterByCurrentFile && $currentFile
 					? 'No analyses found for the current file.'

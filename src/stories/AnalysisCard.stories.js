@@ -121,9 +121,7 @@ const oldAnalysis = {
 	completedAt: new Date(Date.now() - 86400000 * 8 + 3600000).toISOString(),
 	result: {
 		tested: {
-			sites: [
-				{ site: 23, p: 0.034, alpha: 0.16, beta: 0.81 }
-			]
+			sites: [{ site: 23, p: 0.034, alpha: 0.16, beta: 0.81 }]
 		}
 	}
 };
@@ -171,7 +169,7 @@ const Template = (args) => ({
 export const RunningAnalysis = (args) => {
 	// Mock the persistent file store
 	window.persistentFileStore = createFileStore(mockFiles);
-	return Template.bind({})({ 
+	return Template.bind({})({
 		analysis: runningAnalysis,
 		compact: false,
 		selected: false
@@ -180,7 +178,8 @@ export const RunningAnalysis = (args) => {
 RunningAnalysis.parameters = {
 	docs: {
 		description: {
-			story: 'Shows a running analysis with animated spinner in the status badge and progress indicators.'
+			story:
+				'Shows a running analysis with animated spinner in the status badge and progress indicators.'
 		}
 	}
 };
@@ -351,7 +350,7 @@ export const LoadingPreview = (args) => {
 		...completedAnalysisFel,
 		id: 'analysis-loading-preview'
 	};
-	
+
 	window.persistentFileStore = createFileStore(mockFiles);
 	return Template.bind({})({
 		analysis: loadingAnalysis,
@@ -373,7 +372,7 @@ export const NoFileInfo = (args) => {
 		...runningAnalysis,
 		fileId: 'nonexistent-file-id'
 	};
-	
+
 	window.persistentFileStore = createFileStore(mockFiles);
 	return Template.bind({})({
 		analysis: analysisNoFile,

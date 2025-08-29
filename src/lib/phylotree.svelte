@@ -42,7 +42,7 @@
 
 			// Create a temporary phylotree to parse the newick string
 			const tempTree = new phylotree(newickString);
-			
+
 			// hyphy-scope expects data in a specific format
 			// For now, we'll create a basic structure that includes the newick string
 			// In a real implementation, you might want to parse this more thoroughly
@@ -366,7 +366,7 @@
 			/>
 		</div>
 	{:else}
-		<div class="text-gray-500 p-4">Loading HyPhy-Scope viewer...</div>
+		<div class="p-4 text-gray-500">Loading HyPhy-Scope viewer...</div>
 	{/if}
 {:else}
 	<div bind:this={treeContainer} class="tree-container"></div>

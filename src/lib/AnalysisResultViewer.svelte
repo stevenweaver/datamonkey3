@@ -12,7 +12,7 @@
 		isMethodSupported,
 		getHyphyEyeUrl
 	} from './utils/hyphyEyeIntegration';
-	import { 
+	import {
 		FelVisualization as HyphyScopeFel,
 		SimpleFelVisualization,
 		MemeVisualization,
@@ -196,7 +196,9 @@
 					{#if hyphyScopeComponent}
 						<div class="hyphy-scope-container mb-6">
 							<div class="mb-4 rounded-lg bg-white p-4 shadow-sm">
-								<h3 class="mb-4 text-lg font-semibold">{analysis.method.toUpperCase()} Analysis Visualization</h3>
+								<h3 class="mb-4 text-lg font-semibold">
+									{analysis.method.toUpperCase()} Analysis Visualization
+								</h3>
 								<svelte:component this={hyphyScopeComponent} data={resultData} />
 							</div>
 						</div>

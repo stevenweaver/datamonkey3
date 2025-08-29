@@ -1,5 +1,5 @@
 <script>
-	import { 
+	import {
 		FelVisualization,
 		SimpleFelVisualization,
 		MemeVisualization,
@@ -11,7 +11,7 @@
 		FadeVisualization,
 		GardVisualization
 	} from 'hyphy-scope';
-	
+
 	export let analysis = {};
 	export let file = {};
 	export let resultData = {};
@@ -100,7 +100,7 @@
 							<svelte:component this={visualizationComponent} data={resultData} />
 						</div>
 					{/if}
-					
+
 					<!-- Fallback display for methods not fully supported by hyphy-scope -->
 					{#if analysis.method === 'datareader'}
 						<div class="data-reader-results">
@@ -163,8 +163,12 @@
 	}
 
 	@keyframes spin {
-		0% { transform: rotate(0deg); }
-		100% { transform: rotate(360deg); }
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 
 	.hyphy-scope-container {

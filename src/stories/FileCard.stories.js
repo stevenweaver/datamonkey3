@@ -25,7 +25,7 @@ const mockFastaFile = {
 };
 
 const mockLargeFile = {
-	id: 'file-2', 
+	id: 'file-2',
 	filename: 'large_dataset.phylip',
 	size: 15728640, // 15MB
 	contentType: 'text/plain',
@@ -34,7 +34,7 @@ const mockLargeFile = {
 
 const mockOldFile = {
 	id: 'file-3',
-	filename: 'old_analysis.nexus', 
+	filename: 'old_analysis.nexus',
 	size: 512000,
 	contentType: 'application/nexus',
 	createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days ago
