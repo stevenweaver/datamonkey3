@@ -1,4 +1,4 @@
-import PhyloTree from '../lib/PhyloTree.svelte';
+import PhyloTree from '../lib/phylotree.svelte';
 
 export default {
 	title: 'PhyloTree',

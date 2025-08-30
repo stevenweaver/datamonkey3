@@ -295,6 +295,7 @@
 					on:click={deleteFile}
 					class="ml-1 rounded-premium-sm p-1 text-text-slate transition-all duration-premium hover:bg-brand-whisper hover:text-accent-warm"
 					title="Delete file"
+					aria-label="Delete file"
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"

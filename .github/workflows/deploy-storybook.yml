@@ -26,21 +26,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: '20'
+          cache: 'yarn'
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --immutable
 
       - name: Build Storybook
-        run: npm run build-storybook
+        run: yarn build-storybook
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: fasta-validation-storybook
+          projectName: datamonkey3-storybook
           directory: storybook-static
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           wranglerVersion: '3'
