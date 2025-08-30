@@ -4,7 +4,10 @@
 	import { persistentFileStore } from '../stores/fileInfo';
 	import { analysisStore, activeAnalysisProgress } from '../stores/analyses';
 	import { treeStore } from '../stores/tree';
-	import { backendConnectivity, initializeBackendConnectivity } from '../stores/backendConnectivity.js';
+	import {
+		backendConnectivity,
+		initializeBackendConnectivity
+	} from '../stores/backendConnectivity.js';
 	import MethodSelector from './MethodSelector.svelte';
 	import AnalysisTimingEstimate from './AnalysisTimingEstimate.svelte';
 	import FileIndicator from './FileIndicator.svelte';
@@ -88,9 +91,14 @@
 					fileName: $currentFile.filename
 				});
 
-				const result = await backendAnalysisRunner.runAnalysis(method, config, fastaData, treeData);
+				const result = await backendAnalysisRunner.runAnalysis(
+					method,
+					config,
+					fastaData,
+					treeData,
+					$currentFile?.id
+				);
 				console.log('✅ Backend analysis submitted:', result);
-				
 			} else {
 				// Local execution - use existing runMethod
 				runMethod(method, config);
@@ -175,7 +183,11 @@
 			<div class="p-premium-lg">
 				{#if $currentFile}
 					<!-- Method Selector -->
-					<MethodSelector {methodConfig} runMethod={enhancedRunMethod} on:methodChange={handleMethodChange} />
+					<MethodSelector
+						{methodConfig}
+						runMethod={enhancedRunMethod}
+						on:methodChange={handleMethodChange}
+					/>
 
 					<!-- Analysis Timing Estimate -->
 					{#if currentSelectedMethod}

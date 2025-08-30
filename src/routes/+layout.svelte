@@ -2,10 +2,10 @@
 	import '../app.css';
 	import AnalysisStatusIndicator from '../lib/AnalysisStatusIndicator.svelte';
 	import BackendConnectivityIndicator from '../lib/BackendConnectivityIndicator.svelte';
-	
+
 	// Get version from Vite define
 	const version = __APP_VERSION__;
-	
+
 	let { children } = $props();
 </script>
 

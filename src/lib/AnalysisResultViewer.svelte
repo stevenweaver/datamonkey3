@@ -78,9 +78,17 @@
 			// Parse result data if available
 			if (analysis.result) {
 				try {
-					resultData = JSON.parse(analysis.result);
+					// Check if result is already an object (from backend) or needs parsing (from WebAssembly)
+					if (typeof analysis.result === 'string') {
+						resultData = JSON.parse(analysis.result);
+					} else {
+						// Already parsed object from backend
+						resultData = analysis.result;
+					}
 				} catch (e) {
 					console.error('Error parsing analysis result:', e);
+					console.log('Result type:', typeof analysis.result);
+					console.log('Result preview:', analysis.result);
 					resultData = { error: 'Invalid result format' };
 				}
 			}

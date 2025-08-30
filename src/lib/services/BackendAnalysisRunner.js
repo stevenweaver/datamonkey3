@@ -56,39 +56,102 @@ class BackendAnalysisRunner {
 	setupGlobalHandlers() {
 		// Generic handlers that work for all analysis methods
 		this.socket.on('status update', (status) => {
-			console.log('📊 Backend status update:', status);
-			if (status.jobId && this.activeAnalyses.has(status.jobId)) {
-				const analysisId = this.activeAnalyses.get(status.jobId);
-				analysisStore.updateProgress(analysisId, {
-					status: 'running',
-					progress: status.progress || 0,
-					currentPhase: status.phase || 'Processing',
-					message: status.msg || 'Analysis in progress'
-				});
+			// Backend doesn't send jobId in status updates, so use fallback
+			if (this.activeAnalyses.size > 0) {
+				analysisStore.updateAnalysisProgress(
+					'running',
+					status.progress || 0,
+					status.msg || status.phase || 'Analysis in progress'
+				);
 			}
 		});
 
-		this.socket.on('completed', (data) => {
-			console.log('✅ Backend analysis completed:', data);
+		this.socket.on('completed', async (data) => {
+			console.log('✅ Backend analysis completed');
+
+			// Backend sends the entire data object, but we need just the results
+			let results = data.results || data;
+
+			// Ensure results are stored as JSON string to match WebAssembly format
+			let resultString;
+			if (typeof results === 'string') {
+				// Already a string, use as-is
+				resultString = results;
+			} else {
+				// Convert object to JSON string to match WebAssembly storage format
+				resultString = JSON.stringify(results);
+			}
+
+			// First, try to match by jobId if available
 			if (data.jobId && this.activeAnalyses.has(data.jobId)) {
 				const analysisId = this.activeAnalyses.get(data.jobId);
-				analysisStore.completeAnalysis(analysisId, {
-					results: data.results || data,
-					analysisTime: data.analysisTime,
-					completedAt: new Date().toISOString()
-				});
+				// Update the analysis in IndexedDB with results
+				try {
+					await analysisStore.updateAnalysis(analysisId, {
+						status: 'completed',
+						result: resultString,
+						analysisTime: data.analysisTime,
+						completedAt: new Date().getTime()
+					});
+				} catch (updateError) {
+					console.error('Error updating backend analysis results:', updateError);
+				}
+
+				// Complete the progress tracking
+				analysisStore.completeAnalysisProgress(
+					true,
+					'Analysis completed successfully'
+				);
 				this.activeAnalyses.delete(data.jobId);
+			} else if (this.activeAnalyses.size > 0) {
+				// Fallback: If no jobId match but we have active analyses, complete the first one
+				// This mimics the demo behavior where any completion event completes the running analysis
+				const [firstJobId, analysisId] = this.activeAnalyses
+					.entries()
+					.next().value;
+				// Update the analysis in IndexedDB with results
+				try {
+					await analysisStore.updateAnalysis(analysisId, {
+						status: 'completed',
+						result: resultString,
+						analysisTime: data.analysisTime,
+						completedAt: new Date().getTime()
+					});
+				} catch (updateError) {
+					console.error('Error updating backend analysis results (fallback):', updateError);
+				}
+
+				// Complete the progress tracking
+				analysisStore.completeAnalysisProgress(
+					true,
+					'Analysis completed successfully'
+				);
+				this.activeAnalyses.delete(firstJobId);
+			} else {
+				console.warn('⚠️ Completed analysis received but no active analyses:', {
+					receivedJobId: data.jobId,
+					activeAnalysesCount: this.activeAnalyses.size,
+					data: data
+				});
 			}
 		});
 
 		this.socket.on('script error', (error) => {
 			console.error('❌ Backend analysis error:', error);
-			// Find analysis by error context or iterate through active analyses
+			// Complete analysis progress with error
+			analysisStore.completeAnalysisProgress(
+				false,
+				`Analysis failed: ${error.message || error}`
+			);
+
+			// Update all active analyses as failed (since we don't have specific job context)
 			for (const [jobId, analysisId] of this.activeAnalyses.entries()) {
-				analysisStore.failAnalysis(analysisId, {
+				analysisStore.updateAnalysis(analysisId, {
+					status: 'error',
 					error: error.message || error,
-					failedAt: new Date().toISOString()
+					completedAt: new Date().getTime()
 				});
+				this.activeAnalyses.delete(jobId);
 			}
 		});
 
@@ -106,7 +169,7 @@ class BackendAnalysisRunner {
 	/**
 	 * Run analysis on backend server
 	 */
-	async runAnalysis(method, config, fastaData, treeData) {
+	async runAnalysis(method, config, fastaData, treeData, fileId = null) {
 		console.log('🚀 BackendAnalysisRunner.runAnalysis called with:', {
 			method,
 			fastaDataLength: fastaData?.length || 0,
@@ -128,26 +191,28 @@ class BackendAnalysisRunner {
 			throw new Error('Tree data is empty or invalid');
 		}
 
-		// Create analysis entry in store
-		const analysis = analysisStore.createAnalysis({
-			method: method.toUpperCase(),
-			config,
-			executionMode: 'backend'
-		});
-
-		const analysisId = analysis.id;
+		// Create analysis entry in store - analysisStore.createAnalysis expects (fileId, method)
+		// Use the provided fileId or null if not available
+		const analysisId = await analysisStore.createAnalysis(
+			fileId,
+			method.toUpperCase()
+		);
 		const jobId = `${method}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-		
+
 		// Track this analysis
 		this.activeAnalyses.set(jobId, analysisId);
 
 		try {
-			// Update analysis status
-			analysisStore.startAnalysis(analysisId);
+			// Start analysis progress tracking
+			analysisStore.startAnalysisProgress(
+				analysisId,
+				`Starting ${method} analysis...`,
+				method
+			);
 
 			// Prepare analysis parameters based on method
 			const analysisParams = this.prepareAnalysisParameters(method, config);
-			
+
 			// Submit to backend
 			const eventName = `${method.toLowerCase()}:spawn`;
 			console.log(`📤 Submitting ${method} analysis to backend:`, eventName, {
@@ -159,33 +224,39 @@ class BackendAnalysisRunner {
 			const submitData = {
 				alignment: fastaData,
 				tree: treeData,
-				job: {
-					...analysisParams,
-					jobId: jobId
-				}
+				job: analysisParams // Don't include our custom jobId in the job params
 			};
 
 			this.socket.emit(eventName, submitData);
 
-			// Update analysis with job ID
-			analysisStore.updateProgress(analysisId, {
-				status: 'pending',
-				message: `Job submitted - ID: ${jobId}`,
-				jobId: jobId
-			});
+			// Update analysis with job ID and status
+			analysisStore.updateAnalysisProgress(
+				'pending',
+				5,
+				`Job submitted - ID: ${jobId}`
+			);
 
 			return {
 				analysisId,
 				jobId,
 				message: `Analysis submitted to backend server`
 			};
-
 		} catch (error) {
 			console.error('❌ Backend analysis submission failed:', error);
-			analysisStore.failAnalysis(analysisId, {
+
+			// Update analysis as failed
+			analysisStore.updateAnalysis(analysisId, {
+				status: 'error',
 				error: error.message,
-				failedAt: new Date().toISOString()
+				completedAt: new Date().getTime()
 			});
+
+			// Complete progress tracking with error
+			analysisStore.completeAnalysisProgress(
+				false,
+				`Submission failed: ${error.message}`
+			);
+
 			this.activeAnalyses.delete(jobId);
 			throw error;
 		}
@@ -250,7 +321,7 @@ class BackendAnalysisRunner {
 				if (this.socket && this.socket.connected) {
 					this.socket.emit('cancel', { jobId });
 				}
-				
+
 				// Update analysis status
 				analysisStore.cancelAnalysis(analysisId);
 				this.activeAnalyses.delete(jobId);
@@ -301,7 +372,7 @@ class BackendAnalysisRunner {
 	 * Check if connected to backend
 	 */
 	isConnected() {
-		return this.socket && this.socket.connected;
+		return this.socket ? this.socket.connected : false;
 	}
 }
 
