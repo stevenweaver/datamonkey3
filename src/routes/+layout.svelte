@@ -2,7 +2,10 @@
 	import '../app.css';
 	import AnalysisStatusIndicator from '../lib/AnalysisStatusIndicator.svelte';
 	import BackendConnectivityIndicator from '../lib/BackendConnectivityIndicator.svelte';
-	import { version } from '../../package.json';
+
+	// Get version from Vite define
+	const version = __APP_VERSION__;
+
 	let { children } = $props();
 </script>
 
@@ -59,7 +62,7 @@
 		<div class="container mx-auto px-premium-xl">
 			<div class="flex flex-col items-center justify-between md:flex-row">
 				<div class="mb-premium-lg md:mb-0">
-					<p class="text-premium-meta text-text-muted">
+					<p class="text-text-muted text-premium-meta">
 						Version {version}
 					</p>
 				</div>

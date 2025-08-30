@@ -1,5 +1,9 @@
 import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { readFileSync } from 'fs';
+
+// Read package.json to get version
+const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
 
 export default defineConfig({
 	plugins: [sveltekit()],
@@ -11,7 +15,8 @@ export default defineConfig({
 
 	define: {
 		global: 'globalThis',
-		'process.env': {}
+		'process.env': {},
+		__APP_VERSION__: JSON.stringify(packageJson.version)
 	},
 
 	server: {
