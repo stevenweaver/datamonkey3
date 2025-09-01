@@ -207,7 +207,8 @@ class BackendAnalysisRunner {
 			analysisStore.startAnalysisProgress(
 				analysisId,
 				`Starting ${method} analysis...`,
-				method
+				method,
+				{ executionMode: 'backend' }
 			);
 
 			// Prepare analysis parameters based on method

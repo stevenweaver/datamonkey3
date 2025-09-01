@@ -1,38 +1,68 @@
-<!-- src/lib/AnalysisTimingEstimate.svelte -->
 <script>
-	import { currentFile, fileMetricsStore } from '../stores/fileInfo';
-	import { calculateRuntimeEstimate, SPEED_CATEGORIES } from './utils/timingEstimates.js';
+	import { writable } from 'svelte/store';
+	import { calculateRuntimeEstimate, SPEED_CATEGORIES } from '../lib/utils/timingEstimates.js';
 
 	// Props
-	export let method = null;
+	export let method = 'fel';
 	export let methodOptions = {};
 	export let geneticCode = 'Universal';
+	export let datasetSize = 'medium';
 	export let executionMode = 'backend'; // 'backend' or 'wasm'
 
-	// Get sequence and site data from the appropriate store
-	$: fileMetrics = $fileMetricsStore;
-	$: sequences = fileMetrics?.FILE_INFO?.sequences || $currentFile?.sequences || 10;
-	$: sites = fileMetrics?.FILE_INFO?.sites || $currentFile?.sites || 1000;
-	
+	// Mock file data for different dataset sizes
+	const mockFileData = {
+		small: {
+			id: 'small-dataset',
+			filename: 'small_alignment.fasta',
+			size: 1024 * 50, // 50KB
+			sequences: 10,
+			sites: 500,
+			partitions: [],
+			createdAt: Date.now()
+		},
+		medium: {
+			id: 'medium-dataset',
+			filename: 'medium_alignment.fasta',
+			size: 1024 * 500, // 500KB
+			sequences: 50,
+			sites: 2000,
+			partitions: [],
+			createdAt: Date.now()
+		},
+		large: {
+			id: 'large-dataset',
+			filename: 'large_alignment.fasta',
+			size: 1024 * 2000, // 2MB
+			sequences: 200,
+			sites: 5000,
+			partitions: [],
+			createdAt: Date.now()
+		}
+	};
+
+	// Create a mock currentFile store for this component instance
+	const mockCurrentFile = writable(datasetSize ? mockFileData[datasetSize] : null);
+
+	// Update when datasetSize changes
+	$: mockCurrentFile.set(datasetSize ? mockFileData[datasetSize] : null);
 
 	// Calculate timing estimate using data-driven equations
-	$: hasValidData = sequences > 0 && sites > 0;
-	$: estimatedTime = method && hasValidData
+	$: estimatedTime = method && $mockCurrentFile 
 		? calculateRuntimeEstimate(
 			method, 
-			sequences, 
-			sites, 
+			$mockCurrentFile.sequences || 10, 
+			$mockCurrentFile.sites || 1000, 
 			executionMode,
 			methodOptions
 		) 
 		: null;
 
 	// Get dataset info for display
-	$: datasetInfo = ($currentFile || fileMetrics)
+	$: datasetInfo = $mockCurrentFile
 		? {
-				sequences: sequences,
-				sites: sites,
-				filename: $currentFile?.filename || 'Unknown'
+				sequences: $mockCurrentFile.sequences || 0,
+				sites: $mockCurrentFile.sites || 0,
+				filename: $mockCurrentFile.filename || 'Unknown'
 			}
 		: null;
 </script>
@@ -95,7 +125,7 @@
 			<span class="timing-icon">⏱️</span>
 			<span class="timing-label text-gray-600"> Timing Estimate </span>
 			<span class="timing-value text-gray-600">
-				{($currentFile || fileMetrics) && !hasValidData ? 'Analyzing file...' : 'Upload file to estimate'}
+				{$mockCurrentFile ? 'Calculating...' : 'Upload file to estimate'}
 			</span>
 		</div>
 	</div>
@@ -129,7 +159,7 @@
 
 	.dataset-info {
 		margin-top: 4px;
-		padding-left: 22px; /* Align with text after icon */
+		padding-left: 22px;
 		display: flex;
 		align-items: center;
 		gap: 8px;
@@ -164,26 +194,26 @@
 	}
 
 	.timing-warning {
+		margin-top: 8px;
+		padding: 6px 8px;
+		background-color: #fef3c7;
+		border: 1px solid #f59e0b;
+		border-radius: 4px;
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		margin-top: 8px;
-		padding: 6px 8px;
-		background: rgba(251, 191, 36, 0.1);
-		border: 1px solid rgba(251, 191, 36, 0.2);
-		border-radius: 4px;
 	}
 
 	.warning-icon {
 		width: 14px;
 		height: 14px;
-		color: #f59e0b;
+		color: #d97706;
 		flex-shrink: 0;
 	}
 
 	.warning-text {
-		color: #92400e;
 		font-size: 11px;
-		font-weight: 500;
+		color: #92400e;
+		line-height: 1.3;
 	}
 </style>

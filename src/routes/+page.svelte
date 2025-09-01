@@ -193,7 +193,7 @@
 			activeTab = 'analyze';
 
 			// Initialize progress tracking
-			analysisStore.startAnalysisProgress(analysisId, `Initializing ${methodName} analysis...`);
+			analysisStore.startAnalysisProgress(analysisId, `Initializing ${methodName} analysis...`, methodName, { executionMode: 'wasm' });
 
 			// Add method-specific data if needed
 			analysisStore.updateAnalysisProgress(
@@ -221,14 +221,23 @@
 				Object.entries(options).forEach(([key, value]) => {
 					// Skip null or undefined values
 					if (value === null || value === undefined) return;
+					
+					// Skip method-specific metadata
+					if (key === 'method' || key === 'executionMode') return;
+					
+					// Map parameter names to HyPhy expected names
+					let paramName = key;
+					if (key === 'geneticCode') {
+						paramName = 'code';
+					}
 
 					// Handle boolean values
 					if (typeof value === 'boolean') {
 						if (value) {
-							cmdArgs += ` --${key}`;
+							cmdArgs += ` --${paramName}`;
 						}
 					} else {
-						cmdArgs += ` --${key} ${value}`;
+						cmdArgs += ` --${paramName} ${value}`;
 					}
 				});
 			}
