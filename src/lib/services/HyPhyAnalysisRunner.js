@@ -36,7 +36,7 @@ class HyPhyAnalysisRunner {
 			});
 
 			// Tell the store we're starting an analysis
-			analysisStore.startAnalysisProgress(analysisId, 'Initializing HyPhy analysis...');
+			analysisStore.startAnalysisProgress(analysisId, 'Initializing HyPhy analysis...', options.method, { executionMode: 'wasm' });
 
 			// Create and setup the worker
 			const worker = await this.createWorker(analysisId, options);

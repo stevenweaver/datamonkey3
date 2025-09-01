@@ -236,11 +236,11 @@ function createAnalysisStore() {
 			analysisId,
 			message = 'Initializing analysis...',
 			methodName = '',
-			fileName = ''
+			metadata = {}
 		) {
 			// Find the analysis in the store to get method and file information if not provided
 			let method = methodName;
-			let file = fileName;
+			let file = metadata.fileName || '';
 
 			update((state) => {
 				// Look up analysis details if not provided
@@ -261,7 +261,13 @@ function createAnalysisStore() {
 					method,
 					fileName: file,
 					startTime: new Date().toISOString(),
-					logs: [{ time: new Date().toISOString(), message, status: 'initializing' }]
+					logs: [{ time: new Date().toISOString(), message, status: 'initializing' }],
+					metadata: {
+						method,
+						filename: file,
+						startTime: new Date().toISOString(),
+						...metadata
+					}
 				};
 
 				// Update the single active analysis (for backward compatibility)

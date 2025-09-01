@@ -213,11 +213,11 @@
 		}
 	];
 
-	// Get the last few logs, use sample logs for demo if none available
+	// Get the last few logs, don't show fake samples for real analyses
 	$: displayedLogs =
 		progressToShow.logs && progressToShow.logs.length > 0
 			? progressToShow.logs.slice(-5)
-			: sampleLogs;
+			: [];
 
 	// Provide a job info accessor
 	$: jobInfo =
@@ -349,6 +349,14 @@
 				{#if jobInfo}
 					<div class="mb-2 flex items-center text-xs text-gray-500">
 						<span class="font-mono">{jobInfo.id.substring(0, 8)}</span>
+						
+						<!-- Execution mode indicator -->
+						{#if progressToShow.metadata?.executionMode === 'backend'}
+							<span class="mx-1 rounded bg-blue-100 px-1.5 py-0.5 text-blue-700 font-medium">Server</span>
+						{:else if progressToShow.metadata?.executionMode === 'wasm'}
+							<span class="mx-1 rounded bg-green-100 px-1.5 py-0.5 text-green-700 font-medium">Local</span>
+						{/if}
+						
 						{#if jobInfo.method}
 							<span class="mx-1">•</span>
 							<span class="font-semibold">{jobInfo.method}</span>
@@ -404,8 +412,8 @@
 						</div>
 					{/each}
 
-					{#if progressToShow.logs.length === 0}
-						<p class="text-center text-gray-500">No logs available</p>
+					{#if displayedLogs.length === 0}
+						<p class="text-center text-gray-500">Waiting for backend status updates...</p>
 					{/if}
 				</div>
 			</div>

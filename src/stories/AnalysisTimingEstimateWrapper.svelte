@@ -1,11 +1,13 @@
 <script>
 	import { writable } from 'svelte/store';
+	import { calculateRuntimeEstimate, SPEED_CATEGORIES } from '../lib/utils/timingEstimates.js';
 
 	// Props
 	export let method = 'fel';
 	export let methodOptions = {};
 	export let geneticCode = 'Universal';
 	export let datasetSize = 'medium';
+	export let executionMode = 'backend'; // 'backend' or 'wasm'
 
 	// Mock file data for different dataset sizes
 	const mockFileData = {
@@ -43,149 +45,17 @@
 
 	// Update when datasetSize changes
 	$: mockCurrentFile.set(datasetSize ? mockFileData[datasetSize] : null);
-	// Base timing estimates (in minutes) for different methods - copied from original component
-	const BASE_TIMING_ESTIMATES = {
-		fel: { base: 3, perSequence: 0.1, perSite: 0.01 },
-		meme: { base: 8, perSequence: 0.3, perSite: 0.05 },
-		slac: { base: 1.5, perSequence: 0.05, perSite: 0.005 },
-		fubar: { base: 15, perSequence: 0.2, perSite: 0.03 },
-		absrel: { base: 30, perSequence: 1.2, perSite: 0.1 },
-		busted: { base: 25, perSequence: 0.8, perSite: 0.08 },
-		gard: { base: 120, perSequence: 5, perSite: 0.5 },
-		bgm: { base: 240, perSequence: 10, perSite: 2 },
-		fade: { base: 45, perSequence: 1.5, perSite: 0.15 },
-		relax: { base: 35, perSequence: 1, perSite: 0.1 },
-		'multi-hit': { base: 20, perSequence: 0.6, perSite: 0.06 },
-		nrm: { base: 40, perSequence: 1.2, perSite: 0.12 },
-		'contrast-fel': { base: 18, perSequence: 0.4, perSite: 0.04 }
-	};
 
-	// Method complexity multipliers based on advanced options
-	const COMPLEXITY_MULTIPLIERS = {
-		rateClasses: (value) => Math.max(1, value / 3),
-		mcmcSamples: (value) => Math.max(1, value / 2000000),
-		mcmcChains: (value) => Math.max(1, value / 5),
-		gridPoints: (value) => Math.max(1, value / 20),
-		maxBreakpoints: (value) => Math.max(1, value / 10),
-		chainLength: (value) => Math.max(1, value / 2500000),
-		confidenceIntervals: (enabled) => (enabled ? 1.3 : 1),
-		ancestralSequences: (enabled) => (enabled ? 1.5 : 1),
-		synonymousRateVariation: (enabled) => (enabled ? 1.2 : 1),
-		siteToSiteRateVariation: (enabled) => (enabled ? 1.4 : 1)
-	};
-
-	// Speed categories with icons and descriptions
-	const SPEED_CATEGORIES = {
-		'very-fast': {
-			icon: '⚡⚡',
-			label: 'Very Fast',
-			color: 'text-green-600',
-			bgColor: 'bg-green-50',
-			borderColor: 'border-green-200'
-		},
-		fast: {
-			icon: '⚡',
-			label: 'Fast',
-			color: 'text-green-500',
-			bgColor: 'bg-green-50',
-			borderColor: 'border-green-200'
-		},
-		medium: {
-			icon: '⏱️',
-			label: 'Medium',
-			color: 'text-yellow-600',
-			bgColor: 'bg-yellow-50',
-			borderColor: 'border-yellow-200'
-		},
-		slow: {
-			icon: '🐢',
-			label: 'Slow',
-			color: 'text-orange-600',
-			bgColor: 'bg-orange-50',
-			borderColor: 'border-orange-200'
-		},
-		'very-slow': {
-			icon: '🐌',
-			label: 'Very Slow',
-			color: 'text-red-600',
-			bgColor: 'bg-red-50',
-			borderColor: 'border-red-200'
-		}
-	};
-
-	// Calculate timing estimate based on method, dataset, and options
-	$: estimatedTime = calculateTimingEstimate(method, $mockCurrentFile, methodOptions);
-
-	function calculateTimingEstimate(selectedMethod, fileData, options) {
-		if (!selectedMethod || !fileData) {
-			return null;
-		}
-
-		const methodKey = selectedMethod.toLowerCase();
-		const baseEstimate = BASE_TIMING_ESTIMATES[methodKey];
-
-		if (!baseEstimate) {
-			return {
-				minutes: null,
-				category: 'medium',
-				description: 'Timing estimate not available'
-			};
-		}
-
-		// Get dataset characteristics
-		const numSequences = fileData.sequences || 10;
-		const numSites = fileData.sites || 1000;
-
-		// Base calculation
-		let totalMinutes =
-			baseEstimate.base + baseEstimate.perSequence * numSequences + baseEstimate.perSite * numSites;
-
-		// Apply complexity multipliers based on advanced options
-		if (options) {
-			for (const [optionKey, optionValue] of Object.entries(options)) {
-				const multiplier = COMPLEXITY_MULTIPLIERS[optionKey];
-				if (multiplier && optionValue !== undefined) {
-					totalMinutes *= multiplier(optionValue);
-				}
-			}
-		}
-
-		// Determine speed category
-		let category;
-		if (totalMinutes < 2) category = 'very-fast';
-		else if (totalMinutes < 10) category = 'fast';
-		else if (totalMinutes < 30) category = 'medium';
-		else if (totalMinutes < 120) category = 'slow';
-		else category = 'very-slow';
-
-		return {
-			minutes: Math.round(totalMinutes),
-			category,
-			description: formatTimeDescription(totalMinutes)
-		};
-	}
-
-	function formatTimeDescription(minutes) {
-		if (minutes < 1) {
-			return '< 1 minute';
-		} else if (minutes < 60) {
-			return `~${Math.round(minutes)} min`;
-		} else if (minutes < 1440) {
-			const hours = Math.floor(minutes / 60);
-			const remainingMins = Math.round(minutes % 60);
-			if (remainingMins === 0) {
-				return `~${hours} hour${hours > 1 ? 's' : ''}`;
-			}
-			return `~${hours}h ${remainingMins}m`;
-		} else {
-			const days = Math.floor(minutes / 1440);
-			const remainingHours = Math.round((minutes % 1440) / 60);
-			if (remainingHours === 0) {
-				return `~${days} day${days > 1 ? 's' : ''}`;
-			}
-			return `~${days}d ${remainingHours}h`;
-		}
-	}
+	// Calculate timing estimate using data-driven equations
+	$: estimatedTime = method && $mockCurrentFile 
+		? calculateRuntimeEstimate(
+			method, 
+			$mockCurrentFile.sequences || 10, 
+			$mockCurrentFile.sites || 1000, 
+			executionMode,
+			methodOptions
+		) 
+		: null;
 
 	// Get dataset info for display
 	$: datasetInfo = $mockCurrentFile
@@ -218,6 +88,14 @@
 				<span class="dataset-details">
 					{datasetInfo.sequences} sequences × {datasetInfo.sites} sites
 				</span>
+				{#if executionMode === 'wasm'}
+					<span class="execution-mode">Local WASM</span>
+				{/if}
+				{#if estimatedTime.reliability}
+					<span class="reliability" title="Model R² value: {estimatedTime.reliability.toFixed(3)}">
+						R² = {estimatedTime.reliability.toFixed(2)}
+					</span>
+				{/if}
 			</div>
 		{/if}
 
@@ -282,12 +160,37 @@
 	.dataset-info {
 		margin-top: 4px;
 		padding-left: 22px;
-		font-size: 11px;
-		color: #6b7280;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex-wrap: wrap;
 	}
 
 	.dataset-details {
+		color: #64748b;
+		font-size: 12px;
 		font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+	}
+
+	.execution-mode {
+		font-size: 10px;
+		padding: 1px 4px;
+		background-color: #e0f2fe;
+		color: #0369a1;
+		border-radius: 3px;
+		font-weight: 500;
+		text-transform: uppercase;
+		letter-spacing: 0.025em;
+	}
+
+	.reliability {
+		font-size: 10px;
+		padding: 1px 4px;
+		background-color: #f0fdf4;
+		color: #166534;
+		border-radius: 3px;
+		font-weight: 500;
+		cursor: help;
 	}
 
 	.timing-warning {

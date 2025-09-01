@@ -16,10 +16,8 @@ export default {
 				'busted',
 				'gard',
 				'bgm',
-				'fade',
 				'relax',
 				'multi-hit',
-				'nrm',
 				'contrast-fel'
 			]
 		},
@@ -31,6 +29,11 @@ export default {
 			control: 'select',
 			options: ['small', 'medium', 'large'],
 			description: 'Size of the mock dataset'
+		},
+		executionMode: {
+			control: 'select',
+			options: ['backend', 'wasm'],
+			description: 'Execution environment (backend or local WASM)'
 		}
 	}
 };
@@ -41,57 +44,63 @@ export const Default = {
 		method: 'slac',
 		methodOptions: {},
 		geneticCode: 'Universal',
-		datasetSize: 'small'
+		datasetSize: 'small',
+		executionMode: 'backend'
 	}
 };
 
-// Very fast analysis
+// Very fast analysis - Backend
 export const VeryFastAnalysis = {
 	args: {
 		method: 'slac',
 		methodOptions: {},
 		geneticCode: 'Universal',
-		datasetSize: 'small'
+		datasetSize: 'small',
+		executionMode: 'backend'
 	}
 };
 
-// Fast analysis
+// Fast analysis - Backend
 export const FastAnalysis = {
 	args: {
 		method: 'fel',
 		methodOptions: {},
 		geneticCode: 'Universal',
-		datasetSize: 'small'
+		datasetSize: 'small',
+		executionMode: 'backend'
 	}
 };
 
-// Medium speed analysis
+// Medium speed analysis - Backend
 export const MediumSpeedAnalysis = {
 	args: {
 		method: 'meme',
 		methodOptions: {},
 		geneticCode: 'Universal',
-		datasetSize: 'medium'
+		datasetSize: 'medium',
+		executionMode: 'backend'
 	}
 };
 
-// Slow analysis
+// Slow analysis - Backend
 export const SlowAnalysis = {
 	args: {
 		method: 'absrel',
 		methodOptions: {},
 		geneticCode: 'Universal',
-		datasetSize: 'large'
+		datasetSize: 'large',
+		executionMode: 'backend'
 	}
 };
 
-// Very slow analysis
+// Very slow analysis - Backend
 export const VerySlowAnalysis = {
 	args: {
 		method: 'bgm',
 		methodOptions: {},
 		geneticCode: 'Universal',
-		datasetSize: 'large'
+		datasetSize: 'large',
+		executionMode: 'backend'
 	}
 };
 
@@ -105,7 +114,8 @@ export const WithAdvancedOptions = {
 			synonymousRateVariation: true
 		},
 		geneticCode: 'Universal',
-		datasetSize: 'medium'
+		datasetSize: 'medium',
+		executionMode: 'backend'
 	}
 };
 
@@ -119,7 +129,8 @@ export const FubarWithMCMC = {
 			gridPoints: 40
 		},
 		geneticCode: 'Universal',
-		datasetSize: 'medium'
+		datasetSize: 'medium',
+		executionMode: 'backend'
 	}
 };
 
@@ -132,7 +143,39 @@ export const GardAnalysis = {
 			siteToSiteRateVariation: true
 		},
 		geneticCode: 'Universal',
-		datasetSize: 'large'
+		datasetSize: 'large',
+		executionMode: 'backend'
+	}
+};
+
+// Local WASM execution examples
+export const LocalWasmFast = {
+	args: {
+		method: 'slac',
+		methodOptions: {},
+		geneticCode: 'Universal',
+		datasetSize: 'medium',
+		executionMode: 'wasm'
+	}
+};
+
+export const LocalWasmMedium = {
+	args: {
+		method: 'fubar',
+		methodOptions: {},
+		geneticCode: 'Universal',
+		datasetSize: 'medium',
+		executionMode: 'wasm'
+	}
+};
+
+export const LocalWasmSlow = {
+	args: {
+		method: 'busted',
+		methodOptions: {},
+		geneticCode: 'Universal',
+		datasetSize: 'large',
+		executionMode: 'wasm'
 	}
 };
 
@@ -142,7 +185,8 @@ export const NoFileSelected = {
 		method: 'fel',
 		methodOptions: {},
 		geneticCode: 'Universal',
-		datasetSize: null
+		datasetSize: null,
+		executionMode: 'backend'
 	}
 };
 
@@ -166,7 +210,7 @@ export const MethodComparison = {
 				return {
 					methods: [
 						'slac', 'fel', 'meme', 'fubar', 'absrel', 'busted',
-						'relax', 'fade', 'multi-hit', 'nrm', 'contrast-fel', 'gard', 'bgm'
+						'relax', 'multi-hit', 'contrast-fel', 'gard', 'bgm'
 					],
 					methodLabels: {
 						'slac': 'SLAC (Fastest)',

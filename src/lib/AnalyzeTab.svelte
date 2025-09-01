@@ -196,6 +196,7 @@
 								method={currentSelectedMethod}
 								methodOptions={currentMethodOptions}
 								geneticCode={currentGeneticCode}
+								executionMode={currentExecutionMode === 'local' ? 'wasm' : 'backend'}
 							/>
 						</div>
 					{/if}
