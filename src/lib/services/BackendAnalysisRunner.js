@@ -56,8 +56,27 @@ class BackendAnalysisRunner {
 	setupGlobalHandlers() {
 		// Generic handlers that work for all analysis methods
 		this.socket.on('status update', (status) => {
-			// Backend doesn't send jobId in status updates, so use fallback
-			if (this.activeAnalyses.size > 0) {
+			// Try to find the analysis ID for this status update
+			if (status.jobId && this.activeAnalyses.has(status.jobId)) {
+				const analysisId = this.activeAnalyses.get(status.jobId);
+				analysisStore.updateAnalysisProgressById(
+					analysisId,
+					'running',
+					status.progress || 0,
+					status.msg || status.phase || 'Analysis in progress'
+				);
+			} else if (this.activeAnalyses.size === 1) {
+				// If only one analysis is running, we can safely assume it's for that one
+				const [jobId, analysisId] = this.activeAnalyses.entries().next().value;
+				analysisStore.updateAnalysisProgressById(
+					analysisId,
+					'running',
+					status.progress || 0,
+					status.msg || status.phase || 'Analysis in progress'
+				);
+			} else if (this.activeAnalyses.size > 1) {
+				// Multiple analyses running but no jobId - fallback to old behavior
+				console.warn('Status update received without jobId, cannot route to specific analysis');
 				analysisStore.updateAnalysisProgress(
 					'running',
 					status.progress || 0,
@@ -98,17 +117,12 @@ class BackendAnalysisRunner {
 				}
 
 				// Complete the progress tracking
-				analysisStore.completeAnalysisProgress(
-					true,
-					'Analysis completed successfully'
-				);
+				analysisStore.completeAnalysisProgress(true, 'Analysis completed successfully');
 				this.activeAnalyses.delete(data.jobId);
 			} else if (this.activeAnalyses.size > 0) {
 				// Fallback: If no jobId match but we have active analyses, complete the first one
 				// This mimics the demo behavior where any completion event completes the running analysis
-				const [firstJobId, analysisId] = this.activeAnalyses
-					.entries()
-					.next().value;
+				const [firstJobId, analysisId] = this.activeAnalyses.entries().next().value;
 				// Update the analysis in IndexedDB with results
 				try {
 					await analysisStore.updateAnalysis(analysisId, {
@@ -122,10 +136,7 @@ class BackendAnalysisRunner {
 				}
 
 				// Complete the progress tracking
-				analysisStore.completeAnalysisProgress(
-					true,
-					'Analysis completed successfully'
-				);
+				analysisStore.completeAnalysisProgress(true, 'Analysis completed successfully');
 				this.activeAnalyses.delete(firstJobId);
 			} else {
 				console.warn('⚠️ Completed analysis received but no active analyses:', {
@@ -139,10 +150,7 @@ class BackendAnalysisRunner {
 		this.socket.on('script error', (error) => {
 			console.error('❌ Backend analysis error:', error);
 			// Complete analysis progress with error
-			analysisStore.completeAnalysisProgress(
-				false,
-				`Analysis failed: ${error.message || error}`
-			);
+			analysisStore.completeAnalysisProgress(false, `Analysis failed: ${error.message || error}`);
 
 			// Update all active analyses as failed (since we don't have specific job context)
 			for (const [jobId, analysisId] of this.activeAnalyses.entries()) {
@@ -193,10 +201,7 @@ class BackendAnalysisRunner {
 
 		// Create analysis entry in store - analysisStore.createAnalysis expects (fileId, method)
 		// Use the provided fileId or null if not available
-		const analysisId = await analysisStore.createAnalysis(
-			fileId,
-			method.toUpperCase()
-		);
+		const analysisId = await analysisStore.createAnalysis(fileId, method.toUpperCase());
 		const jobId = `${method}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 		// Track this analysis
@@ -204,12 +209,9 @@ class BackendAnalysisRunner {
 
 		try {
 			// Start analysis progress tracking
-			analysisStore.startAnalysisProgress(
-				analysisId,
-				`Starting ${method} analysis...`,
-				method,
-				{ executionMode: 'backend' }
-			);
+			analysisStore.startAnalysisProgress(analysisId, `Starting ${method} analysis...`, method, {
+				executionMode: 'backend'
+			});
 
 			// Prepare analysis parameters based on method
 			const analysisParams = this.prepareAnalysisParameters(method, config);
@@ -231,7 +233,8 @@ class BackendAnalysisRunner {
 			this.socket.emit(eventName, submitData);
 
 			// Update analysis with job ID and status
-			analysisStore.updateAnalysisProgress(
+			analysisStore.updateAnalysisProgressById(
+				analysisId,
 				'pending',
 				5,
 				`Job submitted - ID: ${jobId}`
@@ -253,10 +256,7 @@ class BackendAnalysisRunner {
 			});
 
 			// Complete progress tracking with error
-			analysisStore.completeAnalysisProgress(
-				false,
-				`Submission failed: ${error.message}`
-			);
+			analysisStore.completeAnalysisProgress(false, `Submission failed: ${error.message}`);
 
 			this.activeAnalyses.delete(jobId);
 			throw error;

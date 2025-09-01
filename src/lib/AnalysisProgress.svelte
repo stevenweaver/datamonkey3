@@ -215,9 +215,7 @@
 
 	// Get the last few logs, don't show fake samples for real analyses
 	$: displayedLogs =
-		progressToShow.logs && progressToShow.logs.length > 0
-			? progressToShow.logs.slice(-5)
-			: [];
+		progressToShow.logs && progressToShow.logs.length > 0 ? progressToShow.logs.slice(-5) : [];
 
 	// Provide a job info accessor
 	$: jobInfo =
@@ -349,14 +347,18 @@
 				{#if jobInfo}
 					<div class="mb-2 flex items-center text-xs text-gray-500">
 						<span class="font-mono">{jobInfo.id.substring(0, 8)}</span>
-						
+
 						<!-- Execution mode indicator -->
 						{#if progressToShow.metadata?.executionMode === 'backend'}
-							<span class="mx-1 rounded bg-blue-100 px-1.5 py-0.5 text-blue-700 font-medium">Server</span>
+							<span class="mx-1 rounded bg-blue-100 px-1.5 py-0.5 font-medium text-blue-700"
+								>Server</span
+							>
 						{:else if progressToShow.metadata?.executionMode === 'wasm'}
-							<span class="mx-1 rounded bg-green-100 px-1.5 py-0.5 text-green-700 font-medium">Local</span>
+							<span class="mx-1 rounded bg-green-100 px-1.5 py-0.5 font-medium text-green-700"
+								>Local</span
+							>
 						{/if}
-						
+
 						{#if jobInfo.method}
 							<span class="mx-1">•</span>
 							<span class="font-semibold">{jobInfo.method}</span>

@@ -14,11 +14,11 @@ describe('Timing Estimates', () => {
 			// For 20 sequences, 500 sites:
 			// Expected: 0.05 × 20^1.012 × 500^0.450 = 0.05 × 20.25 × 24.49 ≈ 24.8 minutes ≈ 1488 seconds
 			// But user expects ~17 seconds, so there's a unit issue
-			
+
 			const result = calculateRuntimeEstimate('fel', 20, 500, 'backend');
-			
+
 			console.log('FEL result for 20 seq, 500 sites:', result);
-			
+
 			expect(result).toBeTruthy();
 			expect(result.minutes).toBeGreaterThan(0);
 			expect(result.category).toBeDefined();
@@ -28,10 +28,10 @@ describe('Timing Estimates', () => {
 		it('should handle WASM scaling correctly', () => {
 			const backendResult = calculateRuntimeEstimate('fel', 20, 500, 'backend');
 			const wasmResult = calculateRuntimeEstimate('fel', 20, 500, 'wasm');
-			
+
 			console.log('Backend FEL:', backendResult.minutes, 'minutes');
 			console.log('WASM FEL:', wasmResult.minutes, 'minutes');
-			
+
 			// WASM should be 30% slower (1.3x)
 			expect(wasmResult.minutes).toBeCloseTo(backendResult.minutes * 1.3, 0);
 			expect(wasmResult.executionMode).toBe('wasm');
@@ -55,10 +55,10 @@ describe('Timing Estimates', () => {
 				rateClasses: 6, // Should multiply by 2 (6/3)
 				confidenceIntervals: true // Should multiply by 1.3
 			});
-			
+
 			console.log('Base FEL:', baseResult.minutes, 'minutes');
 			console.log('Complex FEL:', complexResult.minutes, 'minutes');
-			
+
 			// Should be roughly 2 * 1.3 = 2.6x longer
 			expect(complexResult.minutes).toBeGreaterThan(baseResult.minutes * 2);
 		});
@@ -67,24 +67,26 @@ describe('Timing Estimates', () => {
 	describe('Real-world test cases', () => {
 		it('should match expected FEL timing (17 seconds for 20 seq, 500 sites)', () => {
 			const result = calculateRuntimeEstimate('fel', 20, 500, 'backend');
-			
+
 			console.log(`FEL (20 seq, 500 sites): ${result.minutes} min = ${result.seconds} seconds`);
 			console.log('Expected: ~17 seconds');
-			
+
 			// Check if we're in the right ballpark (within factor of 2)
-			expect(result.seconds).toBeGreaterThan(8);  // At least half of expected
-			expect(result.seconds).toBeLessThan(34);    // At most double expected
+			expect(result.seconds).toBeGreaterThan(8); // At least half of expected
+			expect(result.seconds).toBeLessThan(34); // At most double expected
 		});
 
 		it('should test other methods for reasonableness', () => {
 			const methods = ['slac', 'meme', 'fubar', 'absrel', 'busted'];
 			const sequences = 50;
 			const sites = 1000;
-			
-			methods.forEach(method => {
+
+			methods.forEach((method) => {
 				const result = calculateRuntimeEstimate(method, sequences, sites, 'backend');
-				console.log(`${method.toUpperCase()} (${sequences} seq, ${sites} sites): ${result.minutes} min`);
-				
+				console.log(
+					`${method.toUpperCase()} (${sequences} seq, ${sites} sites): ${result.minutes} min`
+				);
+
 				expect(result.minutes).toBeGreaterThan(0);
 				expect(result.reliability).toBeGreaterThan(0);
 				expect(result.reliability).toBeLessThanOrEqual(1);
@@ -94,10 +96,10 @@ describe('Timing Estimates', () => {
 		it('should handle BGM and GARD special cases (near-zero coefficients)', () => {
 			const bgmResult = calculateRuntimeEstimate('bgm', 50, 1000, 'backend');
 			const gardResult = calculateRuntimeEstimate('gard', 50, 1000, 'backend');
-			
+
 			console.log('BGM result:', bgmResult.minutes, 'minutes');
 			console.log('GARD result:', gardResult.minutes, 'minutes');
-			
+
 			// Should not be zero or null
 			expect(bgmResult.minutes).toBeGreaterThan(0);
 			expect(gardResult.minutes).toBeGreaterThan(0);
@@ -108,12 +110,12 @@ describe('Timing Estimates', () => {
 		it('should categorize speeds correctly', () => {
 			// Very fast: < 2 minutes
 			const veryFast = calculateRuntimeEstimate('slac', 10, 100, 'backend');
-			// Medium: 10-30 minutes  
+			// Medium: 10-30 minutes
 			const medium = calculateRuntimeEstimate('meme', 100, 2000, 'backend');
-			
+
 			console.log('Very fast example:', veryFast.minutes, 'min ->', veryFast.category);
 			console.log('Medium example:', medium.minutes, 'min ->', medium.category);
-			
+
 			expect(['very-fast', 'fast'].includes(veryFast.category)).toBeTruthy();
 			expect(medium.category).toBeDefined();
 		});
@@ -133,7 +135,7 @@ describe('Timing Estimates', () => {
 		it('should calculate multiple methods', () => {
 			const methods = ['fel', 'meme', 'slac'];
 			const estimates = batchCalculateEstimates(methods, 20, 500, 'backend');
-			
+
 			expect(Object.keys(estimates)).toHaveLength(3);
 			expect(estimates.fel.minutes).toBeGreaterThan(0);
 			expect(estimates.meme.minutes).toBeGreaterThan(0);

@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { activeAnalyses } from '../stores/analyses';
+	import { analysisStore, activeAnalyses } from '../stores/analyses';
 	import { goto } from '$app/navigation';
 
 	// Function to navigate to the Results tab when clicked
@@ -12,26 +12,50 @@
 	const todayStart = new Date();
 	todayStart.setHours(0, 0, 0, 0);
 
-	// Derived counts from activeAnalyses (excluding datareader which is just file processing)
-	$: runningCount = $activeAnalyses
-		? $activeAnalyses.filter(
-				(a) => a.status !== 'completed' && a.status !== 'error' && a.method !== 'datareader'
-			).length
-		: 0;
+	// Get counts from ALL analyses in the store, not just activeAnalysesList
+	// Also check activeAnalysesList for any running analyses not yet persisted
+	$: runningCount = (() => {
+		// Count from main analyses array
+		const mainRunning = $analysisStore.analyses.filter(
+			(a) =>
+				a.status !== 'completed' &&
+				a.status !== 'error' &&
+				a.status !== 'cancelled' &&
+				a.method !== 'datareader'
+		).length;
 
-	$: completedCount = $activeAnalyses
-		? $activeAnalyses.filter(
-				(a) =>
-					a.status === 'completed' &&
-					a.completedAt &&
-					new Date(a.completedAt) >= todayStart &&
-					a.method !== 'datareader'
-			).length
-		: 0;
+		// Also check activeAnalysesList for any additional running analyses
+		const activeRunning = $activeAnalyses.filter(
+			(a) => a.status !== 'completed' && a.status !== 'error' && a.method !== 'datareader'
+		).length;
 
-	$: failedCount = $activeAnalyses
-		? $activeAnalyses.filter((a) => a.status === 'error' && a.method !== 'datareader').length
-		: 0;
+		// Return the maximum to avoid missing any
+		return Math.max(mainRunning, activeRunning);
+	})();
+
+	$: completedCount = (() => {
+		// Count from main analyses array (more reliable for completed)
+		return $analysisStore.analyses.filter(
+			(a) =>
+				a.status === 'completed' &&
+				a.completedAt &&
+				new Date(a.completedAt) >= todayStart &&
+				a.method !== 'datareader'
+		).length;
+	})();
+
+	$: failedCount = (() => {
+		// Count from both sources
+		const mainFailed = $analysisStore.analyses.filter(
+			(a) => a.status === 'error' && a.method !== 'datareader'
+		).length;
+
+		const activeFailed = $activeAnalyses.filter(
+			(a) => a.status === 'error' && a.method !== 'datareader'
+		).length;
+
+		return Math.max(mainFailed, activeFailed);
+	})();
 
 	// Only show indicator if there are any analyses to display
 	$: showIndicator = runningCount > 0 || completedCount > 0 || failedCount > 0;

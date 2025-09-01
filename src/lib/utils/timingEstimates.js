@@ -1,10 +1,10 @@
 /**
  * HyPhy Analysis Runtime Estimation Utilities
- * 
+ *
  * Data-driven timing estimates based on empirical analysis of runtime data
  * from production analyses. Each method uses power law equations fitted to
  * observed runtime data.
- * 
+ *
  * Backend equations are scaled by 1.3 for local WASM execution estimates (30% slower).
  */
 
@@ -14,13 +14,13 @@ export const BACKEND_TIMING_EQUATIONS = {
 	absrel: {
 		coefficient: 0.08,
 		seqExponent: 1.247,
-		sitesExponent: 0.490,
+		sitesExponent: 0.49,
 		rSquared: 0.6706794777372124,
 		observations: 4429,
 		model: 'Power'
 	},
 	bgm: {
-		coefficient: 0.00, // Very small coefficient, essentially 0
+		coefficient: 0.0, // Very small coefficient, essentially 0
 		seqExponent: 0.062,
 		sitesExponent: 2.104,
 		rSquared: 0.5149828056114509,
@@ -46,7 +46,7 @@ export const BACKEND_TIMING_EQUATIONS = {
 	fel: {
 		coefficient: 0.05,
 		seqExponent: 1.012,
-		sitesExponent: 0.450,
+		sitesExponent: 0.45,
 		rSquared: 0.6259986159726711,
 		observations: 6029,
 		model: 'Power'
@@ -60,7 +60,7 @@ export const BACKEND_TIMING_EQUATIONS = {
 		model: 'Power'
 	},
 	gard: {
-		coefficient: 0.00, // Very small coefficient, essentially 0
+		coefficient: 0.0, // Very small coefficient, essentially 0
 		seqExponent: 1.193,
 		sitesExponent: 1.439,
 		rSquared: 0.6824862676555312,
@@ -174,7 +174,13 @@ export const SPEED_CATEGORIES = {
  * @param {Object} options - Advanced options that affect runtime
  * @returns {Object} Timing estimate with minutes, category, and description
  */
-export function calculateRuntimeEstimate(method, sequences, sites, executionMode = 'backend', options = {}) {
+export function calculateRuntimeEstimate(
+	method,
+	sequences,
+	sites,
+	executionMode = 'backend',
+	options = {}
+) {
 	if (!method || !sequences || !sites) {
 		return {
 			minutes: null,
@@ -184,10 +190,10 @@ export function calculateRuntimeEstimate(method, sequences, sites, executionMode
 			executionMode
 		};
 	}
-	
+
 	const methodKey = method.toLowerCase();
 	const equation = BACKEND_TIMING_EQUATIONS[methodKey];
-	
+
 	if (!equation) {
 		return {
 			minutes: null,
@@ -203,10 +209,16 @@ export function calculateRuntimeEstimate(method, sequences, sites, executionMode
 	if (equation.coefficient < 0.01) {
 		// For very small coefficients, use a minimum base time
 		const minBaseTime = methodKey === 'bgm' ? 600 : 300; // BGM is slower than GARD typically (in seconds)
-		baseSeconds = minBaseTime * Math.pow(sequences, equation.seqExponent * 0.1) * Math.pow(sites, equation.sitesExponent * 0.1);
+		baseSeconds =
+			minBaseTime *
+			Math.pow(sequences, equation.seqExponent * 0.1) *
+			Math.pow(sites, equation.sitesExponent * 0.1);
 	} else {
 		// Standard power law calculation: runtime = coefficient × seq^seqExp × sites^sitesExp (result in seconds)
-		baseSeconds = equation.coefficient * Math.pow(sequences, equation.seqExponent) * Math.pow(sites, equation.sitesExponent);
+		baseSeconds =
+			equation.coefficient *
+			Math.pow(sequences, equation.seqExponent) *
+			Math.pow(sites, equation.sitesExponent);
 	}
 
 	// Apply execution mode scaling
@@ -301,7 +313,13 @@ export function getMethodEquation(method) {
  * @param {Object} options - Advanced options
  * @returns {Object} Method names mapped to timing estimates
  */
-export function batchCalculateEstimates(methods, sequences, sites, executionMode = 'backend', options = {}) {
+export function batchCalculateEstimates(
+	methods,
+	sequences,
+	sites,
+	executionMode = 'backend',
+	options = {}
+) {
 	const estimates = {};
 	for (const method of methods) {
 		estimates[method] = calculateRuntimeEstimate(method, sequences, sites, executionMode, options);

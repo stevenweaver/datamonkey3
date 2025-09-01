@@ -3735,10 +3735,10 @@ https-proxy-agent@^7.0.6:
     agent-base "^7.1.2"
     debug "4"
 
-hyphy-scope@^1.2.7:
-  version "1.2.9"
-  resolved "https://registry.npmjs.org/hyphy-scope/-/hyphy-scope-1.2.9.tgz"
-  integrity sha512-j8auyqu3j4iVdu9JWqUbSHK+8DNJq/Iw9czqEwrk/8D4M+MVJ2U9eIYVZuCn5cjM6QEsfYhzBadWRhvQLrPHIQ==
+hyphy-scope@^1.2.10:
+  version "1.2.10"
+  resolved "https://registry.yarnpkg.com/hyphy-scope/-/hyphy-scope-1.2.10.tgz#ab5d407a1781ce06ea5adf287d5711791dda7dc0"
+  integrity sha512-bCRPDYA5T1NkRD332shx008CPEHl7ibtpiEN6kNYii4rz3pz2cJLhB/0ZLqZG2/CjeLsciwn7BibqiXpIAsC6Q==
   dependencies:
     "@observablehq/plot" "^0.6.11"
     d3 "^7.8.5"

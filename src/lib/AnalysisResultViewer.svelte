@@ -66,6 +66,14 @@
 				return;
 			}
 
+			// If analysis doesn't have metadata, try to get it from activeAnalysesList
+			if (!analysis.metadata && $analysisStore.activeAnalysesList) {
+				const activeAnalysis = $analysisStore.activeAnalysesList.find((a) => a.id === id);
+				if (activeAnalysis && activeAnalysis.metadata) {
+					analysis = { ...analysis, metadata: activeAnalysis.metadata };
+				}
+			}
+
 			// Get file metadata
 			file = $persistentFileStore.files.find((f) => f.id === analysis.fileId);
 
@@ -91,6 +99,15 @@
 					console.log('Result preview:', analysis.result);
 					resultData = { error: 'Invalid result format' };
 				}
+			} else {
+				// DEBUG: Log when result is missing
+				console.warn('Analysis has no result data:', {
+					id: analysis.id,
+					status: analysis.status,
+					method: analysis.method,
+					completedAt: analysis.completedAt,
+					hasResult: !!analysis.result
+				});
 			}
 		} catch (e) {
 			console.error('Error loading analysis:', e);
@@ -189,6 +206,34 @@
 									: 'text-gray-600'}"
 						>
 							{analysis.status === 'completed' ? 'Completed' : analysis.status}
+						</span>
+					</p>
+					<p>
+						Execution:
+						<span class="font-medium">
+							{#if analysis.metadata?.executionMode === 'backend'}
+								<span class="inline-flex items-center text-blue-600">
+									<svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+										<path
+											d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
+										/>
+									</svg>
+									Server
+								</span>
+							{:else if analysis.metadata?.executionMode === 'wasm'}
+								<span class="inline-flex items-center text-purple-600">
+									<svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+										<path
+											fill-rule="evenodd"
+											d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z"
+											clip-rule="evenodd"
+										/>
+									</svg>
+									Local (WebAssembly)
+								</span>
+							{:else}
+								<span class="text-gray-500">Unknown</span>
+							{/if}
 						</span>
 					</p>
 					<p>Created: {formatDate(analysis.createdAt)}</p>
@@ -397,6 +442,23 @@
 				{:else if ['pending', 'running', 'mounting', 'processing', 'saving'].includes(analysis.status)}
 					<!-- Show the detailed analysis progress when viewing a pending/running analysis -->
 					<AnalysisProgress {analysisId} />
+				{:else if analysis.status === 'completed' && !resultData}
+					<!-- Analysis is marked complete but results are missing (likely due to state bug) -->
+					<div class="rounded-lg bg-yellow-50 p-4">
+						<p class="mb-2 text-yellow-800">
+							<strong>Analysis appears complete but results are not loading.</strong>
+						</p>
+						<p class="mb-3 text-sm text-yellow-700">
+							This may be due to a state synchronization issue. The analysis completed successfully
+							but the results weren't properly saved.
+						</p>
+						<button
+							on:click={() => loadAnalysis(analysisId)}
+							class="rounded bg-yellow-600 px-3 py-1 text-sm text-white hover:bg-yellow-700"
+						>
+							Retry Loading Results
+						</button>
+					</div>
 				{:else}
 					<p class="text-gray-600">No results available</p>
 				{/if}

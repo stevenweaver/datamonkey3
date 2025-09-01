@@ -23,7 +23,12 @@ export default {
 		},
 		geneticCode: {
 			control: 'select',
-			options: ['Universal', 'Vertebrate-mitochondrial', 'Yeast-mitochondrial', 'Mold-mitochondrial']
+			options: [
+				'Universal',
+				'Vertebrate-mitochondrial',
+				'Yeast-mitochondrial',
+				'Mold-mitochondrial'
+			]
 		},
 		datasetSize: {
 			control: 'select',
@@ -209,23 +214,32 @@ export const MethodComparison = {
 			data() {
 				return {
 					methods: [
-						'slac', 'fel', 'meme', 'fubar', 'absrel', 'busted',
-						'relax', 'multi-hit', 'contrast-fel', 'gard', 'bgm'
+						'slac',
+						'fel',
+						'meme',
+						'fubar',
+						'absrel',
+						'busted',
+						'relax',
+						'multi-hit',
+						'contrast-fel',
+						'gard',
+						'bgm'
 					],
 					methodLabels: {
-						'slac': 'SLAC (Fastest)',
-						'fel': 'FEL',
-						'meme': 'MEME',
-						'fubar': 'FUBAR',
-						'absrel': 'aBSREL',
-						'busted': 'BUSTED',
-						'relax': 'RELAX',
-						'fade': 'FADE',
+						slac: 'SLAC (Fastest)',
+						fel: 'FEL',
+						meme: 'MEME',
+						fubar: 'FUBAR',
+						absrel: 'aBSREL',
+						busted: 'BUSTED',
+						relax: 'RELAX',
+						fade: 'FADE',
 						'multi-hit': 'Multi-hit',
-						'nrm': 'NRM',
+						nrm: 'NRM',
 						'contrast-fel': 'Contrast-FEL',
-						'gard': 'GARD',
-						'bgm': 'BGM (Slowest)'
+						gard: 'GARD',
+						bgm: 'BGM (Slowest)'
 					}
 				};
 			}

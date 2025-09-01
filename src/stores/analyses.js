@@ -223,7 +223,44 @@ function createAnalysisStore() {
 
 		// Set the current analysis
 		setCurrentAnalysis(analysisId) {
-			update((state) => ({ ...state, currentAnalysisId: analysisId }));
+			update((state) => {
+				// Find the analysis in activeAnalysesList first
+				const activeAnalysisData = state.activeAnalysesList.find((a) => a.id === analysisId);
+
+				// If found in activeAnalysesList, also set it as the activeAnalysis
+				if (activeAnalysisData) {
+					return {
+						...state,
+						currentAnalysisId: analysisId,
+						activeAnalysis: { ...activeAnalysisData }
+					};
+				}
+
+				// For completed analyses not in activeAnalysesList, find in main analyses array
+				const completedAnalysis = state.analyses.find((a) => a.id === analysisId);
+				if (completedAnalysis) {
+					// Create a minimal activeAnalysis object for completed analyses
+					return {
+						...state,
+						currentAnalysisId: analysisId,
+						activeAnalysis: {
+							id: completedAnalysis.id,
+							status: completedAnalysis.status,
+							progress: completedAnalysis.status === 'completed' ? 100 : 0,
+							message:
+								completedAnalysis.status === 'completed'
+									? 'Analysis completed'
+									: completedAnalysis.status,
+							method: completedAnalysis.method,
+							logs: completedAnalysis.logs || [],
+							metadata: completedAnalysis.metadata || {}
+						}
+					};
+				}
+
+				// Fallback: just update currentAnalysisId
+				return { ...state, currentAnalysisId: analysisId };
+			});
 		},
 
 		// Clear any errors
@@ -333,6 +370,77 @@ function createAnalysisStore() {
 			});
 		},
 
+		// NEW METHOD: Update analysis progress by specific ID
+		updateAnalysisProgressById(analysisId, status, progress, message) {
+			update((state) => {
+				return this._updateAnalysisProgressByIdInternal(
+					analysisId,
+					status,
+					progress,
+					message,
+					state
+				);
+			});
+		},
+
+		// Internal helper for updating analysis progress by ID
+		_updateAnalysisProgressByIdInternal(analysisId, status, progress, message, state) {
+			if (!analysisId) return state;
+
+			// Create log entry
+			const logEntry = { time: new Date().toISOString(), message, status };
+
+			// Update the analysis in activeAnalysesList
+			const updatedActiveAnalysesList = state.activeAnalysesList.map((a) => {
+				if (a.id !== analysisId) return a;
+
+				const logs = [...(a.logs || [])];
+				const lastLog = logs[logs.length - 1];
+
+				// Only add if different from last log
+				if (!lastLog || lastLog.message !== message || lastLog.status !== status) {
+					logs.push(logEntry);
+				}
+
+				return {
+					...a,
+					status,
+					progress: Math.min(Math.max(0, progress), 100),
+					message,
+					logs
+				};
+			});
+
+			// If this is the current activeAnalysis, update it too
+			let updatedActiveAnalysis = state.activeAnalysis;
+			if (state.activeAnalysis.id === analysisId) {
+				const activeLogs = [...(state.activeAnalysis.logs || [])];
+				const lastActiveLog = activeLogs[activeLogs.length - 1];
+
+				if (
+					!lastActiveLog ||
+					lastActiveLog.message !== message ||
+					lastActiveLog.status !== status
+				) {
+					activeLogs.push(logEntry);
+				}
+
+				updatedActiveAnalysis = {
+					...state.activeAnalysis,
+					status,
+					progress: Math.min(Math.max(0, progress), 100),
+					message,
+					logs: activeLogs
+				};
+			}
+
+			return {
+				...state,
+				activeAnalysis: updatedActiveAnalysis,
+				activeAnalysesList: updatedActiveAnalysesList
+			};
+		},
+
 		// Complete analysis progress
 		async completeAnalysisProgress(
 			success = true,
@@ -386,9 +494,10 @@ function createAnalysisStore() {
 
 			// If we have an active analysis ID, update its status in both client and server
 			if (analysisId) {
-				// Get current logs and result from the active analysis
+				// Get current logs, result, and metadata from the active analysis
 				const currentLogs = currentState.activeAnalysis.logs || [];
 				const currentResult = currentState.activeAnalysis.result || null;
+				const currentMetadata = currentState.activeAnalysis.metadata || {};
 
 				// Update IndexedDB
 				try {
@@ -402,6 +511,7 @@ function createAnalysisStore() {
 							status,
 							logs: currentLogs, // Include logs from active analysis
 							result: finalResult, // Ensure result is saved with raw stdout
+							metadata: currentMetadata, // Include metadata from active analysis
 							completedAt: success ? new Date().getTime() : undefined
 						});
 
@@ -415,6 +525,7 @@ function createAnalysisStore() {
 											status,
 											logs: currentLogs, // Include logs here too
 											result: finalResult, // Include result with raw stdout here too
+											metadata: currentMetadata, // Include metadata here too
 											completedAt: success ? new Date().getTime() : undefined
 										}
 									: a
@@ -437,6 +548,7 @@ function createAnalysisStore() {
 								status,
 								logs: currentLogs, // Include logs in the server update
 								result: currentResult, // Include result with raw stdout in the server update
+								metadata: currentMetadata, // Include metadata in the server update
 								completedAt: success ? new Date().getTime() : undefined
 							})
 						})

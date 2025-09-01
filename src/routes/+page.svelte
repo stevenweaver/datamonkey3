@@ -193,10 +193,16 @@
 			activeTab = 'analyze';
 
 			// Initialize progress tracking
-			analysisStore.startAnalysisProgress(analysisId, `Initializing ${methodName} analysis...`, methodName, { executionMode: 'wasm' });
+			analysisStore.startAnalysisProgress(
+				analysisId,
+				`Initializing ${methodName} analysis...`,
+				methodName,
+				{ executionMode: 'wasm' }
+			);
 
 			// Add method-specific data if needed
-			analysisStore.updateAnalysisProgress(
+			analysisStore.updateAnalysisProgressById(
+				analysisId,
 				'mounting',
 				10,
 				`Preparing files for ${methodName} analysis...`
@@ -209,7 +215,12 @@
 			]);
 
 			// Show preparation message
-			analysisStore.updateAnalysisProgress('running', 20, `Running ${methodName} analysis...`);
+			analysisStore.updateAnalysisProgressById(
+				analysisId,
+				'running',
+				20,
+				`Running ${methodName} analysis...`
+			);
 
 			// Prepare additional command line arguments if options are provided
 			let cmdArgs = inputFiles[0];
@@ -221,10 +232,10 @@
 				Object.entries(options).forEach(([key, value]) => {
 					// Skip null or undefined values
 					if (value === null || value === undefined) return;
-					
+
 					// Skip method-specific metadata
 					if (key === 'method' || key === 'executionMode') return;
-					
+
 					// Map parameter names to HyPhy expected names
 					let paramName = key;
 					if (key === 'geneticCode') {
@@ -258,18 +269,43 @@
 
 				// Special progress markers
 				if (line.includes('Phase 1')) {
-					analysisStore.updateAnalysisProgress('running', 30, 'Phase 1: Model fitting...');
+					analysisStore.updateAnalysisProgressById(
+						analysisId,
+						'running',
+						30,
+						'Phase 1: Model fitting...'
+					);
 				} else if (line.includes('Phase 2')) {
-					analysisStore.updateAnalysisProgress('running', 50, 'Phase 2: Site-by-site analysis...');
+					analysisStore.updateAnalysisProgressById(
+						analysisId,
+						'running',
+						50,
+						'Phase 2: Site-by-site analysis...'
+					);
 				} else if (line.includes('writing')) {
-					analysisStore.updateAnalysisProgress('processing', 75, 'Processing results...');
+					analysisStore.updateAnalysisProgressById(
+						analysisId,
+						'processing',
+						75,
+						'Processing results...'
+					);
 				} else if (line.includes('error') || line.includes('Error')) {
-					analysisStore.updateAnalysisProgress('error', progressEstimate, `Error: ${line}`);
+					analysisStore.updateAnalysisProgressById(
+						analysisId,
+						'error',
+						progressEstimate,
+						`Error: ${line}`
+					);
 				}
 			}
 
 			// Handle JSON output
-			analysisStore.updateAnalysisProgress('processing', 85, 'Retrieving results...');
+			analysisStore.updateAnalysisProgressById(
+				analysisId,
+				'processing',
+				85,
+				'Retrieving results...'
+			);
 			const outputFile = `/shared/data/user.nex.${outputSuffix}`;
 			const jsonBlob = await cliObj.download(outputFile);
 			const response = await fetch(jsonBlob);
@@ -278,9 +314,19 @@
 
 			try {
 				jsonData = JSON.parse(jsonOut);
-				analysisStore.updateAnalysisProgress('saving', 95, 'Saving analysis results...');
+				analysisStore.updateAnalysisProgressById(
+					analysisId,
+					'saving',
+					95,
+					'Saving analysis results...'
+				);
 			} catch (error) {
-				analysisStore.updateAnalysisProgress('error', 85, 'Failed to parse results');
+				analysisStore.updateAnalysisProgressById(
+					analysisId,
+					'error',
+					85,
+					'Failed to parse results'
+				);
 				throw new Error('Failed to parse analysis results');
 			}
 
@@ -381,7 +427,8 @@
 
 					// Update the progress if we found a meaningful message
 					if (progressUpdate) {
-						analysisStore.updateAnalysisProgress(
+						analysisStore.updateAnalysisProgressById(
+							$activeAnalysisProgress.id,
 							'running',
 							progressUpdate.progress,
 							progressUpdate.message
@@ -389,7 +436,8 @@
 					}
 
 					// For all console output, add to the log
-					analysisStore.updateAnalysisProgress(
+					analysisStore.updateAnalysisProgressById(
+						$activeAnalysisProgress.id,
 						$activeAnalysisProgress.status,
 						$activeAnalysisProgress.progress,
 						text
@@ -580,7 +628,12 @@
 			analysisStore.startAnalysisProgress(analysisId, 'Initializing file analysis...');
 
 			// Mount the file for analysis
-			analysisStore.updateAnalysisProgress('mounting', 20, 'Mounting files for analysis...');
+			analysisStore.updateAnalysisProgressById(
+				analysisId,
+				'mounting',
+				20,
+				'Mounting files for analysis...'
+			);
 			let inputFiles = await cliObj.mount([
 				{ name: 'user.nex', data: await file.text() },
 				{ name: 'datareader.bf', data: dataReader },
@@ -594,12 +647,22 @@
 			]);
 
 			// Run the datareader analysis
-			analysisStore.updateAnalysisProgress('running', 40, 'Analyzing file structure...');
+			analysisStore.updateAnalysisProgressById(
+				analysisId,
+				'running',
+				40,
+				'Analyzing file structure...'
+			);
 			result = await cliObj.exec('hyphy LIBPATH=/shared/hyphy/ ' + inputFiles[1]);
 			hyphyOut = await result.stdout;
 
 			// Process results
-			analysisStore.updateAnalysisProgress('processing', 80, 'Processing file information...');
+			analysisStore.updateAnalysisProgressById(
+				analysisId,
+				'processing',
+				80,
+				'Processing file information...'
+			);
 			const jsonBlob = await cliObj.download('/shared/data/results.json');
 			const response = await fetch(jsonBlob);
 			const blob = await response.blob();
@@ -625,7 +688,12 @@
 			}
 
 			// Save the file metrics as an analysis result in IndexedDB
-			analysisStore.updateAnalysisProgress('saving', 90, 'Saving file information...');
+			analysisStore.updateAnalysisProgressById(
+				analysisId,
+				'saving',
+				90,
+				'Saving file information...'
+			);
 			const completionTimestamp = new Date().getTime();
 			await analysisStore.updateAnalysis(analysisId, {
 				status: 'completed',

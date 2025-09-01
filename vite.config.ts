@@ -9,7 +9,17 @@ export default defineConfig({
 	plugins: [sveltekit()],
 
 	test: {
-		include: ['src/**/*.{test,spec}.{js,ts}'],
+		include: [
+			'src/test/**/*.{test,spec}.{js,ts}',
+			'src/lib/**/*.{test,spec}.{js,ts}',
+			'src/stores/**/*.{test,spec}.{js,ts}'
+		],
+		exclude: [
+			'node_modules/**',
+			'**/node_modules/**',
+			'src/test/*-backend.test.js', // Exclude backend integration tests
+			'src/test/backend-*.test.js' // Exclude any other backend test patterns
+		],
 		environment: 'jsdom'
 	},
 

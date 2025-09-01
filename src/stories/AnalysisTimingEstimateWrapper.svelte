@@ -47,15 +47,16 @@
 	$: mockCurrentFile.set(datasetSize ? mockFileData[datasetSize] : null);
 
 	// Calculate timing estimate using data-driven equations
-	$: estimatedTime = method && $mockCurrentFile 
-		? calculateRuntimeEstimate(
-			method, 
-			$mockCurrentFile.sequences || 10, 
-			$mockCurrentFile.sites || 1000, 
-			executionMode,
-			methodOptions
-		) 
-		: null;
+	$: estimatedTime =
+		method && $mockCurrentFile
+			? calculateRuntimeEstimate(
+					method,
+					$mockCurrentFile.sequences || 10,
+					$mockCurrentFile.sites || 1000,
+					executionMode,
+					methodOptions
+				)
+			: null;
 
 	// Get dataset info for display
 	$: datasetInfo = $mockCurrentFile

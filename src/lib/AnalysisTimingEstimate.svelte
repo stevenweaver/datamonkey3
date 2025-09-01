@@ -13,28 +13,23 @@
 	$: fileMetrics = $fileMetricsStore;
 	$: sequences = fileMetrics?.FILE_INFO?.sequences || $currentFile?.sequences || 10;
 	$: sites = fileMetrics?.FILE_INFO?.sites || $currentFile?.sites || 1000;
-	
 
 	// Calculate timing estimate using data-driven equations
 	$: hasValidData = sequences > 0 && sites > 0;
-	$: estimatedTime = method && hasValidData
-		? calculateRuntimeEstimate(
-			method, 
-			sequences, 
-			sites, 
-			executionMode,
-			methodOptions
-		) 
-		: null;
+	$: estimatedTime =
+		method && hasValidData
+			? calculateRuntimeEstimate(method, sequences, sites, executionMode, methodOptions)
+			: null;
 
 	// Get dataset info for display
-	$: datasetInfo = ($currentFile || fileMetrics)
-		? {
-				sequences: sequences,
-				sites: sites,
-				filename: $currentFile?.filename || 'Unknown'
-			}
-		: null;
+	$: datasetInfo =
+		$currentFile || fileMetrics
+			? {
+					sequences: sequences,
+					sites: sites,
+					filename: $currentFile?.filename || 'Unknown'
+				}
+			: null;
 </script>
 
 {#if estimatedTime && estimatedTime.minutes !== null}
@@ -95,7 +90,9 @@
 			<span class="timing-icon">⏱️</span>
 			<span class="timing-label text-gray-600"> Timing Estimate </span>
 			<span class="timing-value text-gray-600">
-				{($currentFile || fileMetrics) && !hasValidData ? 'Analyzing file...' : 'Upload file to estimate'}
+				{($currentFile || fileMetrics) && !hasValidData
+					? 'Analyzing file...'
+					: 'Upload file to estimate'}
 			</span>
 		</div>
 	</div>

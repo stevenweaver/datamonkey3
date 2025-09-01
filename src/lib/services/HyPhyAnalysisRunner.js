@@ -36,7 +36,12 @@ class HyPhyAnalysisRunner {
 			});
 
 			// Tell the store we're starting an analysis
-			analysisStore.startAnalysisProgress(analysisId, 'Initializing HyPhy analysis...', options.method, { executionMode: 'wasm' });
+			analysisStore.startAnalysisProgress(
+				analysisId,
+				'Initializing HyPhy analysis...',
+				options.method,
+				{ executionMode: 'wasm' }
+			);
 
 			// Create and setup the worker
 			const worker = await this.createWorker(analysisId, options);
@@ -87,7 +92,7 @@ class HyPhyAnalysisRunner {
 			}
 
 			// Update the store
-			analysisStore.updateAnalysisProgress('error', 0, `Error: ${error.message}`);
+			analysisStore.updateAnalysisProgressById(analysisId, 'error', 0, `Error: ${error.message}`);
 			analysisStore.completeAnalysisProgress(false, `Analysis failed: ${error.message}`);
 
 			// Rethrow the error
@@ -215,7 +220,12 @@ class HyPhyAnalysisRunner {
 
 				// Update the store
 				const uiState = hyphyOutputParser.mapToUIState(this.outputBuffer.get(analysisId));
-				analysisStore.updateAnalysisProgress('error', uiState.progress, uiState.message);
+				analysisStore.updateAnalysisProgressById(
+					analysisId,
+					'error',
+					uiState.progress,
+					uiState.message
+				);
 				analysisStore.completeAnalysisProgress(
 					false,
 					'Analysis failed: Failed to optimize likelihood function'
@@ -244,7 +254,12 @@ class HyPhyAnalysisRunner {
 
 						// Update the UI based on the current output
 						const uiState = hyphyOutputParser.mapToUIState(this.outputBuffer.get(analysisId));
-						analysisStore.updateAnalysisProgress(uiState.status, uiState.progress, uiState.message);
+						analysisStore.updateAnalysisProgressById(
+							analysisId,
+							uiState.status,
+							uiState.progress,
+							uiState.message
+						);
 					}
 				}
 			}, timeOffset);
@@ -265,7 +280,8 @@ class HyPhyAnalysisRunner {
 
 								// Update the UI based on the current output
 								const uiState = hyphyOutputParser.mapToUIState(this.outputBuffer.get(analysisId));
-								analysisStore.updateAnalysisProgress(
+								analysisStore.updateAnalysisProgressById(
+									analysisId,
 									uiState.status,
 									uiState.progress,
 									uiState.message
@@ -300,7 +316,7 @@ class HyPhyAnalysisRunner {
 
 				// Update the store
 				const uiState = hyphyOutputParser.mapToUIState(this.outputBuffer.get(analysisId));
-				analysisStore.updateAnalysisProgress('completed', 100, uiState.message);
+				analysisStore.updateAnalysisProgressById(analysisId, 'completed', 100, uiState.message);
 				analysisStore.completeAnalysisProgress(true, 'Analysis completed successfully');
 			}
 		}, timeOffset);
@@ -329,7 +345,12 @@ class HyPhyAnalysisRunner {
 		this.runningAnalyses.set(analysisId, analysisState);
 
 		// Update the store
-		analysisStore.updateAnalysisProgress('error', 0, 'Analysis was stopped by user');
+		analysisStore.updateAnalysisProgressById(
+			analysisId,
+			'error',
+			0,
+			'Analysis was stopped by user'
+		);
 		analysisStore.completeAnalysisProgress(false, 'Analysis was stopped by user');
 
 		return true;
@@ -387,7 +408,12 @@ class HyPhyAnalysisRunner {
 					this.runningAnalyses.set(analysisId, analysisState);
 
 					// Update the store
-					analysisStore.updateAnalysisProgress('error', 0, 'Analysis timed out after 1 hour');
+					analysisStore.updateAnalysisProgressById(
+						analysisId,
+						'error',
+						0,
+						'Analysis timed out after 1 hour'
+					);
 					analysisStore.completeAnalysisProgress(false, 'Analysis timed out after 1 hour');
 
 					// Clean up
