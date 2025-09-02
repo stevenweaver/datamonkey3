@@ -188,7 +188,7 @@ function createAnalysisStore() {
 				// Remove from active analyses list
 				update((state) => ({
 					...state,
-					activeAnalyses: state.activeAnalyses.filter(
+					activeAnalyses: (state.activeAnalyses || []).filter(
 						(a) => a.id !== analysisId,
 					),
 				}));
@@ -290,7 +290,7 @@ function createAnalysisStore() {
 
 				// Add to unified active analyses list
 				// First remove any existing analysis with the same ID
-				const activeAnalyses = state.activeAnalyses.filter(
+				const activeAnalyses = (state.activeAnalyses || []).filter(
 					(a) => a.id !== analysisId,
 				);
 				activeAnalyses.push(progressObj);
@@ -305,7 +305,7 @@ function createAnalysisStore() {
 		// Update analysis progress (legacy method - uses first active analysis)
 		updateAnalysisProgress(status, progress, message) {
 			update((state) => {
-				if (state.activeAnalyses.length === 0) return state;
+				if (!state.activeAnalyses || state.activeAnalyses.length === 0) return state;
 				
 				// Update the first active analysis for backward compatibility
 				const firstActive = state.activeAnalyses[0];
@@ -346,7 +346,7 @@ function createAnalysisStore() {
 			const logEntry = { time: new Date().toISOString(), message, status };
 
 			// Update the analysis in activeAnalyses
-			const activeAnalyses = state.activeAnalyses.map((a) => {
+			const activeAnalyses = (state.activeAnalyses || []).map((a) => {
 				if (a.id !== analysisId) return a;
 
 				const logs = [...(a.logs || [])];
@@ -396,7 +396,7 @@ function createAnalysisStore() {
 			const analysisId = currentState.activeAnalyses[0].id;
 
 			update((state) => {
-				const activeAnalyses = state.activeAnalyses.map((a) => {
+				const activeAnalyses = (state.activeAnalyses || []).map((a) => {
 					if (a.id !== analysisId) return a;
 
 					const logs = [...(a.logs || [])];
@@ -421,7 +421,7 @@ function createAnalysisStore() {
 			// If we have an active analysis ID, update its status in both client and server
 			if (analysisId) {
 				// Get current logs, result, and metadata from the active analysis
-				const activeAnalysis = currentState.activeAnalyses.find(a => a.id === analysisId);
+				const activeAnalysis = (currentState.activeAnalyses || []).find(a => a.id === analysisId);
 				const currentLogs = activeAnalysis?.logs || [];
 				const currentResult = activeAnalysis?.result || null;
 				const currentMetadata = activeAnalysis?.metadata || {};
@@ -500,7 +500,7 @@ function createAnalysisStore() {
 		removeFromActiveAnalyses(analysisId) {
 			update((state) => ({
 				...state,
-				activeAnalyses: state.activeAnalyses.filter(
+				activeAnalyses: (state.activeAnalyses || []).filter(
 					(a) => a.id !== analysisId,
 				),
 			}));

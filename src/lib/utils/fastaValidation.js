@@ -3,6 +3,17 @@
  * Simplified version focusing on essential validation functionality
  */
 
+// Legacy ERROR_TYPES for backward compatibility
+export const ERROR_TYPES = {
+	EMPTY_FILE: { code: 'FASTA-001', message: 'File is empty' },
+	NO_HEADER: { code: 'FASTA-002', message: 'FASTA header line not found' },
+	INVALID_HEADER: { code: 'FASTA-003', message: 'Invalid FASTA header format' },
+	EMPTY_SEQUENCE: { code: 'FASTA-004', message: 'Sequence is empty' },
+	INCONSISTENT_LENGTH: { code: 'FASTA-005', message: 'Inconsistent sequence lengths' },
+	INVALID_CHARACTERS: { code: 'FASTA-006', message: 'Invalid characters in sequence' },
+	DUPLICATE_HEADERS: { code: 'FASTA-007', message: 'Duplicate sequence headers' }
+};
+
 // Valid character sets
 const VALID_NUCLEOTIDES = new Set('ACGTUNRYSWKMBDHVacgtunryswkmbdhv-.');
 const VALID_AMINO_ACIDS = new Set('ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy-.*X');
@@ -176,5 +187,87 @@ export function getSequenceStats(sequences) {
 		averageLength: Math.round(totalLength / sequences.length),
 		minLength: Math.min(...sequences.map(s => s.sequence.length)),
 		maxLength: Math.max(...sequences.map(s => s.sequence.length))
+	};
+}
+
+/**
+ * Convert sequences to FASTA format string
+ * @param {Array} sequences - Array of sequence objects
+ * @param {number} lineWidth - Line width for sequence wrapping (default: 80)
+ * @returns {string} FASTA formatted string
+ */
+export function toFastaFormat(sequences, lineWidth = 80) {
+	if (!sequences?.length) return '';
+	
+	return sequences.map(seq => {
+		const header = `>${seq.header}`;
+		const sequence = seq.sequence;
+		
+		if (lineWidth <= 0) {
+			return `${header}\n${sequence}`;
+		}
+		
+		// Wrap sequence at specified line width
+		const wrappedSequence = sequence.match(new RegExp(`.{1,${lineWidth}}`, 'g'))?.join('\n') || sequence;
+		return `${header}\n${wrappedSequence}`;
+	}).join('\n');
+}
+
+/**
+ * Attempt to repair common FASTA format issues
+ * @param {string} fastaContent - Raw FASTA content
+ * @returns {Object} Repaired content and repair log
+ */
+export function repairFasta(fastaContent) {
+	if (!fastaContent?.trim()) {
+		return {
+			repairedContent: '',
+			repairs: ['Cannot repair empty content'],
+			success: false
+		};
+	}
+
+	let content = fastaContent;
+	const repairs = [];
+
+	// Remove excessive whitespace
+	content = content.replace(/\n{3,}/g, '\n\n').trim();
+	if (content !== fastaContent.trim()) {
+		repairs.push('Removed excessive blank lines');
+	}
+
+	// Ensure headers start on new lines
+	content = content.replace(/(\S)>/g, '$1\n>');
+	if (content !== fastaContent) {
+		repairs.push('Fixed header line breaks');
+	}
+
+	// Remove spaces within sequences (but preserve line breaks)
+	const lines = content.split('\n');
+	let inSequence = false;
+	const repairedLines = [];
+	
+	for (const line of lines) {
+		if (line.startsWith('>')) {
+			inSequence = true;
+			repairedLines.push(line);
+		} else if (inSequence && line.trim()) {
+			const originalLine = line;
+			const cleanedLine = line.replace(/\s+/g, '');
+			repairedLines.push(cleanedLine);
+			if (originalLine !== cleanedLine) {
+				repairs.push('Removed whitespace from sequences');
+			}
+		} else {
+			repairedLines.push(line);
+		}
+	}
+
+	const repairedContent = repairedLines.join('\n');
+	
+	return {
+		repairedContent,
+		repairs,
+		success: repairs.length > 0
 	};
 }
