@@ -7,7 +7,7 @@
 
 // Database configuration
 const DB_NAME = 'fasta-validation-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Increment version for schema changes
 const FILES_STORE = 'files';
 const ANALYSES_STORE = 'analyses';
 
@@ -29,19 +29,24 @@ async function initDB() {
 		request.onupgradeneeded = (event) => {
 			const db = event.target.result;
 
-			// Create files store with indexes
-			if (!db.objectStoreNames.contains(FILES_STORE)) {
-				const filesStore = db.createObjectStore(FILES_STORE, { keyPath: 'id' });
-				filesStore.createIndex('filename', 'filename', { unique: false });
-				filesStore.createIndex('createdAt', 'createdAt', { unique: false });
+			// Delete existing stores if upgrading from version 1
+			if (event.oldVersion < 2) {
+				if (db.objectStoreNames.contains(FILES_STORE)) {
+					db.deleteObjectStore(FILES_STORE);
+				}
+				if (db.objectStoreNames.contains(ANALYSES_STORE)) {
+					db.deleteObjectStore(ANALYSES_STORE);
+				}
 			}
 
-			// Create analyses store with indexes
+			// Create simplified files store (no indexes for small datasets)
+			if (!db.objectStoreNames.contains(FILES_STORE)) {
+				db.createObjectStore(FILES_STORE, { keyPath: 'id' });
+			}
+
+			// Create simplified analyses store (no indexes for small datasets)
 			if (!db.objectStoreNames.contains(ANALYSES_STORE)) {
-				const analysesStore = db.createObjectStore(ANALYSES_STORE, { keyPath: 'id' });
-				analysesStore.createIndex('fileId', 'fileId', { unique: false });
-				analysesStore.createIndex('method', 'method', { unique: false });
-				analysesStore.createIndex('createdAt', 'createdAt', { unique: false });
+				db.createObjectStore(ANALYSES_STORE, { keyPath: 'id' });
 			}
 		};
 	});
@@ -247,30 +252,17 @@ export const fileStorage = {
 	 */
 	async findFileByName(filename) {
 		try {
-			const db = await initDB();
-
-			return new Promise((resolve, reject) => {
-				const transaction = db.transaction([FILES_STORE], 'readonly');
-				const store = transaction.objectStore(FILES_STORE);
-				const index = store.index('filename');
-				const request = index.getAll(filename);
-
-				request.onsuccess = (event) => {
-					const files = event.target.result;
-					// If multiple files with the same name exist, return the most recent one
-					if (files && files.length > 0) {
-						const sortedFiles = files.sort((a, b) => b.createdAt - a.createdAt);
-						resolve(sortedFiles[0]);
-					} else {
-						resolve(null);
-					}
-				};
-
-				request.onerror = (event) => {
-					console.error('Error finding file by name:', event.target.error);
-					reject(event.target.error);
-				};
-			});
+			const allFiles = await this.getAllFiles();
+			const matchingFiles = allFiles.filter(file => file.filename === filename);
+			
+			if (matchingFiles.length > 0) {
+				// Return the most recent one if multiple exist
+				matchingFiles.sort((a, b) => b.createdAt - a.createdAt);
+				// Need to get the full file with content
+				return await this.getFile(matchingFiles[0].id);
+			}
+			
+			return null;
 		} catch (error) {
 			console.error('Error in findFileByName:', error);
 			throw error;
@@ -403,23 +395,8 @@ export const analysisStorage = {
 	 */
 	async getAnalysesByFileId(fileId) {
 		try {
-			const db = await initDB();
-
-			return new Promise((resolve, reject) => {
-				const transaction = db.transaction([ANALYSES_STORE], 'readonly');
-				const store = transaction.objectStore(ANALYSES_STORE);
-				const index = store.index('fileId');
-				const request = index.getAll(fileId);
-
-				request.onsuccess = (event) => {
-					resolve(event.target.result);
-				};
-
-				request.onerror = (event) => {
-					console.error('Error retrieving analyses for file:', event.target.error);
-					reject(event.target.error);
-				};
-			});
+			const allAnalyses = await this.getAllAnalyses();
+			return allAnalyses.filter(analysis => analysis.fileId === fileId);
 		} catch (error) {
 			console.error('Error in getAnalysesByFileId:', error);
 			throw error;
