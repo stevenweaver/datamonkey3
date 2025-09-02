@@ -29,25 +29,17 @@ async function initDB() {
 		request.onupgradeneeded = (event) => {
 			const db = event.target.result;
 
-			// Delete existing stores if upgrading from version 1
-			if (event.oldVersion < 2) {
-				if (db.objectStoreNames.contains(FILES_STORE)) {
-					db.deleteObjectStore(FILES_STORE);
-				}
-				if (db.objectStoreNames.contains(ANALYSES_STORE)) {
-					db.deleteObjectStore(ANALYSES_STORE);
-				}
+			// Delete existing stores to start fresh (alpha version, no migration needed)
+			if (db.objectStoreNames.contains(FILES_STORE)) {
+				db.deleteObjectStore(FILES_STORE);
+			}
+			if (db.objectStoreNames.contains(ANALYSES_STORE)) {
+				db.deleteObjectStore(ANALYSES_STORE);
 			}
 
-			// Create simplified files store (no indexes for small datasets)
-			if (!db.objectStoreNames.contains(FILES_STORE)) {
-				db.createObjectStore(FILES_STORE, { keyPath: 'id' });
-			}
-
-			// Create simplified analyses store (no indexes for small datasets)
-			if (!db.objectStoreNames.contains(ANALYSES_STORE)) {
-				db.createObjectStore(ANALYSES_STORE, { keyPath: 'id' });
-			}
+			// Create simplified stores (no indexes for small datasets)
+			db.createObjectStore(FILES_STORE, { keyPath: 'id' });
+			db.createObjectStore(ANALYSES_STORE, { keyPath: 'id' });
 		};
 	});
 }
