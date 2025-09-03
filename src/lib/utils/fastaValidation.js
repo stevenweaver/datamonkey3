@@ -1,76 +1,34 @@
 /**
- * FASTA Validation Utilities
- *
- * This module provides functions for validating FASTA format files
- * and identifying common issues in sequence data.
+ * Simple FASTA Validation Utilities
+ * Simplified version focusing on essential validation functionality
  */
 
-// Valid nucleotide characters (including ambiguity codes)
-const VALID_NUCLEOTIDES = new Set('ACGTUNRYSWKMBDHVacgtunryswkmbdhv-.');
-
-// Valid amino acid characters
-const VALID_AMINO_ACIDS = new Set('ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy-.*X');
-
-// Common error types with specific codes and messages
+// Legacy ERROR_TYPES for backward compatibility
 export const ERROR_TYPES = {
-	EMPTY_FILE: {
-		code: 'FASTA-001',
-		message: 'File is empty'
-	},
-	NO_HEADER: {
-		code: 'FASTA-002',
-		message: 'FASTA header line (starting with >) not found'
-	},
-	INVALID_HEADER: {
-		code: 'FASTA-003',
-		message: 'Invalid FASTA header format'
-	},
-	EMPTY_SEQUENCE: {
-		code: 'FASTA-004',
-		message: 'Sequence is empty'
-	},
-	INCONSISTENT_LENGTH: {
-		code: 'FASTA-005',
-		message: 'Inconsistent sequence lengths in alignment'
-	},
-	INVALID_CHARACTERS: {
-		code: 'FASTA-006',
-		message: 'Invalid characters in sequence'
-	},
-	DUPLICATE_HEADERS: {
-		code: 'FASTA-007',
-		message: 'Duplicate sequence headers'
-	},
-	STOP_CODONS: {
-		code: 'FASTA-008',
-		message: 'Stop codons found in coding sequence'
-	},
-	MIXED_CASE: {
-		code: 'FASTA-009',
-		message: 'Mixed case used in sequences (could indicate issues)'
-	},
-	WHITESPACE_IN_SEQUENCE: {
-		code: 'FASTA-010',
-		message: 'Whitespace found in sequence'
-	},
-	HEADER_WITHOUT_SEQUENCE: {
-		code: 'FASTA-011',
-		message: 'Header without corresponding sequence'
-	}
+	EMPTY_FILE: { code: 'FASTA-001', message: 'File is empty' },
+	NO_HEADER: { code: 'FASTA-002', message: 'FASTA header line not found' },
+	INVALID_HEADER: { code: 'FASTA-003', message: 'Invalid FASTA header format' },
+	EMPTY_SEQUENCE: { code: 'FASTA-004', message: 'Sequence is empty' },
+	INCONSISTENT_LENGTH: { code: 'FASTA-005', message: 'Inconsistent sequence lengths' },
+	INVALID_CHARACTERS: { code: 'FASTA-006', message: 'Invalid characters in sequence' },
+	DUPLICATE_HEADERS: { code: 'FASTA-007', message: 'Duplicate sequence headers' }
 };
 
+// Valid character sets
+const VALID_NUCLEOTIDES = new Set('ACGTUNRYSWKMBDHVacgtunryswkmbdhv-.');
+const VALID_AMINO_ACIDS = new Set('ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy-.*X');
+
 /**
- * Parse a FASTA format string into sequence objects
- *
- * @param {string} fastaContent - The raw FASTA content
- * @returns {Object} Object with sequences and potential warnings
+ * Parse FASTA format string into sequences
+ * @param {string} fastaContent - Raw FASTA content
+ * @returns {Object} Parsed sequences and validation info
  */
 export function parseFasta(fastaContent) {
-	if (!fastaContent || !fastaContent.trim()) {
-		throw new ValidationError(ERROR_TYPES.EMPTY_FILE.code, ERROR_TYPES.EMPTY_FILE.message);
+	if (!fastaContent?.trim()) {
+		throw new Error('File is empty');
 	}
 
-	const lines = fastaContent.split(/\\r?\\n/);
+	const lines = fastaContent.split(/\r?\n/);
 	const sequences = [];
 	let currentSequence = null;
 	const headers = new Set();
@@ -81,415 +39,240 @@ export function parseFasta(fastaContent) {
 		if (!line) continue;
 
 		if (line.startsWith('>')) {
-			// Save previous sequence if exists
-			if (currentSequence && currentSequence.sequence.length === 0) {
-				warnings.push({
-					type: ERROR_TYPES.EMPTY_SEQUENCE,
-					details: `Empty sequence for header: ${currentSequence.header}`,
-					line: i
-				});
+			// Save previous sequence
+			if (currentSequence) {
+				sequences.push(currentSequence);
 			}
 
-			// Process header
+			// Start new sequence
 			const header = line.substring(1).trim();
 			if (!header) {
-				warnings.push({
-					type: ERROR_TYPES.INVALID_HEADER,
-					details: 'Empty header found',
-					line: i + 1
-				});
+				warnings.push(`Empty header at line ${i + 1}`);
 			}
 
-			// Check for duplicate headers
 			if (headers.has(header)) {
-				warnings.push({
-					type: ERROR_TYPES.DUPLICATE_HEADERS,
-					details: `Duplicate header found: ${header}`,
-					line: i + 1
-				});
+				warnings.push(`Duplicate header: ${header}`);
 			}
 			headers.add(header);
 
 			currentSequence = {
-				header: header,
-				description: header,
-				sequence: '',
-				lineStart: i + 1
+				header,
+				sequence: ''
 			};
-			sequences.push(currentSequence);
 		} else if (currentSequence) {
-			// Check for whitespace in sequence
-			if (/\\s/.test(line)) {
-				warnings.push({
-					type: ERROR_TYPES.WHITESPACE_IN_SEQUENCE,
-					details: `Whitespace found in sequence line`,
-					line: i + 1
-				});
-			}
-
-			// Add to current sequence
-			currentSequence.sequence += line.replace(/\\s/g, '');
+			// Add to current sequence (remove whitespace)
+			currentSequence.sequence += line.replace(/\s/g, '');
 		} else {
-			// Sequence data before any header
-			warnings.push({
-				type: ERROR_TYPES.NO_HEADER,
-				details: 'Sequence data found before any header',
-				line: i + 1
-			});
+			throw new Error('Sequence data found before header');
 		}
 	}
 
-	// Handle case where file has no headers
+	// Add the last sequence
+	if (currentSequence) {
+		sequences.push(currentSequence);
+	}
+
 	if (sequences.length === 0) {
-		throw new ValidationError(ERROR_TYPES.NO_HEADER.code, ERROR_TYPES.NO_HEADER.message);
+		throw new Error('No sequences found');
 	}
 
-	// Check for empty final sequence
-	if (currentSequence && currentSequence.sequence.length === 0) {
-		warnings.push({
-			type: ERROR_TYPES.EMPTY_SEQUENCE,
-			details: `Empty sequence for header: ${currentSequence.header}`,
-			line: currentSequence.lineStart
-		});
-	}
-
-	return {
-		sequences,
-		warnings
-	};
+	return { sequences, warnings };
 }
 
 /**
- * Validate parsed FASTA sequences
- *
- * @param {Array} sequences - Array of sequence objects from parseFasta
- * @param {Object} options - Validation options
- * @returns {Object} Validation results with errors and warnings
+ * Validate FASTA content
+ * @param {string} fastaContent - Raw FASTA content
+ * @returns {Object} Validation result
  */
-export function validateSequences(sequences, options = {}) {
-	const {
-		checkConsistentLength = true,
-		sequenceType = 'auto', // 'nucleotide', 'amino', or 'auto'
-		checkStopCodons = true,
-		checkCase = true
-	} = options;
-
-	const results = {
-		valid: true,
-		errors: [],
-		warnings: [],
-		stats: {
-			sequenceCount: sequences.length,
-			minLength: Infinity,
-			maxLength: 0,
-			totalLength: 0,
-			detectedType: null
-		}
-	};
-
-	// Determine sequence type if auto
-	let type = sequenceType;
-	if (type === 'auto' && sequences.length > 0) {
-		// Sample first sequence
-		const sample = sequences[0].sequence;
-		// Check if it's predominantly nucleotides
-		const nucleotideCount = [...sample].filter((char) => 'ACGTUacgtu'.includes(char)).length;
-		type = nucleotideCount / sample.length > 0.9 ? 'nucleotide' : 'amino';
-	}
-	results.stats.detectedType = type;
-
-	// Set of valid characters based on determined type
-	const validChars = type === 'nucleotide' ? VALID_NUCLEOTIDES : VALID_AMINO_ACIDS;
-
-	// Check each sequence
-	for (let i = 0; i < sequences.length; i++) {
-		const seq = sequences[i];
-		const seqLength = seq.sequence.length;
-
-		// Update stats
-		results.stats.minLength = Math.min(results.stats.minLength, seqLength);
-		results.stats.maxLength = Math.max(results.stats.maxLength, seqLength);
-		results.stats.totalLength += seqLength;
-
-		// Check for invalid characters
-		const invalidChars = new Set();
-		for (const char of seq.sequence) {
-			if (!validChars.has(char)) {
-				invalidChars.add(char);
-			}
-		}
-
-		if (invalidChars.size > 0) {
-			results.errors.push({
-				type: ERROR_TYPES.INVALID_CHARACTERS,
-				details: `Invalid characters found in sequence ${i + 1} (${seq.header}): ${[...invalidChars].join(', ')}`,
-				sequence: i,
-				chars: [...invalidChars]
-			});
-			results.valid = false;
-		}
-
-		// Check for mixed case
-		if (checkCase) {
-			const hasUpperCase = /[A-Z]/.test(seq.sequence);
-			const hasLowerCase = /[a-z]/.test(seq.sequence);
-			if (hasUpperCase && hasLowerCase) {
-				results.warnings.push({
-					type: ERROR_TYPES.MIXED_CASE,
-					details: `Mixed case found in sequence ${i + 1} (${seq.header})`,
-					sequence: i
-				});
-			}
-		}
-
-		// Check for stop codons in coding sequences
-		if (checkStopCodons && type === 'nucleotide' && seqLength % 3 === 0) {
-			const stopCodons = ['TAA', 'TAG', 'TGA', 'UAA', 'UAG', 'UGA'];
-			let stopCodonPositions = [];
-
-			for (let pos = 0; pos < seqLength - 2; pos += 3) {
-				const codon = seq.sequence.substring(pos, pos + 3).toUpperCase();
-				if (stopCodons.includes(codon)) {
-					stopCodonPositions.push(pos);
-				}
-			}
-
-			if (stopCodonPositions.length > 0) {
-				// Ignore stop codons at the very end of the sequence
-				if (stopCodonPositions.length === 1 && stopCodonPositions[0] === seqLength - 3) {
-					// This is fine - stop codon at end
-				} else {
-					results.warnings.push({
-						type: ERROR_TYPES.STOP_CODONS,
-						details: `Stop codons found in sequence ${i + 1} (${seq.header}) at positions: ${stopCodonPositions.join(', ')}`,
-						sequence: i,
-						positions: stopCodonPositions
-					});
-				}
-			}
-		}
-	}
-
-	// Check for consistent lengths (alignment)
-	if (checkConsistentLength && sequences.length > 1) {
-		if (results.stats.minLength !== results.stats.maxLength) {
-			results.errors.push({
-				type: ERROR_TYPES.INCONSISTENT_LENGTH,
-				details: `Sequences have inconsistent lengths (min: ${results.stats.minLength}, max: ${results.stats.maxLength})`,
-				minLength: results.stats.minLength,
-				maxLength: results.stats.maxLength
-			});
-			results.valid = false;
-		}
-	}
-
-	// Add averages
-	if (sequences.length > 0) {
-		results.stats.averageLength = results.stats.totalLength / sequences.length;
-	}
-
-	return results;
-}
-
-/**
- * Normalize and repair FASTA sequences
- *
- * @param {Array} sequences - Array of sequence objects
- * @param {Object} options - Repair options
- * @returns {Object} Normalized sequences and repair notes
- */
-export function repairFasta(sequences, options = {}) {
-	const {
-		normalizeCase = true,
-		padSequences = true,
-		removeInvalidChars = true,
-		removeWhitespace = true,
-		sequenceType = 'auto' // 'nucleotide', 'amino', or 'auto'
-	} = options;
-
-	// Determine sequence type if auto
-	let type = sequenceType;
-	if (type === 'auto' && sequences.length > 0) {
-		// Sample first sequence
-		const sample = sequences[0].sequence;
-		// Check if it's predominantly nucleotides
-		const nucleotideCount = [...sample].filter((char) => 'ACGTUacgtu'.includes(char)).length;
-		type = nucleotideCount / sample.length > 0.9 ? 'nucleotide' : 'amino';
-	}
-
-	// Set of valid characters based on determined type
-	const validChars = type === 'nucleotide' ? VALID_NUCLEOTIDES : VALID_AMINO_ACIDS;
-
-	// Find max sequence length (for padding)
-	let maxLength = 0;
-	if (padSequences) {
-		for (const seq of sequences) {
-			maxLength = Math.max(maxLength, seq.sequence.length);
-		}
-	}
-
-	const repairs = [];
-	const repairedSequences = sequences.map((seq, index) => {
-		const repaired = {
-			...seq,
-			sequence: seq.sequence
-		};
-
-		// Remove whitespace
-		if (removeWhitespace && /\\s/.test(repaired.sequence)) {
-			const oldLength = repaired.sequence.length;
-			repaired.sequence = repaired.sequence.replace(/\\s/g, '');
-			repairs.push({
-				type: 'whitespace_removed',
-				sequence: index,
-				header: seq.header,
-				details: `Removed whitespace from sequence ${index + 1}`
-			});
-		}
-
-		// Normalize case
-		if (normalizeCase) {
-			const oldSeq = repaired.sequence;
-			repaired.sequence = repaired.sequence.toUpperCase();
-			if (oldSeq !== repaired.sequence) {
-				repairs.push({
-					type: 'case_normalized',
-					sequence: index,
-					header: seq.header,
-					details: `Normalized case to uppercase for sequence ${index + 1}`
-				});
-			}
-		}
-
-		// Remove invalid characters
-		if (removeInvalidChars) {
-			const oldSeq = repaired.sequence;
-			repaired.sequence = [...repaired.sequence].filter((char) => validChars.has(char)).join('');
-
-			if (oldSeq !== repaired.sequence) {
-				repairs.push({
-					type: 'invalid_chars_removed',
-					sequence: index,
-					header: seq.header,
-					details: `Removed invalid characters from sequence ${index + 1}`
-				});
-			}
-		}
-
-		// Pad sequences to same length
-		if (padSequences && repaired.sequence.length < maxLength) {
-			const oldLength = repaired.sequence.length;
-			const paddingChar = type === 'nucleotide' ? '-' : '-';
-			repaired.sequence = repaired.sequence.padEnd(maxLength, paddingChar);
-
-			repairs.push({
-				type: 'sequence_padded',
-				sequence: index,
-				header: seq.header,
-				details: `Padded sequence ${index + 1} from ${oldLength} to ${maxLength} characters`
-			});
-		}
-
-		return repaired;
-	});
-
-	return {
-		sequences: repairedSequences,
-		repairs
-	};
-}
-
-/**
- * Convert sequence objects back to FASTA format
- *
- * @param {Array} sequences - Array of sequence objects
- * @param {Object} options - Export options
- * @returns {string} FASTA format string
- */
-export function toFastaFormat(sequences, options = {}) {
-	const { lineLength = 60, includeDescription = true } = options;
-
-	let fastaContent = '';
-
-	for (const seq of sequences) {
-		// Add header line
-		fastaContent += '>' + (includeDescription ? seq.header : seq.header.split(/\\s+/)[0]) + '\n';
-
-		// Add sequence with line wrapping
-		let sequence = seq.sequence;
-		for (let i = 0; i < sequence.length; i += lineLength) {
-			fastaContent += sequence.substring(i, i + lineLength) + '\n';
-		}
-	}
-
-	return fastaContent;
-}
-
-/**
- * Validate a raw FASTA string and return detailed results
- *
- * @param {string} fastaContent - Raw FASTA content to validate
- * @param {Object} options - Validation options
- * @returns {Object} Validation results with detailed information
- */
-export function validateFasta(fastaContent, options = {}) {
+export function validateFasta(fastaContent) {
 	try {
-		// Parse the FASTA content
-		const { sequences, warnings: parseWarnings } = parseFasta(fastaContent);
+		const { sequences, warnings } = parseFasta(fastaContent);
+		const errors = [];
 
-		// Validate the sequences
-		const validationResults = validateSequences(sequences, options);
+		// Check for empty sequences
+		sequences.forEach((seq, idx) => {
+			if (!seq.sequence) {
+				errors.push(`Empty sequence: ${seq.header}`);
+			}
+		});
 
-		// Combine warnings from parsing and validation
-		validationResults.warnings = [...parseWarnings, ...validationResults.warnings];
+		// Check sequence length consistency (for alignments)
+		if (sequences.length > 1) {
+			const firstLength = sequences[0].sequence.length;
+			const inconsistentLengths = sequences.filter((seq) => seq.sequence.length !== firstLength);
 
-		// Add sequence data to the results
-		validationResults.sequences = sequences;
-
-		return validationResults;
-	} catch (error) {
-		if (error instanceof ValidationError) {
-			return {
-				valid: false,
-				errors: [
-					{
-						type: { code: error.code, message: error.message },
-						details: error.message
-					}
-				],
-				warnings: [],
-				sequences: [],
-				stats: {
-					sequenceCount: 0
-				}
-			};
+			if (inconsistentLengths.length > 0) {
+				warnings.push(`Inconsistent sequence lengths detected (may not be aligned)`);
+			}
 		}
 
-		// Handle other errors
+		return {
+			valid: errors.length === 0,
+			errors,
+			warnings,
+			sequences,
+			stats: {
+				sequenceCount: sequences.length,
+				averageLength:
+					sequences.length > 0
+						? Math.round(
+								sequences.reduce((sum, seq) => sum + seq.sequence.length, 0) / sequences.length
+							)
+						: 0
+			}
+		};
+	} catch (error) {
 		return {
 			valid: false,
-			errors: [
-				{
-					type: { code: 'FASTA-999', message: 'Unknown error' },
-					details: error.message || 'Unknown error occurred during validation'
-				}
-			],
+			errors: [error.message],
 			warnings: [],
 			sequences: [],
-			stats: {
-				sequenceCount: 0
-			}
+			stats: { sequenceCount: 0, averageLength: 0 }
 		};
 	}
 }
 
 /**
- * Custom error class for validation errors
+ * Detect sequence type (DNA/RNA/Protein)
+ * @param {string} sequence - Sequence string
+ * @returns {string} Detected type
  */
-class ValidationError extends Error {
-	constructor(code, message) {
-		super(message);
-		this.code = code;
-		this.name = 'ValidationError';
+export function detectSequenceType(sequence) {
+	if (!sequence) return 'unknown';
+
+	const cleanSeq = sequence.replace(/[-.\s]/g, '').toUpperCase();
+	const nucleotideCount = [...cleanSeq].filter((char) => 'ACGTUN'.includes(char)).length;
+	const nucleotideRatio = nucleotideCount / cleanSeq.length;
+
+	// If >80% are standard nucleotides, consider it DNA/RNA
+	if (nucleotideRatio > 0.8) {
+		return cleanSeq.includes('U') ? 'RNA' : 'DNA';
 	}
+
+	return 'Protein';
+}
+
+/**
+ * Validate sequence characters for given type
+ * @param {string} sequence - Sequence string
+ * @param {string} type - Expected type (DNA/RNA/Protein)
+ * @returns {Array} Invalid characters found
+ */
+export function validateSequenceCharacters(sequence, type) {
+	const validChars = type === 'Protein' ? VALID_AMINO_ACIDS : VALID_NUCLEOTIDES;
+	const invalidChars = new Set();
+
+	for (const char of sequence) {
+		if (!validChars.has(char)) {
+			invalidChars.add(char);
+		}
+	}
+
+	return Array.from(invalidChars);
+}
+
+/**
+ * Simple sequence statistics
+ * @param {Array} sequences - Array of sequence objects
+ * @returns {Object} Basic statistics
+ */
+export function getSequenceStats(sequences) {
+	if (!sequences?.length) {
+		return { count: 0, totalLength: 0, averageLength: 0 };
+	}
+
+	const totalLength = sequences.reduce((sum, seq) => sum + seq.sequence.length, 0);
+
+	return {
+		count: sequences.length,
+		totalLength,
+		averageLength: Math.round(totalLength / sequences.length),
+		minLength: Math.min(...sequences.map((s) => s.sequence.length)),
+		maxLength: Math.max(...sequences.map((s) => s.sequence.length))
+	};
+}
+
+/**
+ * Convert sequences to FASTA format string
+ * @param {Array} sequences - Array of sequence objects
+ * @param {number} lineWidth - Line width for sequence wrapping (default: 80)
+ * @returns {string} FASTA formatted string
+ */
+export function toFastaFormat(sequences, lineWidth = 80) {
+	if (!sequences?.length) return '';
+
+	return sequences
+		.map((seq) => {
+			const header = `>${seq.header}`;
+			const sequence = seq.sequence;
+
+			if (lineWidth <= 0) {
+				return `${header}\n${sequence}`;
+			}
+
+			// Wrap sequence at specified line width
+			const wrappedSequence =
+				sequence.match(new RegExp(`.{1,${lineWidth}}`, 'g'))?.join('\n') || sequence;
+			return `${header}\n${wrappedSequence}`;
+		})
+		.join('\n');
+}
+
+/**
+ * Attempt to repair common FASTA format issues
+ * @param {string} fastaContent - Raw FASTA content
+ * @returns {Object} Repaired content and repair log
+ */
+export function repairFasta(fastaContent) {
+	if (!fastaContent?.trim()) {
+		return {
+			repairedContent: '',
+			repairs: ['Cannot repair empty content'],
+			success: false
+		};
+	}
+
+	let content = fastaContent;
+	const repairs = [];
+
+	// Remove excessive whitespace
+	content = content.replace(/\n{3,}/g, '\n\n').trim();
+	if (content !== fastaContent.trim()) {
+		repairs.push('Removed excessive blank lines');
+	}
+
+	// Ensure headers start on new lines
+	content = content.replace(/(\S)>/g, '$1\n>');
+	if (content !== fastaContent) {
+		repairs.push('Fixed header line breaks');
+	}
+
+	// Remove spaces within sequences (but preserve line breaks)
+	const lines = content.split('\n');
+	let inSequence = false;
+	const repairedLines = [];
+
+	for (const line of lines) {
+		if (line.startsWith('>')) {
+			inSequence = true;
+			repairedLines.push(line);
+		} else if (inSequence && line.trim()) {
+			const originalLine = line;
+			const cleanedLine = line.replace(/\s+/g, '');
+			repairedLines.push(cleanedLine);
+			if (originalLine !== cleanedLine) {
+				repairs.push('Removed whitespace from sequences');
+			}
+		} else {
+			repairedLines.push(line);
+		}
+	}
+
+	const repairedContent = repairedLines.join('\n');
+
+	return {
+		repairedContent,
+		repairs,
+		success: repairs.length > 0
+	};
 }
