@@ -5,7 +5,6 @@
 
 import { BaseAnalysisRunner } from './BaseAnalysisRunner.js';
 import { aioliStore } from '../../stores/aioli.js';
-import { analysisStore } from '../../stores/analyses.js';
 import { get } from 'svelte/store';
 import { getCachedOrCompute, generateAnalysisKey } from '../utils/cacheUtils.js';
 
@@ -47,7 +46,7 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		await this.initialize();
 
 		// Create analysis entry in store
-		const analysisId = await analysisStore.createAnalysis(fileId, method.toUpperCase());
+		const analysisId = await this.createAnalysis(fileId, method.toUpperCase());
 		const jobId = this.generateJobId(method);
 
 		// Track this analysis
@@ -75,14 +74,15 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 			await this.completeAnalysis(analysisId, true, result.json || result);
 			this.activeAnalyses.delete(jobId);
 
-			console.log(`Analysis ${method} completed successfully${result.cached ? ' (from cache)' : ''}`);
+			console.log(
+				`Analysis ${method} completed successfully${result.cached ? ' (from cache)' : ''}`
+			);
 
 			return {
 				analysisId,
 				jobId,
 				message: `Analysis completed ${result.cached ? '(from cache)' : ''}`
 			};
-
 		} catch (error) {
 			console.error('❌ WASM analysis execution failed:', error);
 			await this.completeAnalysis(analysisId, false, null, error.message);
@@ -96,15 +96,15 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 	 */
 	async executeWasmAnalysis(analysisId, method, config, fastaData, treeData) {
 		const cliObj = get(aioliStore);
-		
+
 		this.updateProgress(analysisId, 'mounting', 10, 'Preparing analysis files...');
 
 		// Create temporary file from FASTA data
 		const inputFile = new File([fastaData], 'user.nex', { type: 'text/plain' });
-		
+
 		// Mount the file
 		const inputFiles = await cliObj.mount([{ name: 'user.nex', data: fastaData }]);
-		
+
 		this.updateProgress(analysisId, 'running', 20, 'Building analysis command...');
 
 		// Build arguments
@@ -144,7 +144,9 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 					`HyPhy error: '${invalidValue}' is not a valid value for parameter '${paramName}'. Please check your input parameters.`
 				);
 			} else {
-				throw new Error('HyPhy error: Invalid parameter choice. Please check your input parameters.');
+				throw new Error(
+					'HyPhy error: Invalid parameter choice. Please check your input parameters.'
+				);
 			}
 		}
 

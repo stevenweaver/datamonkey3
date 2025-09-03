@@ -15,24 +15,24 @@ const cache = new Map();
  */
 export async function getCachedOrCompute(key, computeFn, ttlMs = 30 * 60 * 1000) {
 	const cached = cache.get(key);
-	
+
 	// Check if cached value is still valid
 	if (cached && cached.expires > Date.now()) {
 		return { ...cached.value, cached: true };
 	}
-	
+
 	// Remove expired entry
 	if (cached) {
 		cache.delete(key);
 	}
-	
+
 	// Compute and cache new value
 	const value = await computeFn();
 	cache.set(key, {
 		value,
 		expires: Date.now() + ttlMs
 	});
-	
+
 	return { ...value, cached: false };
 }
 

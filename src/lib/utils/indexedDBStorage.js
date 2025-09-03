@@ -245,15 +245,15 @@ export const fileStorage = {
 	async findFileByName(filename) {
 		try {
 			const allFiles = await this.getAllFiles();
-			const matchingFiles = allFiles.filter(file => file.filename === filename);
-			
+			const matchingFiles = allFiles.filter((file) => file.filename === filename);
+
 			if (matchingFiles.length > 0) {
 				// Return the most recent one if multiple exist
 				matchingFiles.sort((a, b) => b.createdAt - a.createdAt);
 				// Need to get the full file with content
 				return await this.getFile(matchingFiles[0].id);
 			}
-			
+
 			return null;
 		} catch (error) {
 			console.error('Error in findFileByName:', error);
@@ -388,7 +388,7 @@ export const analysisStorage = {
 	async getAnalysesByFileId(fileId) {
 		try {
 			const allAnalyses = await this.getAllAnalyses();
-			return allAnalyses.filter(analysis => analysis.fileId === fileId);
+			return allAnalyses.filter((analysis) => analysis.fileId === fileId);
 		} catch (error) {
 			console.error('Error in getAnalysesByFileId:', error);
 			throw error;

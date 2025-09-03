@@ -99,8 +99,8 @@ export function validateFasta(fastaContent) {
 		// Check sequence length consistency (for alignments)
 		if (sequences.length > 1) {
 			const firstLength = sequences[0].sequence.length;
-			const inconsistentLengths = sequences.filter(seq => seq.sequence.length !== firstLength);
-			
+			const inconsistentLengths = sequences.filter((seq) => seq.sequence.length !== firstLength);
+
 			if (inconsistentLengths.length > 0) {
 				warnings.push(`Inconsistent sequence lengths detected (may not be aligned)`);
 			}
@@ -113,12 +113,14 @@ export function validateFasta(fastaContent) {
 			sequences,
 			stats: {
 				sequenceCount: sequences.length,
-				averageLength: sequences.length > 0 
-					? Math.round(sequences.reduce((sum, seq) => sum + seq.sequence.length, 0) / sequences.length)
-					: 0
+				averageLength:
+					sequences.length > 0
+						? Math.round(
+								sequences.reduce((sum, seq) => sum + seq.sequence.length, 0) / sequences.length
+							)
+						: 0
 			}
 		};
-
 	} catch (error) {
 		return {
 			valid: false,
@@ -139,7 +141,7 @@ export function detectSequenceType(sequence) {
 	if (!sequence) return 'unknown';
 
 	const cleanSeq = sequence.replace(/[-.\s]/g, '').toUpperCase();
-	const nucleotideCount = [...cleanSeq].filter(char => 'ACGTUN'.includes(char)).length;
+	const nucleotideCount = [...cleanSeq].filter((char) => 'ACGTUN'.includes(char)).length;
 	const nucleotideRatio = nucleotideCount / cleanSeq.length;
 
 	// If >80% are standard nucleotides, consider it DNA/RNA
@@ -152,7 +154,7 @@ export function detectSequenceType(sequence) {
 
 /**
  * Validate sequence characters for given type
- * @param {string} sequence - Sequence string  
+ * @param {string} sequence - Sequence string
  * @param {string} type - Expected type (DNA/RNA/Protein)
  * @returns {Array} Invalid characters found
  */
@@ -180,13 +182,13 @@ export function getSequenceStats(sequences) {
 	}
 
 	const totalLength = sequences.reduce((sum, seq) => sum + seq.sequence.length, 0);
-	
+
 	return {
 		count: sequences.length,
 		totalLength,
 		averageLength: Math.round(totalLength / sequences.length),
-		minLength: Math.min(...sequences.map(s => s.sequence.length)),
-		maxLength: Math.max(...sequences.map(s => s.sequence.length))
+		minLength: Math.min(...sequences.map((s) => s.sequence.length)),
+		maxLength: Math.max(...sequences.map((s) => s.sequence.length))
 	};
 }
 
@@ -198,19 +200,22 @@ export function getSequenceStats(sequences) {
  */
 export function toFastaFormat(sequences, lineWidth = 80) {
 	if (!sequences?.length) return '';
-	
-	return sequences.map(seq => {
-		const header = `>${seq.header}`;
-		const sequence = seq.sequence;
-		
-		if (lineWidth <= 0) {
-			return `${header}\n${sequence}`;
-		}
-		
-		// Wrap sequence at specified line width
-		const wrappedSequence = sequence.match(new RegExp(`.{1,${lineWidth}}`, 'g'))?.join('\n') || sequence;
-		return `${header}\n${wrappedSequence}`;
-	}).join('\n');
+
+	return sequences
+		.map((seq) => {
+			const header = `>${seq.header}`;
+			const sequence = seq.sequence;
+
+			if (lineWidth <= 0) {
+				return `${header}\n${sequence}`;
+			}
+
+			// Wrap sequence at specified line width
+			const wrappedSequence =
+				sequence.match(new RegExp(`.{1,${lineWidth}}`, 'g'))?.join('\n') || sequence;
+			return `${header}\n${wrappedSequence}`;
+		})
+		.join('\n');
 }
 
 /**
@@ -246,7 +251,7 @@ export function repairFasta(fastaContent) {
 	const lines = content.split('\n');
 	let inSequence = false;
 	const repairedLines = [];
-	
+
 	for (const line of lines) {
 		if (line.startsWith('>')) {
 			inSequence = true;
@@ -264,7 +269,7 @@ export function repairFasta(fastaContent) {
 	}
 
 	const repairedContent = repairedLines.join('\n');
-	
+
 	return {
 		repairedContent,
 		repairs,

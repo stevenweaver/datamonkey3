@@ -25,11 +25,18 @@ export class BaseAnalysisRunner {
 	}
 
 	/**
+	 * Create a new analysis in the store
+	 */
+	async createAnalysis(fileId, method) {
+		return await analysisStore.createAnalysis(fileId, method);
+	}
+
+	/**
 	 * Start analysis progress tracking with common metadata
 	 */
 	startAnalysisTracking(analysisId, method, executionMode, message = null) {
 		const defaultMessage = message || `Starting ${method} analysis...`;
-		
+
 		analysisStore.startAnalysisProgress(analysisId, defaultMessage, method, {
 			executionMode,
 			startTime: new Date().toISOString()
@@ -52,14 +59,12 @@ export class BaseAnalysisRunner {
 	 * Complete analysis with success or failure
 	 */
 	async completeAnalysis(analysisId, success = true, result = null, message = null) {
-		const defaultMessage = success 
-			? 'Analysis completed successfully'
-			: 'Analysis failed';
-		
+		const defaultMessage = success ? 'Analysis completed successfully' : 'Analysis failed';
+
 		if (success && result) {
 			// Ensure result is stored consistently as JSON string
 			const resultString = typeof result === 'string' ? result : JSON.stringify(result);
-			
+
 			await analysisStore.updateAnalysis(analysisId, {
 				status: 'completed',
 				result: resultString,

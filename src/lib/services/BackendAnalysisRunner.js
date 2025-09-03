@@ -112,10 +112,15 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 
 		this.socket.on('script error', async (error) => {
 			console.error('❌ Backend analysis error:', error);
-			
+
 			// Update all active analyses as failed (since we don't have specific job context)
 			for (const [jobId, analysisId] of this.activeAnalyses.entries()) {
-				await this.completeAnalysis(analysisId, false, null, `Analysis failed: ${error.message || error}`);
+				await this.completeAnalysis(
+					analysisId,
+					false,
+					null,
+					`Analysis failed: ${error.message || error}`
+				);
 				this.activeAnalyses.delete(jobId);
 			}
 		});
@@ -151,7 +156,7 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 		}
 
 		// Create analysis entry in store
-		const analysisId = await analysisStore.createAnalysis(fileId, method.toUpperCase());
+		const analysisId = await this.createAnalysis(fileId, method.toUpperCase());
 		const jobId = this.generateJobId(method);
 
 		// Track this analysis
@@ -255,13 +260,13 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 				if (this.socket && this.socket.connected) {
 					this.socket.emit('cancel', { jobId });
 				}
-
-				// Update analysis status
-				analysisStore.cancelAnalysis(analysisId);
 				this.activeAnalyses.delete(jobId);
 				break;
 			}
 		}
+
+		// Use base class method to cancel in store
+		await super.cancelAnalysis(analysisId);
 	}
 
 	/**

@@ -1,6 +1,6 @@
-import { derived, writable } from "svelte/store";
-import { analysisStorage } from "../lib/utils/indexedDBStorage";
-import { browser } from "$app/environment";
+import { derived, writable } from 'svelte/store';
+import { analysisStorage } from '../lib/utils/indexedDBStorage';
+import { browser } from '$app/environment';
 
 function createAnalysisStore() {
 	const { subscribe, set, update } = writable({
@@ -9,7 +9,7 @@ function createAnalysisStore() {
 		isLoading: false,
 		error: null,
 		// Single unified tracking for active analyses
-		activeAnalyses: [], // Array of active analysis objects with progress tracking
+		activeAnalyses: [] // Array of active analysis objects with progress tracking
 	});
 
 	return {
@@ -26,11 +26,11 @@ function createAnalysisStore() {
 				const analyses = await analysisStorage.getAllAnalyses();
 				update((state) => ({ ...state, analyses, isLoading: false }));
 			} catch (error) {
-				console.error("Error loading analyses:", error);
+				console.error('Error loading analyses:', error);
 				update((state) => ({
 					...state,
 					error: error.message,
-					isLoading: false,
+					isLoading: false
 				}));
 			}
 		},
@@ -47,8 +47,8 @@ function createAnalysisStore() {
 					id: analysisId,
 					fileId,
 					method,
-					status: "pending",
-					createdAt: new Date().getTime(),
+					status: 'pending',
+					createdAt: new Date().getTime()
 				};
 
 				await analysisStorage.saveAnalysis(analysis);
@@ -58,17 +58,17 @@ function createAnalysisStore() {
 					...state,
 					analyses: [...state.analyses, analysis],
 					currentAnalysisId: analysisId,
-					isLoading: false,
+					isLoading: false
 				}));
 
 				// Return the analysis ID for reference
 				return analysisId;
 			} catch (error) {
-				console.error("Error creating analysis:", error);
+				console.error('Error creating analysis:', error);
 				update((state) => ({
 					...state,
 					error: error.message,
-					isLoading: false,
+					isLoading: false
 				}));
 				throw error;
 			}
@@ -85,20 +85,18 @@ function createAnalysisStore() {
 
 				// Update the analysis in the list
 				update((state) => {
-					const analyses = state.analyses.map((a) =>
-						a.id === analysisId ? analysis : a
-					);
+					const analyses = state.analyses.map((a) => (a.id === analysisId ? analysis : a));
 
 					return { ...state, analyses, isLoading: false };
 				});
 
 				return analysis;
 			} catch (error) {
-				console.error("Error fetching analysis:", error);
+				console.error('Error fetching analysis:', error);
 				update((state) => ({
 					...state,
 					error: error.message,
-					isLoading: false,
+					isLoading: false
 				}));
 				throw error;
 			}
@@ -118,7 +116,7 @@ function createAnalysisStore() {
 				const updatedAnalysis = {
 					...currentAnalysis,
 					...data,
-					updatedAt: new Date().getTime(),
+					updatedAt: new Date().getTime()
 				};
 
 				// Save the updated analysis
@@ -126,20 +124,18 @@ function createAnalysisStore() {
 
 				// Update the analysis in the list
 				update((state) => {
-					const analyses = state.analyses.map((a) =>
-						a.id === analysisId ? updatedAnalysis : a
-					);
+					const analyses = state.analyses.map((a) => (a.id === analysisId ? updatedAnalysis : a));
 
 					return { ...state, analyses, isLoading: false };
 				});
 
 				return updatedAnalysis;
 			} catch (error) {
-				console.error("Error updating analysis:", error);
+				console.error('Error updating analysis:', error);
 				update((state) => ({
 					...state,
 					error: error.message,
-					isLoading: false,
+					isLoading: false
 				}));
 				throw error;
 			}
@@ -158,17 +154,16 @@ function createAnalysisStore() {
 				update((state) => ({
 					...state,
 					analyses: state.analyses.filter((a) => a.id !== analysisId),
-					currentAnalysisId: state.currentAnalysisId === analysisId
-						? null
-						: state.currentAnalysisId,
-					isLoading: false,
+					currentAnalysisId:
+						state.currentAnalysisId === analysisId ? null : state.currentAnalysisId,
+					isLoading: false
 				}));
 			} catch (error) {
-				console.error("Error deleting analysis:", error);
+				console.error('Error deleting analysis:', error);
 				update((state) => ({
 					...state,
 					error: error.message,
-					isLoading: false,
+					isLoading: false
 				}));
 				throw error;
 			}
@@ -181,19 +176,17 @@ function createAnalysisStore() {
 			try {
 				// Update the analysis status to cancelled
 				await this.updateAnalysis(analysisId, {
-					status: "cancelled",
-					completedAt: new Date().getTime(),
+					status: 'cancelled',
+					completedAt: new Date().getTime()
 				});
 
 				// Remove from active analyses list
 				update((state) => ({
 					...state,
-					activeAnalyses: (state.activeAnalyses || []).filter(
-						(a) => a.id !== analysisId,
-					),
+					activeAnalyses: (state.activeAnalyses || []).filter((a) => a.id !== analysisId)
 				}));
 			} catch (error) {
-				console.error("Error cancelling analysis:", error);
+				console.error('Error cancelling analysis:', error);
 				throw error;
 			}
 		},
@@ -210,24 +203,22 @@ function createAnalysisStore() {
 				// Merge with existing analyses
 				update((state) => {
 					// Remove existing analyses for this file
-					const otherAnalyses = state.analyses.filter(
-						(a) => a.fileId !== fileId,
-					);
+					const otherAnalyses = state.analyses.filter((a) => a.fileId !== fileId);
 
 					return {
 						...state,
 						analyses: [...otherAnalyses, ...fileAnalyses],
-						isLoading: false,
+						isLoading: false
 					};
 				});
 
 				return fileAnalyses;
 			} catch (error) {
-				console.error("Error loading analyses for file:", error);
+				console.error('Error loading analyses for file:', error);
 				update((state) => ({
 					...state,
 					error: error.message,
-					isLoading: false,
+					isLoading: false
 				}));
 				throw error;
 			}
@@ -248,20 +239,18 @@ function createAnalysisStore() {
 		// Start tracking analysis progress
 		startAnalysisProgress(
 			analysisId,
-			message = "Initializing analysis...",
-			methodName = "",
-			metadata = {},
+			message = 'Initializing analysis...',
+			methodName = '',
+			metadata = {}
 		) {
 			// Find the analysis in the store to get method and file information if not provided
 			let method = methodName;
-			let file = metadata.fileName || "";
+			let file = metadata.fileName || '';
 
 			update((state) => {
 				// Look up analysis details if not provided
 				if (!method || !file) {
-					const existingAnalysis = state.analyses.find(
-						(a) => a.id === analysisId,
-					);
+					const existingAnalysis = state.analyses.find((a) => a.id === analysisId);
 					if (existingAnalysis) {
 						method = method || existingAnalysis.method;
 						file = file || existingAnalysis.fileName;
@@ -271,33 +260,29 @@ function createAnalysisStore() {
 				// Create progress tracking object
 				const progressObj = {
 					id: analysisId,
-					status: "initializing",
+					status: 'initializing',
 					progress: 0,
 					message,
 					method,
 					fileName: file,
 					startTime: new Date().toISOString(),
-					logs: [
-						{ time: new Date().toISOString(), message, status: "initializing" },
-					],
+					logs: [{ time: new Date().toISOString(), message, status: 'initializing' }],
 					metadata: {
 						method,
 						filename: file,
 						startTime: new Date().toISOString(),
-						...metadata,
-					},
+						...metadata
+					}
 				};
 
 				// Add to unified active analyses list
 				// First remove any existing analysis with the same ID
-				const activeAnalyses = (state.activeAnalyses || []).filter(
-					(a) => a.id !== analysisId,
-				);
+				const activeAnalyses = (state.activeAnalyses || []).filter((a) => a.id !== analysisId);
 				activeAnalyses.push(progressObj);
 
 				return {
 					...state,
-					activeAnalyses,
+					activeAnalyses
 				};
 			});
 		},
@@ -306,7 +291,7 @@ function createAnalysisStore() {
 		updateAnalysisProgress(status, progress, message) {
 			update((state) => {
 				if (!state.activeAnalyses || state.activeAnalyses.length === 0) return state;
-				
+
 				// Update the first active analysis for backward compatibility
 				const firstActive = state.activeAnalyses[0];
 				return this._updateAnalysisProgressByIdInternal(
@@ -327,19 +312,13 @@ function createAnalysisStore() {
 					status,
 					progress,
 					message,
-					state,
+					state
 				);
 			});
 		},
 
 		// Internal helper for updating analysis progress by ID
-		_updateAnalysisProgressByIdInternal(
-			analysisId,
-			status,
-			progress,
-			message,
-			state,
-		) {
+		_updateAnalysisProgressByIdInternal(analysisId, status, progress, message, state) {
 			if (!analysisId) return state;
 
 			// Create log entry
@@ -353,11 +332,7 @@ function createAnalysisStore() {
 				const lastLog = logs[logs.length - 1];
 
 				// Only add if different from last log
-				if (
-					!lastLog ||
-					lastLog.message !== message ||
-					lastLog.status !== status
-				) {
+				if (!lastLog || lastLog.message !== message || lastLog.status !== status) {
 					logs.push(logEntry);
 				}
 
@@ -366,22 +341,22 @@ function createAnalysisStore() {
 					status,
 					progress: Math.min(Math.max(0, progress), 100),
 					message,
-					logs,
+					logs
 				};
 			});
 
 			return {
 				...state,
-				activeAnalyses,
+				activeAnalyses
 			};
 		},
 
 		// Complete analysis progress (legacy method - uses first active analysis)
 		async completeAnalysisProgress(
 			success = true,
-			message = success ? "Analysis completed." : "Analysis failed.",
+			message = success ? 'Analysis completed.' : 'Analysis failed.'
 		) {
-			const status = success ? "completed" : "error";
+			const status = success ? 'completed' : 'error';
 
 			// Get the current state to access the first active analysis ID
 			let currentState;
@@ -408,20 +383,20 @@ function createAnalysisStore() {
 						progress: success ? 100 : a.progress,
 						message,
 						logs,
-						completedAt: success ? new Date().toISOString() : undefined,
+						completedAt: success ? new Date().toISOString() : undefined
 					};
 				});
 
 				return {
 					...state,
-					activeAnalyses,
+					activeAnalyses
 				};
 			});
 
 			// If we have an active analysis ID, update its status in both client and server
 			if (analysisId) {
 				// Get current logs, result, and metadata from the active analysis
-				const activeAnalysis = (currentState.activeAnalyses || []).find(a => a.id === analysisId);
+				const activeAnalysis = (currentState.activeAnalyses || []).find((a) => a.id === analysisId);
 				const currentLogs = activeAnalysis?.logs || [];
 				const currentResult = activeAnalysis?.result || null;
 				const currentMetadata = activeAnalysis?.metadata || {};
@@ -439,7 +414,7 @@ function createAnalysisStore() {
 							logs: currentLogs, // Include logs from active analysis
 							result: finalResult, // Ensure result is saved with raw stdout
 							metadata: currentMetadata, // Include metadata from active analysis
-							completedAt: success ? new Date().getTime() : undefined,
+							completedAt: success ? new Date().getTime() : undefined
 						});
 
 						// Also update the analyses array in the store
@@ -448,50 +423,52 @@ function createAnalysisStore() {
 							analyses: state.analyses.map((a) =>
 								a.id === analysisId
 									? {
-										...a,
-										status,
-										logs: currentLogs, // Include logs here too
-										result: finalResult, // Include result with raw stdout here too
-										metadata: currentMetadata, // Include metadata here too
-										completedAt: success ? new Date().getTime() : undefined,
-									}
+											...a,
+											status,
+											logs: currentLogs, // Include logs here too
+											result: finalResult, // Include result with raw stdout here too
+											metadata: currentMetadata, // Include metadata here too
+											completedAt: success ? new Date().getTime() : undefined
+										}
 									: a
-							),
+							)
 						}));
 					}
 				} catch (error) {
-					console.error("Error updating analysis in IndexedDB:", error);
+					console.error('Error updating analysis in IndexedDB:', error);
 				}
 
 				// Update server via API (only in browser environment with proper URL)
 				try {
-					if (browser && typeof window !== 'undefined' && window.location && !import.meta.env?.VITEST) {
+					if (
+						browser &&
+						typeof window !== 'undefined' &&
+						window.location &&
+						!import.meta.env?.VITEST
+					) {
 						fetch(`/api/analyses/${analysisId}`, {
-							method: "PATCH",
+							method: 'PATCH',
 							headers: {
-								"Content-Type": "application/json",
+								'Content-Type': 'application/json'
 							},
 							body: JSON.stringify({
 								status,
 								logs: currentLogs, // Include logs in the server update
 								result: currentResult, // Include result with raw stdout in the server update
 								metadata: currentMetadata, // Include metadata in the server update
-								completedAt: success ? new Date().getTime() : undefined,
-							}),
+								completedAt: success ? new Date().getTime() : undefined
+							})
 						})
 							.then((response) => response.json())
 							.then((data) => {
-								console.log("Server analysis status updated:", data);
+								console.log('Server analysis status updated:', data);
 							})
 							.catch((error) => {
-								console.error(
-									"Error updating analysis status on server:",
-									error,
-								);
+								console.error('Error updating analysis status on server:', error);
 							});
 					}
 				} catch (error) {
-					console.error("Error updating analysis on server:", error);
+					console.error('Error updating analysis on server:', error);
 				}
 			}
 		},
@@ -500,9 +477,7 @@ function createAnalysisStore() {
 		removeFromActiveAnalyses(analysisId) {
 			update((state) => ({
 				...state,
-				activeAnalyses: (state.activeAnalyses || []).filter(
-					(a) => a.id !== analysisId,
-				),
+				activeAnalyses: (state.activeAnalyses || []).filter((a) => a.id !== analysisId)
 			}));
 		},
 
@@ -522,18 +497,18 @@ function createAnalysisStore() {
 					analyses: [],
 					currentAnalysisId: null,
 					activeAnalyses: [],
-					isLoading: false,
+					isLoading: false
 				}));
 			} catch (error) {
-				console.error("Error clearing all analyses:", error);
+				console.error('Error clearing all analyses:', error);
 				update((state) => ({
 					...state,
 					error: error.message,
-					isLoading: false,
+					isLoading: false
 				}));
 				throw error;
 			}
-		},
+		}
 	};
 }
 
@@ -542,41 +517,34 @@ export const analysisStore = createAnalysisStore();
 // Derived store for the current analysis
 export const currentAnalysis = derived(analysisStore, ($analysisStore) => {
 	if (!$analysisStore.currentAnalysisId) return null;
-	return $analysisStore.analyses.find(
-		(a) => a.id === $analysisStore.currentAnalysisId,
-	);
+	return $analysisStore.analyses.find((a) => a.id === $analysisStore.currentAnalysisId);
 });
 
 // Derived store to get analyses for a specific file
 export function getAnalysesForFile(fileId) {
-	return derived(
-		analysisStore,
-		($analysisStore) =>
-			$analysisStore.analyses.filter((a) => a.fileId === fileId),
+	return derived(analysisStore, ($analysisStore) =>
+		$analysisStore.analyses.filter((a) => a.fileId === fileId)
 	);
 }
 
 // Derived store for the active analysis progress (for backward compatibility)
-export const activeAnalysisProgress = derived(
-	analysisStore,
-	($analysisStore) => {
-		// Return the first active analysis for backward compatibility
-		if ($analysisStore.activeAnalyses.length > 0) {
-			return $analysisStore.activeAnalyses[0];
-		}
-		// Return empty state for backward compatibility
-		return {
-			id: null,
-			status: null,
-			progress: 0,
-			message: "",
-			logs: [],
-		};
-	},
-);
+export const activeAnalysisProgress = derived(analysisStore, ($analysisStore) => {
+	// Return the first active analysis for backward compatibility
+	if ($analysisStore.activeAnalyses.length > 0) {
+		return $analysisStore.activeAnalyses[0];
+	}
+	// Return empty state for backward compatibility
+	return {
+		id: null,
+		status: null,
+		progress: 0,
+		message: '',
+		logs: []
+	};
+});
 
 // Derived store for the list of active analyses
 export const activeAnalyses = derived(
 	analysisStore,
-	($analysisStore) => $analysisStore.activeAnalyses,
+	($analysisStore) => $analysisStore.activeAnalyses
 );
