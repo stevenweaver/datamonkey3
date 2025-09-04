@@ -101,10 +101,43 @@ export const BACKEND_TIMING_EQUATIONS = {
 	}
 };
 
-// Scaling factors
+// WASM Performance Characteristics
+export const WASM_PERFORMANCE = {
+	// Base performance relative to native (60% in ideal conditions)
+	nativeSpeedRatio: 0.6,
+
+	// Typical number of cores on user machines (affects parallelization loss)
+	assumedCores: 4,
+
+	// Memory pressure thresholds (sequences × sites)
+	memoryThresholds: {
+		comfortable: 50000, // < 50k: minimal memory pressure
+		moderate: 200000, // 50k-200k: some memory pressure
+		high: 500000, // 200k-500k: significant memory pressure
+		extreme: 1000000 // > 1M: severe memory pressure
+	}
+};
+
+// Algorithm complexity characteristics for threading loss calculation
+export const ALGORITHM_COMPLEXITY = {
+	// Methods with good parallelization potential (lose more from single-threading)
+	absrel: { threadingBenefit: 0.8, memoryIntensive: false },
+	bgm: { threadingBenefit: 0.9, memoryIntensive: true },
+	busted: { threadingBenefit: 0.7, memoryIntensive: false },
+	'contrast-fel': { threadingBenefit: 0.6, memoryIntensive: false },
+	fel: { threadingBenefit: 0.6, memoryIntensive: false },
+	fubar: { threadingBenefit: 0.8, memoryIntensive: true },
+	gard: { threadingBenefit: 0.9, memoryIntensive: true },
+	meme: { threadingBenefit: 0.7, memoryIntensive: false },
+	'multi-hit': { threadingBenefit: 0.8, memoryIntensive: false },
+	relax: { threadingBenefit: 0.7, memoryIntensive: false },
+	slac: { threadingBenefit: 0.6, memoryIntensive: false }
+};
+
+// Simple scaling factors for backward compatibility
 export const EXECUTION_SCALING_FACTORS = {
 	backend: 1.0,
-	wasm: 1.3 // WASM execution is ~30% slower than backend
+	wasm: 1.3 // Fallback simple scaling
 };
 
 // Method complexity multipliers based on advanced options
@@ -166,6 +199,64 @@ export const SPEED_CATEGORIES = {
 };
 
 /**
+ * Calculate power law aware WASM scaling factor
+ * @param {string} method - Analysis method name
+ * @param {number} sequences - Number of sequences
+ * @param {number} sites - Number of sites
+ * @param {number} baseSeconds - Backend runtime estimate in seconds
+ * @returns {number} WASM scaling factor
+ */
+export function calculateWasmScaling(method, sequences, sites, baseSeconds) {
+	const methodKey = method.toLowerCase();
+	const complexity = ALGORITHM_COMPLEXITY[methodKey];
+	const datasetSize = sequences * sites;
+
+	if (!complexity) {
+		// Fallback to simple scaling for unknown methods
+		return EXECUTION_SCALING_FACTORS.wasm;
+	}
+
+	// Base WASM performance (60% of native)
+	let scalingFactor = 1 / WASM_PERFORMANCE.nativeSpeedRatio; // 1.67x slower
+
+	// Threading penalty - more complex algorithms lose more from single-threading
+	const threadingLoss = complexity.threadingBenefit * Math.log2(WASM_PERFORMANCE.assumedCores);
+	const threadingPenalty = 1 + threadingLoss * 0.5; // Scale the impact
+	scalingFactor *= threadingPenalty;
+
+	// Memory pressure penalty - affects large datasets disproportionately
+	let memoryPenalty = 1;
+	const thresholds = WASM_PERFORMANCE.memoryThresholds;
+
+	if (datasetSize > thresholds.extreme) {
+		memoryPenalty = complexity.memoryIntensive ? 8 : 5; // Severe penalty
+	} else if (datasetSize > thresholds.high) {
+		memoryPenalty = complexity.memoryIntensive ? 4 : 2.5; // High penalty
+	} else if (datasetSize > thresholds.moderate) {
+		memoryPenalty = complexity.memoryIntensive ? 2 : 1.5; // Moderate penalty
+	} else if (datasetSize > thresholds.comfortable) {
+		memoryPenalty = 1.2; // Slight penalty
+	}
+
+	scalingFactor *= memoryPenalty;
+
+	// Runtime-based penalty - longer analyses suffer more from browser overhead
+	if (baseSeconds > 3600) {
+		// > 1 hour
+		scalingFactor *= 1.5;
+	} else if (baseSeconds > 1800) {
+		// > 30 minutes
+		scalingFactor *= 1.3;
+	} else if (baseSeconds > 600) {
+		// > 10 minutes
+		scalingFactor *= 1.2;
+	}
+
+	// Cap the scaling factor to prevent extreme estimates
+	return Math.min(scalingFactor, 20); // Max 20x slower than backend
+}
+
+/**
  * Calculate runtime estimate using power law equation
  * @param {string} method - Analysis method name (lowercase)
  * @param {number} sequences - Number of sequences in dataset
@@ -222,7 +313,15 @@ export function calculateRuntimeEstimate(
 	}
 
 	// Apply execution mode scaling
-	const scalingFactor = EXECUTION_SCALING_FACTORS[executionMode] || 1.0;
+	let scalingFactor;
+	if (executionMode === 'wasm') {
+		// Use power law aware WASM scaling
+		scalingFactor = calculateWasmScaling(methodKey, sequences, sites, baseSeconds);
+	} else {
+		// Use simple backend scaling
+		scalingFactor = EXECUTION_SCALING_FACTORS[executionMode] || 1.0;
+	}
+
 	let totalSeconds = baseSeconds * scalingFactor;
 
 	// Apply complexity multipliers based on advanced options
@@ -254,7 +353,8 @@ export function calculateRuntimeEstimate(
 		description: formatTimeDescription(totalMinutes),
 		reliability: equation.rSquared,
 		observations: equation.observations,
-		executionMode
+		executionMode,
+		scalingFactor: Math.round(scalingFactor * 100) / 100 // Include for debugging
 	};
 }
 

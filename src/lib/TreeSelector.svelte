@@ -34,7 +34,7 @@
 	let taggedNewick = '';
 	let showTreeViz = true;
 	let parsed_tags = []; // Store parsed tags from the tree
-	let treeViewerType = 'hyphy-scope'; // Default to hyphy-scope
+	let treeViewerType = 'phylotree'; // Fixed to phylotree viewer
 
 	// Initialize component and handle pre-populated trees
 	onMount(() => {
@@ -371,7 +371,7 @@
 					newickString={currentTreeString}
 					height={400}
 					width={700}
-					viewerType={treeViewerType}
+					viewerType="phylotree"
 					{branchTestMode}
 					bind:selectedBranches
 					on:branchselection={handleBranchSelection}

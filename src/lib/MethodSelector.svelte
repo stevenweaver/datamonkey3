@@ -97,11 +97,71 @@
 	// State management
 	let selectedMethod = null;
 	let geneticCode = 'Universal';
+	let geneticCodeId = 0; // For matching HyPhy numeric codes
 	let executionMode = 'local'; // 'local' or 'backend'
+
+	// Genetic code mapping (HyPhy uses numeric IDs)
+	const GENETIC_CODES = [
+		{ id: 0, name: 'Universal', label: 'Universal code' },
+		{ id: 1, name: 'Vertebrate mitochondrial', label: 'Vertebrate mitochondrial DNA code' },
+		{ id: 2, name: 'Yeast mitochondrial', label: 'Yeast mitochondrial DNA code' },
+		{
+			id: 3,
+			name: 'Mold mitochondrial',
+			label: 'Mold, Protozoan and Coelenterate mt; Mycloplasma/Spiroplasma'
+		},
+		{ id: 4, name: 'Invertebrate mitochondrial', label: 'Invertebrate mitochondrial DNA code' },
+		{ id: 5, name: 'Ciliate nuclear', label: 'Ciliate, Dasycladacean and Hexamita Nuclear code' },
+		{ id: 6, name: 'Echinoderm mitochondrial', label: 'Echinoderm mitochondrial DNA code' },
+		{ id: 7, name: 'Euplotid nuclear', label: 'Euplotid Nuclear code' },
+		{ id: 8, name: 'Alternative yeast nuclear', label: 'Alternative Yeast Nuclear code' },
+		{ id: 9, name: 'Ascidian mitochondrial', label: 'Ascidian mitochondrial DNA code' },
+		{ id: 10, name: 'Flatworm mitochondrial', label: 'Flatworm mitochondrial DNA code' },
+		{ id: 11, name: 'Blepharisma nuclear', label: 'Blepharisma Nuclear code' }
+	];
 
 	// Method-specific advanced options configurations
 	const METHOD_ADVANCED_OPTIONS = {
 		fel: {
+			// Core FEL parameters
+			srv: {
+				type: 'select',
+				label: 'Synonymous rate variation (recommended)',
+				default: 'Yes',
+				options: ['Yes', 'No']
+			},
+			multipleHits: {
+				type: 'select',
+				label: 'Multiple Hits',
+				default: 'None',
+				options: ['None', 'Double', 'Double+Triple']
+			},
+			siteMultihit: {
+				type: 'select',
+				label: 'Site Multihit',
+				default: 'Estimate',
+				options: ['Estimate', 'Global'],
+				dependsOn: 'multipleHits',
+				enabledWhen: ['Double', 'Double+Triple']
+			},
+			// Advanced parameters (matching the form structure)
+			resample: {
+				type: 'number',
+				label: 'Resample (parametric bootstrap replicates)',
+				default: 0,
+				min: 0,
+				max: 1000,
+				step: 1,
+				description:
+					'Advanced setting - will result in MUCH SLOWER run time. Recommended for small to medium (<30 sequences) datasets.'
+			},
+			confidenceIntervals: {
+				type: 'boolean',
+				label: 'Compute confidence intervals',
+				default: false,
+				description: 'Compute profile likelihood confidence intervals for each variable site'
+			},
+			// Keep existing parameters for backward compatibility
 			pValueThreshold: {
 				type: 'number',
 				label: 'P-value threshold',
@@ -109,20 +169,6 @@
 				min: 0.001,
 				max: 1,
 				step: 0.001
-			},
-			confidenceLevel: {
-				type: 'number',
-				label: 'Confidence level',
-				default: 0.95,
-				min: 0.8,
-				max: 0.99,
-				step: 0.01
-			},
-			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
-			confidenceIntervals: {
-				type: 'boolean',
-				label: 'Include confidence intervals',
-				default: false
 			}
 		},
 		meme: {
@@ -400,12 +446,21 @@
 		initializeMethodOptions(selectedMethod);
 	}
 
+	// Update genetic code ID when name changes
+	$: {
+		const codeEntry = GENETIC_CODES.find((code) => code.name === geneticCode);
+		if (codeEntry) {
+			geneticCodeId = codeEntry.id;
+		}
+	}
+
 	// Dispatch method changes for parent components (like timing estimates)
 	$: if (selectedMethod || geneticCode || methodOptions || executionMode) {
 		dispatch('methodChange', {
 			method: selectedMethod,
 			options: selectedMethod ? methodOptions[selectedMethod] : {},
 			geneticCode,
+			geneticCodeId,
 			executionMode
 		});
 	}
@@ -547,17 +602,9 @@
 						<label class="option-label">
 							Genetic Code:
 							<select bind:value={geneticCode} class="option-select">
-								<option>Universal</option>
-								<option>Vertebrate mitochondrial</option>
-								<option>Yeast mitochondrial</option>
-								<option>Mold mitochondrial</option>
-								<option>Invertebrate mitochondrial</option>
-								<option>Ciliate nuclear</option>
-								<option>Echinoderm mitochondrial</option>
-								<option>Euplotid nuclear</option>
-								<option>Alternative yeast nuclear</option>
-								<option>Ascidian mitochondrial</option>
-								<option>Flatworm mitochondrial</option>
+								{#each GENETIC_CODES as code}
+									<option value={code.name}>{code.label}</option>
+								{/each}
 							</select>
 						</label>
 					</div>
@@ -587,7 +634,15 @@
 					<div class="advanced-content">
 						{#if Object.keys(currentMethodOptions).length > 0}
 							{#each Object.entries(currentMethodOptions) as [optionKey, optionConfig]}
-								<div class="option-group">
+								{@const isEnabled =
+									!optionConfig.dependsOn ||
+									(methodOptions[selectedMethod] &&
+										optionConfig.enabledWhen &&
+										optionConfig.enabledWhen.includes(
+											methodOptions[selectedMethod][optionConfig.dependsOn]
+										))}
+
+								<div class="option-group" class:disabled={!isEnabled}>
 									{#if optionConfig.type === 'number'}
 										<label class="option-label">
 											{optionConfig.label}:
@@ -598,6 +653,7 @@
 												max={optionConfig.max || 1000}
 												step={optionConfig.step || 1}
 												class="option-input"
+												disabled={!isEnabled}
 											/>
 										</label>
 									{:else if optionConfig.type === 'boolean'}
@@ -605,6 +661,7 @@
 											<input
 												type="checkbox"
 												bind:checked={methodOptions[selectedMethod][optionKey]}
+												disabled={!isEnabled}
 											/>
 											{optionConfig.label}
 										</label>
@@ -614,12 +671,19 @@
 											<select
 												bind:value={methodOptions[selectedMethod][optionKey]}
 												class="option-select"
+												disabled={!isEnabled}
 											>
 												{#each optionConfig.options as option}
 													<option value={option}>{option}</option>
 												{/each}
 											</select>
 										</label>
+									{/if}
+
+									{#if optionConfig.description}
+										<div class="option-description">
+											{optionConfig.description}
+										</div>
 									{/if}
 								</div>
 							{/each}
@@ -972,5 +1036,22 @@
 	.no-options-text {
 		font-size: 13px;
 		font-style: italic;
+	}
+
+	.option-description {
+		font-size: 12px;
+		color: #718096;
+		margin-top: 4px;
+		line-height: 1.4;
+		font-style: italic;
+	}
+
+	.option-group.disabled {
+		opacity: 0.5;
+	}
+
+	.option-group.disabled input,
+	.option-group.disabled select {
+		cursor: not-allowed;
 	}
 </style>

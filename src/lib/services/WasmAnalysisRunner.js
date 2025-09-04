@@ -53,8 +53,11 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		this.activeAnalyses.set(jobId, analysisId);
 
 		try {
+			// Build arguments preview for tracking (before actual execution)
+			const argsPreview = this.buildArgumentsPreview(method, config, treeData);
+
 			// Start analysis tracking using base class method
-			this.startAnalysisTracking(analysisId, method, 'wasm');
+			this.startAnalysisTracking(analysisId, method, 'wasm', null, argsPreview);
 
 			// Generate cache key for this analysis
 			const cacheKey = generateAnalysisKey(
@@ -102,8 +105,16 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		// Create temporary file from FASTA data
 		const inputFile = new File([fastaData], 'user.nex', { type: 'text/plain' });
 
-		// Mount the file
-		const inputFiles = await cliObj.mount([{ name: 'user.nex', data: fastaData }]);
+		// Prepare files to mount
+		const filesToMount = [{ name: 'user.nex', data: fastaData }];
+
+		// Add tree file if provided
+		if (treeData && treeData.trim()) {
+			filesToMount.push({ name: 'user.tree', data: treeData });
+		}
+
+		// Mount the files
+		const inputFiles = await cliObj.mount(filesToMount);
 
 		this.updateProgress(analysisId, 'running', 20, 'Building analysis command...');
 
@@ -111,16 +122,51 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		const args = [];
 		args.push(`--alignment ${inputFiles[0]}`);
 
-		// Add other options from config
+		// Add tree argument if tree data was provided
+		if (treeData && treeData.trim()) {
+			args.push(`--tree ${inputFiles[1]}`);
+		}
+
+		// Map configuration parameters to HyPhy command line arguments
 		for (const [key, value] of Object.entries(config)) {
-			if (key !== 'tree') {
-				// Special handling for genetic code parameter
-				if (key === 'code') {
-					args.push(`--${key} "${value}"`);
+			if (key !== 'tree' && key !== 'method' && key !== 'executionMode') {
+				// Handle specific FEL parameter mappings
+				if (key === 'geneticCodeId' || key === 'code') {
+					// Use numeric genetic code ID for HyPhy
+					const codeId = key === 'geneticCodeId' ? value : config.geneticCodeId || 0;
+					args.push(`--code ${codeId}`);
+				} else if (key === 'srv') {
+					// Synonymous rate variation
+					args.push(`--srv ${value}`);
+				} else if (key === 'multipleHits') {
+					// Multiple hits parameter
+					if (value !== 'None') {
+						args.push(`--multiple-hits ${value}`);
+					}
+				} else if (key === 'siteMultihit') {
+					// Site multihit parameter (only when multiple hits enabled)
+					if (config.multipleHits && config.multipleHits !== 'None') {
+						args.push(`--site-multihit ${value}`);
+					}
+				} else if (key === 'resample' && value > 0) {
+					// Bootstrap resampling
+					args.push(`--resample ${value}`);
+				} else if (key === 'confidenceIntervals' && value === true) {
+					// Confidence intervals
+					args.push(`--ci Yes`);
+				} else if (key === 'pValueThreshold') {
+					// P-value threshold (custom parameter, not standard HyPhy)
+					// This would be handled post-processing
+					continue;
+				} else if (typeof value === 'boolean') {
+					// Boolean parameters
+					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value ? 'Yes' : 'No'}`);
 				} else if (typeof value === 'string' && value.includes(' ')) {
-					args.push(`--${key} "${value}"`);
-				} else {
-					args.push(`--${key} ${value}`);
+					// String parameters with spaces
+					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} "${value}"`);
+				} else if (value !== null && value !== undefined && value !== '') {
+					// Other parameters
+					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value}`);
 				}
 			}
 		}
@@ -134,6 +180,10 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		// Run the analysis
 		const cmdResult = await cliObj.exec(fullHyphyCommand);
 		const stdout = await cmdResult.stdout;
+
+		// Add command execution details to stdout for debugging
+		const commandInfo = `\n=== HyPhy Command Execution ===\nCommand: ${fullHyphyCommand}\nFiles mounted: ${filesToMount.map((f) => f.name).join(', ')}\nTree data provided: ${treeData && treeData.trim() ? 'Yes' : 'No'}\n================================\n\n`;
+		const enhancedStdout = commandInfo + stdout;
 
 		// Check for common HyPhy errors
 		if (stdout.includes('is not a valid choice passed to')) {
@@ -163,9 +213,83 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 
 		// Return the combined result
 		return {
-			stdout,
+			stdout: enhancedStdout,
 			json: jsonData,
 			cached: false
+		};
+	}
+
+	/**
+	 * Build arguments preview for database storage (before actual execution)
+	 */
+	buildArgumentsPreview(method, config, treeData) {
+		const args = [];
+		args.push(`--alignment user.nex`);
+
+		// Add tree argument if tree data was provided
+		if (treeData && treeData.trim()) {
+			args.push(`--tree user.tree`);
+		}
+
+		// Map configuration parameters to HyPhy command line arguments
+		for (const [key, value] of Object.entries(config)) {
+			if (key !== 'tree' && key !== 'method' && key !== 'executionMode') {
+				// Handle specific FEL parameter mappings
+				if (key === 'geneticCodeId' || key === 'code') {
+					// Use numeric genetic code ID for HyPhy
+					const codeId = key === 'geneticCodeId' ? value : config.geneticCodeId || 0;
+					args.push(`--code ${codeId}`);
+				} else if (key === 'srv') {
+					// Synonymous rate variation
+					args.push(`--srv ${value}`);
+				} else if (key === 'multipleHits') {
+					// Multiple hits parameter
+					if (value !== 'None') {
+						args.push(`--multiple-hits ${value}`);
+					}
+				} else if (key === 'siteMultihit') {
+					// Site multihit parameter (only when multiple hits enabled)
+					if (config.multipleHits && config.multipleHits !== 'None') {
+						args.push(`--site-multihit ${value}`);
+					}
+				} else if (key === 'resample' && value > 0) {
+					// Bootstrap resampling
+					args.push(`--resample ${value}`);
+				} else if (key === 'confidenceIntervals' && value === true) {
+					// Confidence intervals
+					args.push(`--ci Yes`);
+				} else if (key === 'pValueThreshold') {
+					// P-value threshold (custom parameter, not standard HyPhy)
+					// This would be handled post-processing
+					continue;
+				} else if (typeof value === 'boolean') {
+					// Boolean parameters
+					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value ? 'Yes' : 'No'}`);
+				} else if (typeof value === 'string' && value.includes(' ')) {
+					// String parameters with spaces
+					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} "${value}"`);
+				} else if (value !== null && value !== undefined && value !== '') {
+					// Other parameters
+					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value}`);
+				}
+			}
+		}
+
+		return {
+			command: `hyphy LIBPATH=/shared/hyphy/ ${method} ${args.join(' ')}`,
+			method: method.toUpperCase(),
+			parameters: config,
+			treeData: treeData
+				? {
+						provided: true,
+						length: treeData.length,
+						source: 'user-provided'
+					}
+				: {
+						provided: false,
+						source: 'none'
+					},
+			executionMode: 'wasm'
 		};
 	}
 

@@ -163,11 +163,14 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 		this.activeAnalyses.set(jobId, analysisId);
 
 		try {
-			// Start analysis tracking using base class method
-			this.startAnalysisTracking(analysisId, method, 'backend');
-
 			// Prepare analysis parameters based on method
 			const analysisParams = this.prepareAnalysisParameters(method, config);
+
+			// Build arguments preview for tracking
+			const argsPreview = this.buildArgumentsPreview(method, config, treeData, analysisParams);
+
+			// Start analysis tracking using base class method
+			this.startAnalysisTracking(analysisId, method, 'backend', null, argsPreview);
 
 			// Submit to backend
 			const eventName = `${method.toLowerCase()}:spawn`;
@@ -202,12 +205,37 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 	}
 
 	/**
+	 * Map genetic code name to numeric ID (for backward compatibility)
+	 */
+	mapGeneticCodeToId(geneticCode) {
+		const codeMap = {
+			Universal: 0,
+			'Vertebrate mitochondrial': 1,
+			'Yeast mitochondrial': 2,
+			'Mold mitochondrial': 3,
+			'Invertebrate mitochondrial': 4,
+			'Ciliate nuclear': 5,
+			'Echinoderm mitochondrial': 6,
+			'Euplotid nuclear': 7,
+			'Alternative yeast nuclear': 8,
+			'Ascidian mitochondrial': 9,
+			'Flatworm mitochondrial': 10,
+			'Blepharisma nuclear': 11
+		};
+		return codeMap[geneticCode] || 0;
+	}
+
+	/**
 	 * Prepare analysis parameters based on method and config
 	 */
 	prepareAnalysisParameters(method, config) {
 		const baseParams = {
 			analysis_type: method.toLowerCase(),
-			code: config.geneticCode || 'Universal'
+			// Use genetic code ID if available, otherwise map name to ID
+			gencodeid:
+				config.geneticCodeId !== undefined
+					? config.geneticCodeId
+					: this.mapGeneticCodeToId(config.geneticCode)
 		};
 
 		// Method-specific parameter mapping
@@ -215,6 +243,12 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			case 'fel':
 				return {
 					...baseParams,
+					// Map FEL-specific parameters to backend format
+					'ds-variation': config.srv === 'Yes' ? 1 : 2,
+					multiple_hits: config.multipleHits || 'None',
+					site_multihit: config.siteMultihit || 'Estimate',
+					resample: config.resample || 0,
+					'confidence-interval': config.confidenceIntervals ? true : false,
 					pvalue: config.pValueThreshold || 0.1,
 					branches: 'All',
 					samples: 100
@@ -247,6 +281,34 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			default:
 				return baseParams;
 		}
+	}
+
+	/**
+	 * Build arguments preview for database storage
+	 */
+	buildArgumentsPreview(method, config, treeData, analysisParams) {
+		return {
+			method: method.toUpperCase(),
+			parameters: analysisParams,
+			originalConfig: config,
+			treeData: treeData
+				? {
+						provided: true,
+						length: treeData.length,
+						source: 'user-provided'
+					}
+				: {
+						provided: false,
+						source: 'none'
+					},
+			executionMode: 'backend',
+			backendEvent: `${method.toLowerCase()}:spawn`,
+			socketParams: {
+				msa: '[FASTA_DATA]', // Placeholder for actual data
+				tree: treeData ? '[TREE_DATA]' : null,
+				...analysisParams
+			}
+		};
 	}
 
 	/**
