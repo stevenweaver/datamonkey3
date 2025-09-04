@@ -105,7 +105,11 @@
 		{ id: 0, name: 'Universal', label: 'Universal code' },
 		{ id: 1, name: 'Vertebrate mitochondrial', label: 'Vertebrate mitochondrial DNA code' },
 		{ id: 2, name: 'Yeast mitochondrial', label: 'Yeast mitochondrial DNA code' },
-		{ id: 3, name: 'Mold mitochondrial', label: 'Mold, Protozoan and Coelenterate mt; Mycloplasma/Spiroplasma' },
+		{
+			id: 3,
+			name: 'Mold mitochondrial',
+			label: 'Mold, Protozoan and Coelenterate mt; Mycloplasma/Spiroplasma'
+		},
 		{ id: 4, name: 'Invertebrate mitochondrial', label: 'Invertebrate mitochondrial DNA code' },
 		{ id: 5, name: 'Ciliate nuclear', label: 'Ciliate, Dasycladacean and Hexamita Nuclear code' },
 		{ id: 6, name: 'Echinoderm mitochondrial', label: 'Echinoderm mitochondrial DNA code' },
@@ -148,7 +152,8 @@
 				min: 0,
 				max: 1000,
 				step: 1,
-				description: 'Advanced setting - will result in MUCH SLOWER run time. Recommended for small to medium (<30 sequences) datasets.'
+				description:
+					'Advanced setting - will result in MUCH SLOWER run time. Recommended for small to medium (<30 sequences) datasets.'
 			},
 			confidenceIntervals: {
 				type: 'boolean',
@@ -443,7 +448,7 @@
 
 	// Update genetic code ID when name changes
 	$: {
-		const codeEntry = GENETIC_CODES.find(code => code.name === geneticCode);
+		const codeEntry = GENETIC_CODES.find((code) => code.name === geneticCode);
 		if (codeEntry) {
 			geneticCodeId = codeEntry.id;
 		}
@@ -629,11 +634,14 @@
 					<div class="advanced-content">
 						{#if Object.keys(currentMethodOptions).length > 0}
 							{#each Object.entries(currentMethodOptions) as [optionKey, optionConfig]}
-								{@const isEnabled = !optionConfig.dependsOn || 
-									(methodOptions[selectedMethod] && 
-									 optionConfig.enabledWhen && 
-									 optionConfig.enabledWhen.includes(methodOptions[selectedMethod][optionConfig.dependsOn]))}
-								
+								{@const isEnabled =
+									!optionConfig.dependsOn ||
+									(methodOptions[selectedMethod] &&
+										optionConfig.enabledWhen &&
+										optionConfig.enabledWhen.includes(
+											methodOptions[selectedMethod][optionConfig.dependsOn]
+										))}
+
 								<div class="option-group" class:disabled={!isEnabled}>
 									{#if optionConfig.type === 'number'}
 										<label class="option-label">
@@ -671,7 +679,7 @@
 											</select>
 										</label>
 									{/if}
-									
+
 									{#if optionConfig.description}
 										<div class="option-description">
 											{optionConfig.description}

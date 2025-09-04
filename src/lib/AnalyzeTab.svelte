@@ -13,8 +13,9 @@
 	import FileIndicator from './FileIndicator.svelte';
 	import TabNavigation from './TabNavigation.svelte';
 	import TreePrompt from './TreePrompt.svelte';
-	import TreeInferenceSection from './TreeInferenceSection.svelte';
+	import TreeSourceSelector from './TreeSourceSelector.svelte';
 	import backendAnalysisRunner from './services/BackendAnalysisRunner.js';
+	import wasmAnalysisRunner from './services/WasmAnalysisRunner.js';
 
 	// Props
 	export let methodConfig = {};
@@ -78,10 +79,18 @@
 					throw new Error('No sequence data available in selected file');
 				}
 
-				// Get tree data
-				const treeData = $treeStore?.usertree || $treeStore?.nj || '';
+				// Get tree data based on user's selection
+				const treeData = getSelectedTreeData();
 				if (!treeData) {
-					throw new Error('No tree data available. Please generate or upload a tree first.');
+					const treeSourceName =
+						selectedTreeSource === 'uploaded'
+							? 'uploaded tree'
+							: selectedTreeSource === 'inferred'
+								? 'neighbor-joining tree'
+								: 'uploaded tree file';
+					throw new Error(
+						`No ${treeSourceName} available. Please select a different tree source or upload a tree.`
+					);
 				}
 
 				console.log('📤 Submitting to backend with data:', {
@@ -100,8 +109,53 @@
 				);
 				console.log('✅ Backend analysis submitted:', result);
 			} else {
-				// Local execution - use existing runMethod
-				runMethod(method, config);
+				// Local WASM execution
+				if (!$currentFile || !$currentFile.id) {
+					throw new Error('No file selected for analysis');
+				}
+
+				// Get full file data including content from storage
+				const fullFileData = await persistentFileStore.getFile($currentFile.id);
+				if (!fullFileData) {
+					throw new Error('Unable to load file data');
+				}
+
+				// Convert file to text to get FASTA data
+				const fastaData = await fullFileData.text();
+				if (!fastaData || !fastaData.trim()) {
+					throw new Error('No sequence data available in selected file');
+				}
+
+				// Get tree data based on user's selection
+				const treeData = getSelectedTreeData();
+				if (!treeData) {
+					const treeSourceName =
+						selectedTreeSource === 'uploaded'
+							? 'uploaded tree'
+							: selectedTreeSource === 'inferred'
+								? 'neighbor-joining tree'
+								: 'uploaded tree file';
+					throw new Error(
+						`No ${treeSourceName} available. Please select a different tree source or upload a tree.`
+					);
+				}
+
+				console.log('🖥️ Submitting to WASM with data:', {
+					method,
+					fastaLength: fastaData.length,
+					treeLength: treeData.length,
+					fileName: $currentFile.filename,
+					selectedTreeSource
+				});
+
+				const result = await wasmAnalysisRunner.runAnalysis(
+					method,
+					config,
+					fastaData,
+					treeData,
+					$currentFile?.id
+				);
+				console.log('✅ WASM analysis completed:', result);
 			}
 		} catch (error) {
 			console.error('❌ Analysis execution failed:', error);
@@ -126,6 +180,62 @@
 		treeGenerated = true;
 	}
 
+	// Handle tree source change from TreeSourceSelector
+	function handleTreeSourceChange(event) {
+		const { treeSource, hasUploadedTree, hasInferredTree, uploadedFile } = event.detail;
+		console.log('Tree source changed:', {
+			treeSource,
+			hasUploadedTree,
+			hasInferredTree,
+			uploadedFile
+		});
+		selectedTreeSource = treeSource;
+
+		// If there's an uploaded file in the event, store it
+		if (uploadedFile) {
+			uploadedTreeFile = { content: null, file: uploadedFile };
+		}
+	}
+
+	// Handle file upload from TreeSourceSelector
+	async function handleFileUploaded(event) {
+		const { file, treeSource } = event.detail;
+		console.log('Tree file uploaded:', { file, treeSource });
+
+		try {
+			// Read the file content
+			const content = await file.text();
+			uploadedTreeFile = { content, file };
+			selectedTreeSource = 'upload-new';
+			console.log('Tree file content loaded:', content.substring(0, 100) + '...');
+		} catch (error) {
+			console.error('Failed to read tree file:', error);
+			alert('Failed to read tree file. Please ensure it is a valid Newick format file.');
+		}
+	}
+
+	// Tree source selection state
+	let selectedTreeSource = 'inferred'; // 'uploaded' | 'inferred' | 'upload-new'
+	let uploadedTreeFile = null;
+
+	// Calculate tree state for TreeSourceSelector
+	$: hasUploadedTree = $treeStore && $treeStore.usertree;
+	$: hasInferredTree = $treeStore && $treeStore.nj;
+
+	// Get tree data based on user's selection
+	function getSelectedTreeData() {
+		switch (selectedTreeSource) {
+			case 'uploaded':
+				return $treeStore?.usertree || '';
+			case 'inferred':
+				return $treeStore?.nj || '';
+			case 'upload-new':
+				return uploadedTreeFile?.content || '';
+			default:
+				return '';
+		}
+	}
+
 	// Toggle analysis section
 	function toggleAnalysisSection() {
 		analysisSectionExpanded = !analysisSectionExpanded;
@@ -139,8 +249,49 @@
 	<!-- Tree Prompt (shown if no tree is available) -->
 	<TreePrompt onGenerateClick={handleGenerateTreeClick} />
 
-	<!-- Tree Inference Section -->
-	<TreeInferenceSection onTreeGenerated={handleTreeGenerated} />
+	<!-- Tree Source Selector -->
+	{#if $currentFile}
+		<div class="mb-premium-xl">
+			<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">
+				<span class="mr-premium-xs">🌳</span> Phylogenetic Tree
+			</h2>
+
+			<!-- Development Preview Banner -->
+			<div class="mb-premium-md rounded-premium border border-amber-200 bg-amber-50 p-premium-sm">
+				<p class="flex items-center text-premium-caption text-amber-800">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="mr-2 h-4 w-4 flex-shrink-0"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+					<span>
+						<strong>Development Preview:</strong> The tree inference functionality is currently simulated
+						for UI demonstration purposes. Backend implementation coming soon.
+					</span>
+				</p>
+			</div>
+
+			<div
+				class="rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium"
+			>
+				<TreeSourceSelector
+					{hasUploadedTree}
+					{hasInferredTree}
+					bind:treeSource={selectedTreeSource}
+					disabled={false}
+					on:treeSourceChange={handleTreeSourceChange}
+					on:fileUploaded={handleFileUploaded}
+				/>
+			</div>
+		</div>
+	{/if}
 
 	<!-- Analysis Section (expanded by default) -->
 	<div class="mb-premium-xl rounded-premium border border-border-platinum bg-white shadow-premium">

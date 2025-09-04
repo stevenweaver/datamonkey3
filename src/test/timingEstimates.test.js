@@ -4,7 +4,10 @@ import {
 	formatTimeDescription,
 	BACKEND_TIMING_EQUATIONS,
 	EXECUTION_SCALING_FACTORS,
-	batchCalculateEstimates
+	batchCalculateEstimates,
+	calculateWasmScaling,
+	WASM_PERFORMANCE,
+	ALGORITHM_COMPLEXITY
 } from '../lib/utils/timingEstimates.js';
 
 describe('Timing Estimates', () => {
@@ -30,11 +33,18 @@ describe('Timing Estimates', () => {
 			const wasmResult = calculateRuntimeEstimate('fel', 20, 500, 'wasm');
 
 			console.log('Backend FEL:', backendResult.minutes, 'minutes');
-			console.log('WASM FEL:', wasmResult.minutes, 'minutes');
+			console.log(
+				'WASM FEL:',
+				wasmResult.minutes,
+				'minutes',
+				'(scaling factor:',
+				wasmResult.scalingFactor + 'x)'
+			);
 
-			// WASM should be 30% slower (1.3x)
-			expect(wasmResult.minutes).toBeCloseTo(backendResult.minutes * 1.3, 0);
+			// WASM should be slower than backend (actual factor depends on power law scaling)
+			expect(wasmResult.minutes).toBeGreaterThan(backendResult.minutes);
 			expect(wasmResult.executionMode).toBe('wasm');
+			expect(wasmResult.scalingFactor).toBeGreaterThan(1);
 		});
 
 		it('should return null for invalid inputs', () => {
@@ -143,6 +153,75 @@ describe('Timing Estimates', () => {
 		});
 	});
 
+	describe('WASM Power Law Scaling', () => {
+		it('should calculate power law aware WASM scaling', () => {
+			// Small dataset - should have minimal penalties
+			const smallScaling = calculateWasmScaling('fel', 10, 100, 60); // 1 minute backend
+			console.log('Small dataset WASM scaling:', smallScaling + 'x');
+			expect(smallScaling).toBeGreaterThan(1);
+			expect(smallScaling).toBeLessThan(5); // Should be reasonable
+
+			// Large dataset - should have larger penalties
+			const largeScaling = calculateWasmScaling('fel', 1000, 5000, 3600); // 1 hour backend
+			console.log('Large dataset WASM scaling:', largeScaling + 'x');
+			expect(largeScaling).toBeGreaterThan(smallScaling);
+			expect(largeScaling).toBeLessThanOrEqual(20); // Capped at 20x
+		});
+
+		it('should apply memory pressure correctly', () => {
+			// Memory-intensive method with large dataset
+			const memoryIntensive = calculateWasmScaling('fubar', 500, 2000, 1800); // 30 min backend
+			// Non-memory-intensive method with same dataset
+			const normalMethod = calculateWasmScaling('fel', 500, 2000, 1800);
+
+			console.log('Memory intensive scaling:', memoryIntensive + 'x');
+			console.log('Normal method scaling:', normalMethod + 'x');
+
+			// Memory intensive methods should have higher scaling factors for large datasets
+			expect(memoryIntensive).toBeGreaterThan(normalMethod);
+		});
+
+		it('should handle threading penalties correctly', () => {
+			// High threading benefit method should have larger penalties
+			const highThreading = calculateWasmScaling('bgm', 100, 1000, 600);
+			// Low threading benefit method should have smaller penalties
+			const lowThreading = calculateWasmScaling('fel', 100, 1000, 600);
+
+			console.log('High threading method scaling:', highThreading + 'x');
+			console.log('Low threading method scaling:', lowThreading + 'x');
+
+			expect(highThreading).toBeGreaterThan(lowThreading);
+		});
+
+		it('should fallback gracefully for unknown methods', () => {
+			const unknownScaling = calculateWasmScaling('unknown-method', 100, 1000, 600);
+			expect(unknownScaling).toBe(EXECUTION_SCALING_FACTORS.wasm);
+		});
+	});
+
+	describe('Power Law Scaling Integration', () => {
+		it('should show different scaling for different dataset sizes', () => {
+			const datasets = [
+				{ seq: 10, sites: 100, label: 'tiny' },
+				{ seq: 50, sites: 1000, label: 'small' },
+				{ seq: 200, sites: 3000, label: 'medium' },
+				{ seq: 500, sites: 5000, label: 'large' }
+			];
+
+			datasets.forEach(({ seq, sites, label }) => {
+				const backend = calculateRuntimeEstimate('fel', seq, sites, 'backend');
+				const wasm = calculateRuntimeEstimate('fel', seq, sites, 'wasm');
+				const ratio = wasm.minutes / backend.minutes;
+
+				console.log(
+					`${label} (${seq}×${sites}): Backend=${backend.minutes.toFixed(2)}min, WASM=${wasm.minutes.toFixed(2)}min, Ratio=${ratio.toFixed(2)}x`
+				);
+
+				expect(ratio).toBeGreaterThan(1); // WASM should always be slower
+			});
+		});
+	});
+
 	describe('Equation validation', () => {
 		it('should have valid equation parameters', () => {
 			Object.entries(BACKEND_TIMING_EQUATIONS).forEach(([method, equation]) => {
@@ -153,6 +232,15 @@ describe('Timing Estimates', () => {
 				expect(equation.rSquared).toBeLessThanOrEqual(1);
 				expect(equation.observations).toBeGreaterThan(0);
 				expect(equation.model).toBe('Power');
+			});
+		});
+
+		it('should have algorithm complexity data for all methods', () => {
+			Object.keys(BACKEND_TIMING_EQUATIONS).forEach((method) => {
+				expect(ALGORITHM_COMPLEXITY[method]).toBeDefined();
+				expect(ALGORITHM_COMPLEXITY[method].threadingBenefit).toBeGreaterThan(0);
+				expect(ALGORITHM_COMPLEXITY[method].threadingBenefit).toBeLessThanOrEqual(1);
+				expect(typeof ALGORITHM_COMPLEXITY[method].memoryIntensive).toBe('boolean');
 			});
 		});
 	});

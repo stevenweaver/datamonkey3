@@ -81,7 +81,12 @@
 					<pre class="whitespace-pre-wrap text-sm text-gray-700">{fileMetricsJSON.FILE_INFO
 							.nj}</pre>
 				</div>
-				<PhyloTree newickString={fileMetricsJSON.FILE_INFO.nj} height={600} width={800} />
+				<PhyloTree
+					newickString={fileMetricsJSON.FILE_INFO.nj}
+					height={600}
+					width={800}
+					viewerType="phylotree"
+				/>
 			{/if}
 
 			{#if fileMetricsJSON?.FILE_PARTITION_INFO}
@@ -95,6 +100,7 @@
 					newickString={fileMetricsJSON.FILE_PARTITION_INFO['0'].usertree}
 					height={600}
 					width={800}
+					viewerType="phylotree"
 				/>
 			{/if}
 		{/if}

@@ -6,54 +6,61 @@
 
 	// Props
 	export let hasUploadedTree = false;
-	export let treeSource = 'infer'; // 'uploaded' | 'infer'
-	export let isGenerating = false;
-	export let treeStatus = 'ready'; // 'ready' | 'generating' | 'available' | 'error'
-	export let showAdvancedOptions = false;
-	export let selectedMethod = 'nj'; // 'nj' | 'ml'
-	export let substitutionModel = 'HKY';
-	export let bootstrapReps = 100;
+	export let hasInferredTree = true; // Whether NJ tree from alignment metrics exists
+	export let treeSource = 'inferred'; // 'uploaded' | 'inferred' | 'upload-new'
 	export let disabled = false;
 
+	// File upload state
+	let fileInput;
+	let uploadedFile = null;
+
 	// Status display
-	const STATUS_CONFIG = {
-		ready: { icon: '⚪', text: 'Ready for tree inference' },
-		generating: { icon: '🔄', text: 'Generating tree...' },
-		available: { icon: '✓', text: 'Tree available from upload' },
-		error: { icon: '❌', text: 'Tree generation failed' }
+	const getStatusText = () => {
+		if (treeSource === 'uploaded' && hasUploadedTree) {
+			return '✓ Using uploaded tree';
+		} else if (treeSource === 'inferred' && hasInferredTree) {
+			return '✓ Using neighbor-joining tree from alignment metrics';
+		} else if (treeSource === 'upload-new') {
+			if (uploadedFile) {
+				return `✓ Ready to use ${uploadedFile.name}`;
+			}
+			return '⚪ Select tree file to upload';
+		}
+		return '⚪ Select tree source';
 	};
 
-	$: statusConfig = STATUS_CONFIG[treeStatus] || STATUS_CONFIG.ready;
-
 	// Event handlers
-	function toggleAdvancedOptions() {
-		if (disabled || isGenerating) return;
-		showAdvancedOptions = !showAdvancedOptions;
-		dispatch('advancedToggle', { showAdvanced: showAdvancedOptions });
-	}
-
 	function handleTreeSourceChange() {
-		dispatch('treeSourceChange', { 
+		dispatch('treeSourceChange', {
 			treeSource,
 			hasUploadedTree,
-			selectedMethod,
-			substitutionModel,
-			bootstrapReps 
+			hasInferredTree,
+			uploadedFile
 		});
 	}
 
-	function handleAdvancedChange() {
-		dispatch('advancedChange', {
-			selectedMethod,
-			substitutionModel,
-			bootstrapReps
-		});
+	function handleFileUpload() {
+		const file = fileInput?.files?.[0];
+		if (file) {
+			uploadedFile = file;
+			dispatch('fileUploaded', {
+				file,
+				treeSource: 'upload-new'
+			});
+			handleTreeSourceChange();
+		}
+	}
+
+	function clearUploadedFile() {
+		uploadedFile = null;
+		if (fileInput) {
+			fileInput.value = '';
+		}
+		handleTreeSourceChange();
 	}
 
 	// Reactive statements
-	$: if (treeSource || selectedMethod || substitutionModel || bootstrapReps) {
-		handleTreeSourceChange();
-	}
+	$: statusText = getStatusText();
 </script>
 
 <div class="tree-source-selector">
@@ -61,129 +68,122 @@
 	<div class="tree-source-header">
 		<div class="tree-source-title">
 			<label class="source-label">Tree Source:</label>
-			<div class="status-badge" class:generating={isGenerating}>
-				{#if isGenerating}
-					<span class="status-content">
-						<svg class="spinner" viewBox="0 0 24 24">
-							<circle class="spinner-track" cx="12" cy="12" r="10" />
-							<path class="spinner-path" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-						</svg>
-						Status: {statusConfig.text}
-					</span>
-				{:else}
-					<span class="status-content">
-						Status: {statusConfig.icon} {statusConfig.text}
-					</span>
-				{/if}
+			<div class="status-badge">
+				<span class="status-content">
+					Status: {statusText}
+				</span>
 			</div>
 		</div>
 	</div>
 
 	<!-- Tree Source Options -->
 	<div class="tree-source-options">
-		<label class="option-row">
-			<input
-				type="radio"
-				bind:group={treeSource}
-				value="uploaded"
-				disabled={!hasUploadedTree || isGenerating || disabled}
-				class="option-radio"
-			/>
-			<span class="option-content">
-				<span class="option-text">Use uploaded tree</span>
-				{#if !hasUploadedTree}
-					<span class="option-hint">(No uploaded tree available)</span>
-				{/if}
-			</span>
-		</label>
-
-		<label class="option-row">
-			<input
-				type="radio"
-				bind:group={treeSource}
-				value="infer"
-				disabled={isGenerating || disabled}
-				class="option-radio"
-			/>
-			<span class="option-content">
-				<span class="option-text">Infer tree automatically</span>
-			</span>
-		</label>
-	</div>
-
-	<!-- Advanced Options Toggle -->
-	<div class="advanced-section">
-		<button
-			type="button"
-			on:click={toggleAdvancedOptions}
-			class="advanced-toggle"
-			class:disabled={disabled || isGenerating}
-			{disabled}
-		>
-			<svg class="chevron" class:expanded={showAdvancedOptions} viewBox="0 0 20 20">
-				<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-			</svg>
-			Advanced Tree Options
-		</button>
-
-		{#if showAdvancedOptions}
-			<div class="advanced-content">
-				<!-- Tree Building Method -->
-				<div class="form-group">
-					<label class="form-label">Tree Building Method</label>
-					<select
-						bind:value={selectedMethod}
-						on:change={handleAdvancedChange}
-						disabled={isGenerating || disabled}
-						class="form-select"
-					>
-						<option value="nj">Neighbor Joining (Faster)</option>
-						<option value="ml">Maximum Likelihood (More Accurate)</option>
-					</select>
-				</div>
-
-				<!-- Substitution Model (ML only) -->
-				{#if selectedMethod === 'ml'}
-					<div class="form-group">
-						<label class="form-label">Substitution Model</label>
-						<select
-							bind:value={substitutionModel}
-							on:change={handleAdvancedChange}
-							disabled={isGenerating || disabled}
-							class="form-select"
-						>
-							<option value="JC69">JC69 (Simplest)</option>
-							<option value="K80">K80 (Transition/Transversion)</option>
-							<option value="HKY">HKY (Nucleotide Frequencies)</option>
-							<option value="GTR">GTR (General Time Reversible)</option>
-						</select>
-					</div>
-				{/if}
-
-				<!-- Bootstrap Replicates -->
-				<div class="form-group">
-					<label class="form-label">
-						Bootstrap Replicates
-						<span class="form-hint">(0 = no bootstrapping)</span>
-					</label>
-					<input
-						type="number"
-						bind:value={bootstrapReps}
-						on:change={handleAdvancedChange}
-						min="0"
-						max="1000"
-						disabled={isGenerating || disabled}
-						class="form-input"
-					/>
-				</div>
-			</div>
+		{#if hasUploadedTree}
+			<label class="option-row">
+				<input
+					type="radio"
+					bind:group={treeSource}
+					value="uploaded"
+					on:change={handleTreeSourceChange}
+					{disabled}
+					class="option-radio"
+				/>
+				<span class="option-content">
+					<span class="option-text">Use uploaded tree</span>
+				</span>
+			</label>
 		{/if}
+
+		<label class="option-row">
+			<input
+				type="radio"
+				bind:group={treeSource}
+				value="inferred"
+				on:change={handleTreeSourceChange}
+				disabled={!hasInferredTree || disabled}
+				class="option-radio"
+			/>
+			<span class="option-content">
+				<span class="option-text">Use neighbor-joining tree</span>
+				<span class="option-hint">(Generated during alignment file metrics)</span>
+			</span>
+		</label>
+
+		<label class="option-row">
+			<input
+				type="radio"
+				bind:group={treeSource}
+				value="upload-new"
+				on:change={handleTreeSourceChange}
+				{disabled}
+				class="option-radio"
+			/>
+			<span class="option-content">
+				<span class="option-text">Upload a different tree</span>
+			</span>
+		</label>
 	</div>
+
+	<!-- File Upload Section (shown when upload-new is selected) -->
+	{#if treeSource === 'upload-new'}
+		<div class="upload-section">
+			<div class="upload-area">
+				<input
+					type="file"
+					bind:this={fileInput}
+					on:change={handleFileUpload}
+					accept=".nwk,.newick,.tre,.tree,.nh"
+					{disabled}
+					class="file-input"
+					id="tree-file-input"
+				/>
+				<label for="tree-file-input" class="file-input-label" class:disabled>
+					<svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+						/>
+					</svg>
+					{#if uploadedFile}
+						<span class="file-name">{uploadedFile.name}</span>
+						<span class="file-size">({(uploadedFile.size / 1024).toFixed(1)} KB)</span>
+					{:else}
+						<span class="upload-text">Click to select tree file</span>
+						<span class="upload-hint">Newick format (.nwk, .newick, .tre, .tree, .nh)</span>
+					{/if}
+				</label>
+
+				{#if uploadedFile}
+					<button
+						type="button"
+						on:click={clearUploadedFile}
+						{disabled}
+						class="clear-file-btn"
+						title="Remove selected file"
+					>
+						<svg class="clear-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M6 18L18 6M6 6l12 12"
+							/>
+						</svg>
+					</button>
+				{/if}
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style>
 	.tree-source-selector {
-		font-family: system-ui, -apple-system, sans-serif;
+		font-family:
+			system-ui,
+			-apple-system,
+			sans-serif;
 		max-width: 500px;
 	}
 
@@ -214,38 +214,10 @@
 		color: #6b7280;
 	}
 
-	.status-badge.generating {
-		background: #fef3c7;
-		color: #92400e;
-	}
-
 	.status-content {
 		display: flex;
 		align-items: center;
 		gap: 8px;
-	}
-
-	.spinner {
-		width: 16px;
-		height: 16px;
-		animation: spin 1s linear infinite;
-	}
-
-	.spinner-track {
-		opacity: 0.25;
-		stroke: currentColor;
-		stroke-width: 4;
-		fill: none;
-	}
-
-	.spinner-path {
-		opacity: 0.75;
-		fill: currentColor;
-	}
-
-	@keyframes spin {
-		from { transform: rotate(0deg); }
-		to { transform: rotate(360deg); }
 	}
 
 	.tree-source-options {
@@ -296,105 +268,120 @@
 		font-style: italic;
 	}
 
-	.advanced-section {
-		border-top: 1px solid #e5e7eb;
+	/* Upload Section Styles */
+	.upload-section {
+		margin-top: 16px;
 		padding-top: 16px;
+		border-top: 1px solid #e5e7eb;
 	}
 
-	.advanced-toggle {
+	.upload-area {
+		position: relative;
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		background: none;
-		border: none;
-		color: #3b82f6;
-		font-size: 14px;
-		cursor: pointer;
-		transition: color 0.2s ease;
+		gap: 12px;
+	}
+
+	.file-input {
+		position: absolute;
+		width: 1px;
+		height: 1px;
 		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 
-	.advanced-toggle:hover:not(.disabled) {
-		color: #1d4ed8;
+	.file-input-label {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 20px;
+		border: 2px dashed #d1d5db;
+		border-radius: 8px;
+		background: #f9fafb;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		min-height: 80px;
 	}
 
-	.advanced-toggle.disabled {
+	.file-input-label:hover:not(.disabled) {
+		border-color: #3b82f6;
+		background: #eff6ff;
+	}
+
+	.file-input-label.disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		background: #f3f4f6;
+	}
+
+	.upload-icon {
+		width: 24px;
+		height: 24px;
+		color: #6b7280;
+		margin-bottom: 8px;
+	}
+
+	.file-input-label:hover:not(.disabled) .upload-icon {
+		color: #3b82f6;
+	}
+
+	.upload-text {
+		font-size: 14px;
+		font-weight: 500;
+		color: #374151;
+		margin-bottom: 4px;
+	}
+
+	.upload-hint {
+		font-size: 12px;
+		color: #6b7280;
+	}
+
+	.file-name {
+		font-size: 14px;
+		font-weight: 500;
+		color: #059669;
+		margin-bottom: 2px;
+	}
+
+	.file-size {
+		font-size: 12px;
+		color: #6b7280;
+	}
+
+	.clear-file-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		border: 1px solid #d1d5db;
+		border-radius: 6px;
+		background: white;
+		color: #6b7280;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.clear-file-btn:hover:not(:disabled) {
+		border-color: #ef4444;
+		background: #fef2f2;
+		color: #ef4444;
+	}
+
+	.clear-file-btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
 
-	.chevron {
-		width: 20px;
-		height: 20px;
-		transition: transform 0.2s ease;
-		fill: currentColor;
-	}
-
-	.chevron.expanded {
-		transform: rotate(90deg);
-	}
-
-	.advanced-content {
-		margin-top: 12px;
-		padding: 16px;
-		background: #f9fafb;
-		border-radius: 8px;
-		border: 1px solid #e5e7eb;
-	}
-
-	.form-group {
-		margin-bottom: 16px;
-	}
-
-	.form-group:last-child {
-		margin-bottom: 0;
-	}
-
-	.form-label {
-		display: block;
-		margin-bottom: 4px;
-		font-size: 12px;
-		font-weight: 500;
-		color: #374151;
-	}
-
-	.form-hint {
-		font-weight: 400;
-		color: #6b7280;
-	}
-
-	.form-select,
-	.form-input {
-		width: 100%;
-		padding: 8px 12px;
-		border: 1px solid #d1d5db;
-		border-radius: 6px;
-		font-size: 14px;
-		background: white;
-		color: #374151;
-	}
-
-	.form-select:focus,
-	.form-input:focus {
-		outline: none;
-		border-color: #3b82f6;
-		box-shadow: 0 0 0 1px #3b82f6;
-	}
-
-	.form-select:disabled,
-	.form-input:disabled {
-		background: #f3f4f6;
-		cursor: not-allowed;
-		opacity: 0.6;
-	}
-
-	.form-input[type="number"] {
-		-moz-appearance: textfield;
-	}
-
-	.form-input[type="number"]::-webkit-outer-spin-button,
-	.form-input[type="number"]::-webkit-inner-spin-button {
-		-webkit-appearance: none;
-		margin: 0;
+	.clear-icon {
+		width: 16px;
+		height: 16px;
 	}
 </style>

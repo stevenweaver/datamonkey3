@@ -4,6 +4,7 @@
  */
 
 import { analysisStore } from '../../stores/analyses.js';
+import { get } from 'svelte/store';
 
 export class BaseAnalysisRunner {
 	constructor() {
@@ -34,13 +35,20 @@ export class BaseAnalysisRunner {
 	/**
 	 * Start analysis progress tracking with common metadata
 	 */
-	startAnalysisTracking(analysisId, method, executionMode, message = null) {
+	startAnalysisTracking(analysisId, method, executionMode, message = null, args = null) {
 		const defaultMessage = message || `Starting ${method} analysis...`;
 
-		analysisStore.startAnalysisProgress(analysisId, defaultMessage, method, {
+		const metadata = {
 			executionMode,
 			startTime: new Date().toISOString()
-		});
+		};
+
+		// Add arguments to metadata if provided
+		if (args) {
+			metadata.arguments = args;
+		}
+
+		analysisStore.startAnalysisProgress(analysisId, defaultMessage, method, metadata);
 	}
 
 	/**
@@ -61,21 +69,40 @@ export class BaseAnalysisRunner {
 	async completeAnalysis(analysisId, success = true, result = null, message = null) {
 		const defaultMessage = success ? 'Analysis completed successfully' : 'Analysis failed';
 
+		// Get the arguments metadata from the active analysis progress
+		const currentState = get(analysisStore);
+		const activeAnalysis = currentState?.activeAnalyses?.find((a) => a.id === analysisId);
+		const argumentsMetadata = activeAnalysis?.metadata?.arguments || null;
+
 		if (success && result) {
 			// Ensure result is stored consistently as JSON string
 			const resultString = typeof result === 'string' ? result : JSON.stringify(result);
 
-			await analysisStore.updateAnalysis(analysisId, {
+			const updateData = {
 				status: 'completed',
 				result: resultString,
 				completedAt: new Date().getTime()
-			});
+			};
+
+			// Add arguments metadata if available
+			if (argumentsMetadata) {
+				updateData.arguments = argumentsMetadata;
+			}
+
+			await analysisStore.updateAnalysis(analysisId, updateData);
 		} else if (!success) {
-			await analysisStore.updateAnalysis(analysisId, {
+			const updateData = {
 				status: 'error',
 				error: message || 'Unknown error occurred',
 				completedAt: new Date().getTime()
-			});
+			};
+
+			// Add arguments metadata even for failed analyses (for debugging)
+			if (argumentsMetadata) {
+				updateData.arguments = argumentsMetadata;
+			}
+
+			await analysisStore.updateAnalysis(analysisId, updateData);
 		}
 
 		analysisStore.completeAnalysisProgress(success, message || defaultMessage);

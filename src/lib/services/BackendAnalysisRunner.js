@@ -163,11 +163,14 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 		this.activeAnalyses.set(jobId, analysisId);
 
 		try {
-			// Start analysis tracking using base class method
-			this.startAnalysisTracking(analysisId, method, 'backend');
-
 			// Prepare analysis parameters based on method
 			const analysisParams = this.prepareAnalysisParameters(method, config);
+
+			// Build arguments preview for tracking
+			const argsPreview = this.buildArgumentsPreview(method, config, treeData, analysisParams);
+
+			// Start analysis tracking using base class method
+			this.startAnalysisTracking(analysisId, method, 'backend', null, argsPreview);
 
 			// Submit to backend
 			const eventName = `${method.toLowerCase()}:spawn`;
@@ -206,7 +209,7 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 	 */
 	mapGeneticCodeToId(geneticCode) {
 		const codeMap = {
-			'Universal': 0,
+			Universal: 0,
 			'Vertebrate mitochondrial': 1,
 			'Yeast mitochondrial': 2,
 			'Mold mitochondrial': 3,
@@ -229,7 +232,10 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 		const baseParams = {
 			analysis_type: method.toLowerCase(),
 			// Use genetic code ID if available, otherwise map name to ID
-			gencodeid: config.geneticCodeId !== undefined ? config.geneticCodeId : this.mapGeneticCodeToId(config.geneticCode)
+			gencodeid:
+				config.geneticCodeId !== undefined
+					? config.geneticCodeId
+					: this.mapGeneticCodeToId(config.geneticCode)
 		};
 
 		// Method-specific parameter mapping
@@ -275,6 +281,34 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			default:
 				return baseParams;
 		}
+	}
+
+	/**
+	 * Build arguments preview for database storage
+	 */
+	buildArgumentsPreview(method, config, treeData, analysisParams) {
+		return {
+			method: method.toUpperCase(),
+			parameters: analysisParams,
+			originalConfig: config,
+			treeData: treeData
+				? {
+						provided: true,
+						length: treeData.length,
+						source: 'user-provided'
+					}
+				: {
+						provided: false,
+						source: 'none'
+					},
+			executionMode: 'backend',
+			backendEvent: `${method.toLowerCase()}:spawn`,
+			socketParams: {
+				msa: '[FASTA_DATA]', // Placeholder for actual data
+				tree: treeData ? '[TREE_DATA]' : null,
+				...analysisParams
+			}
+		};
 	}
 
 	/**

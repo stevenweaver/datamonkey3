@@ -55,6 +55,11 @@
 				</span>
 				{#if executionMode === 'wasm'}
 					<span class="execution-mode">Local WASM</span>
+					{#if estimatedTime.scalingFactor}
+						<span class="scaling-factor" title="WASM performance scaling factor">
+							{estimatedTime.scalingFactor}x scaling
+						</span>
+					{/if}
 				{/if}
 				{#if estimatedTime.reliability}
 					<span class="reliability" title="Model R² value: {estimatedTime.reliability.toFixed(3)}">
@@ -155,6 +160,16 @@
 		padding: 1px 4px;
 		background-color: #f0fdf4;
 		color: #166534;
+		border-radius: 3px;
+		font-weight: 500;
+		cursor: help;
+	}
+
+	.scaling-factor {
+		font-size: 10px;
+		padding: 1px 4px;
+		background-color: #fef3c7;
+		color: #92400e;
 		border-radius: 3px;
 		font-weight: 500;
 		cursor: help;

@@ -6,7 +6,7 @@
  */
 
 // Database configuration
-const DB_NAME = 'fasta-validation-db';
+const DB_NAME = 'datamonkey-db';
 const DB_VERSION = 2; // Increment version for schema changes
 const FILES_STORE = 'files';
 const ANALYSES_STORE = 'analyses';
