@@ -111,16 +111,46 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		const args = [];
 		args.push(`--alignment ${inputFiles[0]}`);
 
-		// Add other options from config
+		// Map configuration parameters to HyPhy command line arguments
 		for (const [key, value] of Object.entries(config)) {
-			if (key !== 'tree') {
-				// Special handling for genetic code parameter
-				if (key === 'code') {
-					args.push(`--${key} "${value}"`);
+			if (key !== 'tree' && key !== 'method' && key !== 'executionMode') {
+				// Handle specific FEL parameter mappings
+				if (key === 'geneticCodeId' || key === 'code') {
+					// Use numeric genetic code ID for HyPhy
+					const codeId = key === 'geneticCodeId' ? value : config.geneticCodeId || 0;
+					args.push(`--code ${codeId}`);
+				} else if (key === 'srv') {
+					// Synonymous rate variation
+					args.push(`--srv ${value}`);
+				} else if (key === 'multipleHits') {
+					// Multiple hits parameter
+					if (value !== 'None') {
+						args.push(`--multiple-hits ${value}`);
+					}
+				} else if (key === 'siteMultihit') {
+					// Site multihit parameter (only when multiple hits enabled)
+					if (config.multipleHits && config.multipleHits !== 'None') {
+						args.push(`--site-multihit ${value}`);
+					}
+				} else if (key === 'resample' && value > 0) {
+					// Bootstrap resampling
+					args.push(`--resample ${value}`);
+				} else if (key === 'confidenceIntervals' && value === true) {
+					// Confidence intervals
+					args.push(`--ci Yes`);
+				} else if (key === 'pValueThreshold') {
+					// P-value threshold (custom parameter, not standard HyPhy)
+					// This would be handled post-processing
+					continue;
+				} else if (typeof value === 'boolean') {
+					// Boolean parameters
+					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value ? 'Yes' : 'No'}`);
 				} else if (typeof value === 'string' && value.includes(' ')) {
-					args.push(`--${key} "${value}"`);
-				} else {
-					args.push(`--${key} ${value}`);
+					// String parameters with spaces
+					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} "${value}"`);
+				} else if (value !== null && value !== undefined && value !== '') {
+					// Other parameters
+					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value}`);
 				}
 			}
 		}
