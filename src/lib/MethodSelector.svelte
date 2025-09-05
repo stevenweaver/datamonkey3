@@ -2,6 +2,8 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
 	import { backendConnectivity } from '../stores/backendConnectivity.js';
+	import { treeStore } from '../stores/tree';
+	import BranchSelector from './BranchSelector.svelte';
 
 	export let methodConfig;
 	export let runMethod = null;
@@ -123,6 +125,31 @@
 	// Method-specific advanced options configurations
 	const METHOD_ADVANCED_OPTIONS = {
 		fel: {
+			// Branch selection options
+			branchesToTest: {
+				type: 'select',
+				label: 'Branches to Test',
+				default: 'All',
+				options: ['All', 'Internal', 'Leaves', 'Unlabeled', 'Custom', 'Interactive'],
+				description: 'Which branches to test for positive selection'
+			},
+			customBranches: {
+				type: 'text',
+				label: 'Custom branches (comma-separated or regex)',
+				default: '',
+				placeholder: 'e.g. Node1,Node2 or /^human/i',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Custom'],
+				description: 'Comma-separated branch names or regex pattern'
+			},
+			interactiveTree: {
+				type: 'interactive-tree',
+				label: 'Select branches on tree',
+				default: '',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Interactive'],
+				description: 'Click on tree branches to select them for testing'
+			},
 			// Core FEL parameters
 			srv: {
 				type: 'select',
@@ -415,6 +442,15 @@
 	// Method-specific advanced options state
 	let methodOptions = {};
 
+	// Tree data from store
+	let trees = {};
+	treeStore.subscribe((value) => {
+		trees = value;
+	});
+
+	// Get tree data for interactive selection
+	$: selectedTreeData = trees.nj || trees.usertree || trees.inferredNewick || '';
+
 	// Get available methods sorted by recommendation
 	$: availableMethods = Object.entries(methodConfig)
 		.map(([key, method]) => ({
@@ -498,7 +534,8 @@
 				executionMode,
 				...(methodOptions[selectedMethod] || {})
 			};
-			console.log(`Running analysis with config:`, analysisConfig);
+			console.log(`🚀 METHODSELECTOR DEBUG - Running analysis with config:`, analysisConfig);
+			console.log(`🚀 METHODSELECTOR DEBUG - methodOptions[${selectedMethod}]:`, methodOptions[selectedMethod]);
 			runMethod(selectedMethod, analysisConfig);
 		}
 	}
@@ -506,6 +543,33 @@
 	// Smart default: suggest backend for larger datasets
 	function getSmartDefault(fileSequenceCount = 0) {
 		return fileSequenceCount > 1000 ? 'backend' : 'local';
+	}
+
+	// Handle branch selection from interactive tree
+	function handleBranchSelectionChange(event) {
+		console.log('🌳🔥 METHODSELECTOR EVENT FIRED! Branch selection changed:', event.detail);
+		console.log('🌳🔥 METHODSELECTOR - selectedMethod:', selectedMethod);
+		console.log('🌳🔥 METHODSELECTOR - methodOptions exist:', !!methodOptions[selectedMethod]);
+		
+		if (selectedMethod && methodOptions[selectedMethod]) {
+			const { taggedNewick, selectedBranches, count } = event.detail;
+			console.log('🌳🔥 METHODSELECTOR - Setting interactive tree:', {
+				taggedNewick: taggedNewick || '',
+				selectedBranches: selectedBranches || [],
+				count: count || 0,
+				taggedTreeLength: (taggedNewick || '').length,
+				hasFgTags: (taggedNewick || '').includes('{fg}')
+			});
+			methodOptions[selectedMethod].interactiveTree = taggedNewick || '';
+			methodOptions[selectedMethod].selectedBranchCount = count || 0;
+			methodOptions[selectedMethod].selectedBranchNames = selectedBranches || [];
+			methodOptions = { ...methodOptions }; // Trigger reactivity
+			console.log('🌳🔥 METHODSELECTOR - Updated methodOptions[' + selectedMethod + ']:', methodOptions[selectedMethod]);
+			console.log('🌳🔥 METHODSELECTOR - Stored interactiveTree length:', methodOptions[selectedMethod].interactiveTree.length);
+			console.log('🌳🔥 METHODSELECTOR - Stored interactiveTree has {fg}:', methodOptions[selectedMethod].interactiveTree.includes('{fg}'));
+		} else {
+			console.log('🌳🔥 METHODSELECTOR - Missing selectedMethod or methodOptions');
+		}
 	}
 </script>
 
@@ -678,6 +742,17 @@
 												{/each}
 											</select>
 										</label>
+									{:else if optionConfig.type === 'text'}
+										<label class="option-label">
+											{optionConfig.label}:
+											<input
+												type="text"
+												bind:value={methodOptions[selectedMethod][optionKey]}
+												placeholder={optionConfig.placeholder || ''}
+												class="option-input"
+												disabled={!isEnabled}
+											/>
+										</label>
 									{/if}
 
 									{#if optionConfig.description}
@@ -694,6 +769,54 @@
 						{/if}
 					</div>
 				</div>
+
+			</div>
+		{/if}
+
+		<!-- Interactive Tree Section (shown only when Interactive branch selection is enabled) -->
+		{#if selectedMethod && methodOptions[selectedMethod] && methodOptions[selectedMethod].branchesToTest === 'Interactive'}
+			<div class="interactive-tree-section">
+				<div class="tree-section-header">
+					<h4 class="tree-section-title">Interactive Branch Selection</h4>
+					<p class="tree-section-description">Click on tree branches to select them for testing. Use the dropdown menu on nodes for additional options.</p>
+				</div>
+				
+				{#if selectedTreeData}
+					<div class="tree-selector-wrapper">
+						<BranchSelector
+							treeData={selectedTreeData}
+							height={400}
+							width={800}
+							on:selectionChange={handleBranchSelectionChange}
+						/>
+					</div>
+					
+					{#if methodOptions[selectedMethod].selectedBranchCount > 0}
+						<div class="selection-summary">
+							<strong>Selected {methodOptions[selectedMethod].selectedBranchCount} branches:</strong>
+							<div class="selected-branches-list">
+								{#each (methodOptions[selectedMethod].selectedBranchNames || []).slice(0, 5) as branchName}
+									<span class="branch-tag">{branchName}</span>
+								{/each}
+								{#if methodOptions[selectedMethod].selectedBranchCount > 5}
+									<span class="more-branches">+{methodOptions[selectedMethod].selectedBranchCount - 5} more</span>
+								{/if}
+							</div>
+						</div>
+					{:else}
+						<div class="no-selection-message">
+							No branches selected. Click on tree branches to select them for testing.
+						</div>
+					{/if}
+				{:else}
+					<div class="no-tree-message">
+						<div class="no-tree-icon">🌳</div>
+						<div class="no-tree-text">
+							<strong>No tree data available</strong>
+							<p>Please upload a tree file or generate a neighbor-joining tree from your alignment data first.</p>
+						</div>
+					</div>
+				{/if}
 			</div>
 		{/if}
 	</div>
@@ -1053,5 +1176,114 @@
 	.option-group.disabled input,
 	.option-group.disabled select {
 		cursor: not-allowed;
+	}
+
+	.interactive-tree-section {
+		margin-top: 24px;
+		padding: 24px;
+		border: 1px solid #e2e8f0;
+		border-radius: 8px;
+		background: #f7fafc;
+	}
+
+	.tree-section-header {
+		margin-bottom: 20px;
+	}
+
+	.tree-section-title {
+		font-size: 16px;
+		font-weight: 600;
+		color: #2d3748;
+		margin-bottom: 8px;
+	}
+
+	.tree-section-description {
+		font-size: 13px;
+		color: #4a5568;
+		margin: 0;
+		line-height: 1.5;
+	}
+
+	.tree-selector-wrapper {
+		border: 2px solid #cbd5e0;
+		border-radius: 8px;
+		background: white;
+		overflow: hidden;
+		margin-bottom: 16px;
+	}
+
+	.selection-summary {
+		padding: 16px;
+		background: #e6fffa;
+		border: 1px solid #38b2ac;
+		border-radius: 6px;
+		font-size: 14px;
+		color: #234e52;
+	}
+
+	.selected-branches-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin-top: 8px;
+	}
+
+	.branch-tag {
+		display: inline-block;
+		padding: 2px 8px;
+		background: #38b2ac;
+		color: white;
+		border-radius: 4px;
+		font-size: 12px;
+		font-weight: 500;
+	}
+
+	.more-branches {
+		display: inline-block;
+		padding: 2px 8px;
+		background: #718096;
+		color: white;
+		border-radius: 4px;
+		font-size: 12px;
+		font-style: italic;
+	}
+
+	.no-selection-message {
+		padding: 20px;
+		text-align: center;
+		background: #f0f4f8;
+		border: 1px dashed #cbd5e0;
+		border-radius: 6px;
+		color: #4a5568;
+		font-style: italic;
+	}
+
+	.no-tree-message {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		padding: 24px;
+		background: #f9fafb;
+		border: 1px solid #e2e8f0;
+		border-radius: 6px;
+	}
+
+	.no-tree-icon {
+		font-size: 32px;
+		opacity: 0.5;
+	}
+
+	.no-tree-text strong {
+		display: block;
+		font-size: 14px;
+		color: #2d3748;
+		margin-bottom: 4px;
+	}
+
+	.no-tree-text p {
+		margin: 0;
+		font-size: 13px;
+		color: #718096;
+		line-height: 1.4;
 	}
 </style>

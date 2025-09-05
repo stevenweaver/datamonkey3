@@ -6,7 +6,8 @@ export default {
 	parameters: {
 		docs: {
 			description: {
-				component: 'Interactive phylogenetic tree with branch selection capabilities for FEL analysis'
+				component:
+					'Interactive phylogenetic tree with branch selection capabilities for FEL analysis'
 			}
 		}
 	},
@@ -40,9 +41,11 @@ export default {
 };
 
 // Sample tree data for testing (using same data as phylotree stories)
-const sampleTreeData = '((((PIG:0.147969,COW:0.213430):0.085099,HORSE:0.165787,CAT:0.264806):0.058611,((RHMONKEY{PR}:0.002015,BABOON{PR}:0.003108){PR}:0.022733,(HUMAN{PR}:0.004349,CHIMP{PR}:0.000799){PR}:0.011873){PR}:0.101856){PR}:0.340802,RAT:0.050958,MOUSE:0.097950)';
+const sampleTreeData =
+	'((((PIG:0.147969,COW:0.213430):0.085099,HORSE:0.165787,CAT:0.264806):0.058611,((RHMONKEY{PR}:0.002015,BABOON{PR}:0.003108){PR}:0.022733,(HUMAN{PR}:0.004349,CHIMP{PR}:0.000799){PR}:0.011873){PR}:0.101856){PR}:0.340802,RAT:0.050958,MOUSE:0.097950)';
 
-const largerTreeData = '((((((HUMAN:0.043371,CHIMP:0.043371):0.007073,(BABOON:0.036079,GREEN_MONKEY:0.036079):0.014365):0.012251,((RAT:0.081244,MOUSE:0.081244):0.072733,RABBIT:0.153977):0.008799):0.028456,(COW:0.162525,(HORSE:0.109852,CAT:0.109852):0.052673):0.028707):0.021592,((CARP:0.190394,LOACH:0.190394):0.156348,FLY:0.346742):0.017283):0.0003,YEAST:0.364025);';
+const largerTreeData =
+	'((((((HUMAN:0.043371,CHIMP:0.043371):0.007073,(BABOON:0.036079,GREEN_MONKEY:0.036079):0.014365):0.012251,((RAT:0.081244,MOUSE:0.081244):0.072733,RABBIT:0.153977):0.008799):0.028456,(COW:0.162525,(HORSE:0.109852,CAT:0.109852):0.052673):0.028707):0.021592,((CARP:0.190394,LOACH:0.190394):0.156348,FLY:0.346742):0.017283):0.0003,YEAST:0.364025);';
 
 // Template function
 const Template = (args) => ({
@@ -145,7 +148,7 @@ export const InteractiveDemo = {
 				args.selectedBranches = event.detail.branches;
 				console.log('Demo - Selection changed:', {
 					count: event.detail.count,
-					branches: event.detail.branches.map(b => b.name || b.id)
+					branches: event.detail.branches.map((b) => b.name || b.id)
 				});
 			},
 			error: (event) => {

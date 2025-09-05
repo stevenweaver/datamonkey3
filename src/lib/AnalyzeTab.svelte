@@ -127,7 +127,22 @@
 				}
 
 				// Get tree data based on user's selection
-				const treeData = getSelectedTreeData();
+				let treeData = getSelectedTreeData();
+				
+				// Check if we have interactive branch selection with tagged tree
+				console.log('🔍 METHOD CONFIG DEBUG:', { method, config });
+				if (config.branchesToTest === 'Interactive' && config.interactiveTree) {
+					console.log('🌳 Using tagged tree from interactive selection');
+					console.log('Tagged tree length:', config.interactiveTree.length);
+					console.log('Tagged tree preview:', config.interactiveTree.substring(0, 300));
+					console.log('Tagged tree has {FG}:', config.interactiveTree.includes('{FG}'));
+					treeData = config.interactiveTree;
+				} else {
+					console.log('🌳 Using original tree data from tree store');
+					console.log('Original tree length:', treeData.length);
+					console.log('Original tree preview:', treeData.substring(0, 200));
+				}
+				
 				if (!treeData) {
 					const treeSourceName =
 						selectedTreeSource === 'uploaded'
@@ -145,7 +160,9 @@
 					fastaLength: fastaData.length,
 					treeLength: treeData.length,
 					fileName: $currentFile.filename,
-					selectedTreeSource
+					selectedTreeSource,
+					branchesToTest: config.branchesToTest,
+					hasTaggedTree: treeData.includes('{FG}')
 				});
 
 				const result = await wasmAnalysisRunner.runAnalysis(

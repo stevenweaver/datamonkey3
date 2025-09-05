@@ -33,5 +33,5 @@ BEGIN CHARACTERS;
 END;
 
 BEGIN TREES;
-    TREE tree = (((((Homo_sapiens,Pan_troglodytes),Gorilla_gorilla),Pongo_abelii),(Macaca_mulatta,Callithrix_jacchus)),((Mus_musculus,Rattus_norvegicus),(Canis_lupus,Felis_catus)));
+    TREE tree = (((((Homo_sapiens{fg},Pan_troglodytes),Gorilla_gorilla),Pongo_abelii),(Macaca_mulatta,Callithrix_jacchus)),((Mus_musculus,Rattus_norvegicus),(Canis_lupus,Felis_catus)));
 END;

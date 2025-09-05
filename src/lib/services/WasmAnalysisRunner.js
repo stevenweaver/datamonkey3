@@ -8,6 +8,34 @@ import { aioliStore } from '../../stores/aioli.js';
 import { get } from 'svelte/store';
 import { getCachedOrCompute, generateAnalysisKey } from '../utils/cacheUtils.js';
 
+/**
+ * Strip embedded trees from NEXUS alignment data
+ * NEXUS files can contain TREES blocks that take precedence over separate tree files
+ */
+function stripTreesFromNexus(nexusData) {
+	console.log('🌳 Checking for embedded trees in NEXUS data...');
+	
+	// Check if this looks like NEXUS format
+	if (!nexusData.toLowerCase().includes('#nexus')) {
+		console.log('🌳 Not a NEXUS file, skipping tree stripping');
+		return nexusData;
+	}
+	
+	// Look for TREES block (case insensitive)
+	const treesBlockRegex = /begin\s+trees\s*;.*?end\s*;/gis;
+	const hasTreesBlock = treesBlockRegex.test(nexusData);
+	
+	if (hasTreesBlock) {
+		console.log('🌳 Found embedded TREES block in NEXUS file, removing it...');
+		const cleanedNexus = nexusData.replace(treesBlockRegex, '');
+		console.log('🌳 Stripped TREES block from NEXUS file');
+		return cleanedNexus;
+	} else {
+		console.log('🌳 No TREES block found in NEXUS file');
+		return nexusData;
+	}
+}
+
 class WasmAnalysisRunner extends BaseAnalysisRunner {
 	constructor() {
 		super();
@@ -36,8 +64,18 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 			method,
 			fastaDataLength: fastaData?.length || 0,
 			treeDataLength: treeData?.length || 0,
-			configKeys: Object.keys(config || {})
+			configKeys: Object.keys(config || {}),
+			config: config
 		});
+		
+		console.log('🌳 TREE DEBUG - Input tree data:');
+		console.log('Tree data length:', treeData?.length || 0);
+		if (treeData) {
+			console.log('Tree preview:', treeData.substring(0, 300) + (treeData.length > 300 ? '...' : ''));
+			console.log('Tree contains {FG} tags:', treeData.includes('{FG}'));
+		} else {
+			console.log('No tree data provided');
+		}
 
 		// Validate input using base class method
 		this.validateInput(fastaData, treeData, method);
@@ -102,14 +140,25 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 
 		this.updateProgress(analysisId, 'mounting', 10, 'Preparing analysis files...');
 
-		// Create temporary file from FASTA data
-		const inputFile = new File([fastaData], 'user.nex', { type: 'text/plain' });
+		// Strip any embedded trees from NEXUS alignment data
+		const cleanedFastaData = stripTreesFromNexus(fastaData);
+		
+		// Create temporary file from cleaned FASTA data
+		const inputFile = new File([cleanedFastaData], 'user.nex', { type: 'text/plain' });
 
 		// Prepare files to mount
-		const filesToMount = [{ name: 'user.nex', data: fastaData }];
+		const filesToMount = [{ name: 'user.nex', data: cleanedFastaData }];
 
 		// Add tree file if provided
 		if (treeData && treeData.trim()) {
+			console.log('🌳 TREE DEBUG - Tree data being mounted:');
+			console.log('Tree length:', treeData.length);
+			console.log('Tree content (first 200 chars):', treeData.substring(0, 200) + (treeData.length > 200 ? '...' : ''));
+			console.log('Tree has {FG} tags:', treeData.includes('{FG}'));
+			console.log('🌳🔥 FULL TREE FILE CONTENTS BEING WRITTEN TO /shared/data/user.tree:');
+			console.log('=== START TREE FILE ===');
+			console.log(treeData);
+			console.log('=== END TREE FILE ===');
 			filesToMount.push({ name: 'user.tree', data: treeData });
 		}
 
@@ -129,12 +178,22 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 
 		// Map configuration parameters to HyPhy command line arguments
 		for (const [key, value] of Object.entries(config)) {
-			if (key !== 'tree' && key !== 'method' && key !== 'executionMode') {
+			if (key !== 'tree' && key !== 'method' && key !== 'executionMode' && key !== 'interactiveTree' && key !== 'selectedBranchCount' && key !== 'selectedBranchNames') {
 				// Handle specific FEL parameter mappings
-				if (key === 'geneticCodeId' || key === 'code') {
-					// Use numeric genetic code ID for HyPhy
-					const codeId = key === 'geneticCodeId' ? value : config.geneticCodeId || 0;
-					args.push(`--code ${codeId}`);
+				if (key === 'branchesToTest') {
+					// Handle branch selection - convert Interactive to FG for HyPhy
+					if (value === 'Interactive') {
+						console.log('🌳 WASM - Converting Interactive to FG for HyPhy');
+						args.push(`--branches FG`);
+					} else if (value && value !== 'All') {
+						// For other values like 'Internal', 'Leaves', etc., pass them directly
+						args.push(`--branches ${value}`);
+					}
+					// Skip 'All' since it's the default
+				} else if (key === 'geneticCode') {
+					// Use genetic code string value directly for HyPhy
+					console.log('🧬 WASM - Using genetic code:', value);
+					args.push(`--code ${value}`);
 				} else if (key === 'srv') {
 					// Synonymous rate variation
 					args.push(`--srv ${value}`);
@@ -151,9 +210,9 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				} else if (key === 'resample' && value > 0) {
 					// Bootstrap resampling
 					args.push(`--resample ${value}`);
-				} else if (key === 'confidenceIntervals' && value === true) {
+				} else if (key === 'confidenceIntervals') {
 					// Confidence intervals
-					args.push(`--ci Yes`);
+					args.push(`--ci ${value ? 'Yes' : 'No'}`);
 				} else if (key === 'pValueThreshold') {
 					// P-value threshold (custom parameter, not standard HyPhy)
 					// This would be handled post-processing
@@ -233,12 +292,21 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 
 		// Map configuration parameters to HyPhy command line arguments
 		for (const [key, value] of Object.entries(config)) {
-			if (key !== 'tree' && key !== 'method' && key !== 'executionMode') {
+			if (key !== 'tree' && key !== 'method' && key !== 'executionMode' && key !== 'interactiveTree' && key !== 'selectedBranchCount' && key !== 'selectedBranchNames') {
 				// Handle specific FEL parameter mappings
-				if (key === 'geneticCodeId' || key === 'code') {
-					// Use numeric genetic code ID for HyPhy
-					const codeId = key === 'geneticCodeId' ? value : config.geneticCodeId || 0;
-					args.push(`--code ${codeId}`);
+				if (key === 'branchesToTest') {
+					// Handle branch selection - convert Interactive to FG for HyPhy
+					if (value === 'Interactive') {
+						args.push(`--branches FG`);
+					} else if (value && value !== 'All') {
+						// For other values like 'Internal', 'Leaves', etc., pass them directly
+						args.push(`--branches ${value}`);
+					}
+					// Skip 'All' since it's the default
+				} else if (key === 'geneticCode') {
+					// Use genetic code string value directly for HyPhy
+					console.log('🧬 WASM - Using genetic code:', value);
+					args.push(`--code ${value}`);
 				} else if (key === 'srv') {
 					// Synonymous rate variation
 					args.push(`--srv ${value}`);
@@ -255,9 +323,9 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				} else if (key === 'resample' && value > 0) {
 					// Bootstrap resampling
 					args.push(`--resample ${value}`);
-				} else if (key === 'confidenceIntervals' && value === true) {
+				} else if (key === 'confidenceIntervals') {
 					// Confidence intervals
-					args.push(`--ci Yes`);
+					args.push(`--ci ${value ? 'Yes' : 'No'}`);
 				} else if (key === 'pValueThreshold') {
 					// P-value threshold (custom parameter, not standard HyPhy)
 					// This would be handled post-processing
