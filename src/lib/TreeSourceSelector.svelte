@@ -234,7 +234,7 @@
 		cursor: pointer;
 	}
 
-	.option-row:has(:disabled) {
+	.option-row.disabled {
 		cursor: not-allowed;
 		opacity: 0.6;
 	}
