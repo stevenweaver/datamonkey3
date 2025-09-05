@@ -178,7 +178,7 @@ choices = []
 
 [[slac.options]]
 name = "samples"
-description = "The number of samples used to assess ancestral reconstruction uncertainty"
+description = "number of samples to assess ancestral reconstruction uncertainty"
 takes_value = true
 type = "number"
 default = 100

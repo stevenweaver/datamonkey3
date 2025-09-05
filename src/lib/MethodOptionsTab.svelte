@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { treeStore } from '../stores/tree';
 	import FelOptions from './FelOptions.svelte';
+	import SlacOptions from './SlacOptions.svelte';
 	import FormGenerator from './FormGenerator.svelte';
 	import toml from 'toml';
 	import methodConfigToml from './config/methodOptions.toml?raw';
@@ -31,7 +32,8 @@
 
 	// Method configurations for the form generator or specialized components
 	const methodComponents = {
-		FEL: FelOptions
+		FEL: FelOptions,
+		SLAC: SlacOptions
 		// Add more methods with specific components here as needed
 	};
 
@@ -80,6 +82,8 @@
 	<div class="method-options">
 		{#if selectedMethod === 'FEL'}
 			<FelOptions runMethod={handleRunMethod} />
+		{:else if selectedMethod === 'SLAC'}
+			<SlacOptions runMethod={handleRunMethod} />
 		{:else if methodConfigs[selectedMethod?.toLowerCase()]}
 			<FormGenerator
 				methodConfig={methodConfigs[selectedMethod?.toLowerCase()]}

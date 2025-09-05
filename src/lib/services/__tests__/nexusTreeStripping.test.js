@@ -14,11 +14,11 @@ function stripTreesFromNexus(nexusData) {
 	if (!nexusData.toLowerCase().includes('#nexus')) {
 		return nexusData;
 	}
-	
+
 	// Look for TREES block (case insensitive)
 	const treesBlockRegex = /begin\s+trees\s*;.*?end\s*;/gis;
 	const hasTreesBlock = treesBlockRegex.test(nexusData);
-	
+
 	if (hasTreesBlock) {
 		const cleanedNexus = nexusData.replace(treesBlockRegex, '');
 		return cleanedNexus;
@@ -138,12 +138,12 @@ ATGATGATGATG`;
 
 		it('should remove single TREES block', () => {
 			const result = stripTreesFromNexus(nexusWithEmbeddedTree);
-			
+
 			// Should preserve data block
 			expect(result).toContain('BEGIN DATA');
 			expect(result).toContain('MATRIX');
 			expect(result).toContain('A ATGATGATG');
-			
+
 			// Should remove trees block
 			expect(result).not.toContain('BEGIN TREES');
 			expect(result).not.toContain('TREE tree1');
@@ -152,11 +152,11 @@ ATGATGATGATG`;
 
 		it('should remove TREES block with multiple trees', () => {
 			const result = stripTreesFromNexus(nexusWithMultipleTrees);
-			
+
 			// Should preserve data and other blocks
 			expect(result).toContain('BEGIN DATA');
 			expect(result).toContain('BEGIN ASSUMPTIONS');
-			
+
 			// Should remove entire trees block including all trees
 			expect(result).not.toContain('BEGIN TREES');
 			expect(result).not.toContain('TREE tree1');
@@ -166,11 +166,11 @@ ATGATGATGATG`;
 
 		it('should handle complex trees with comments and labels', () => {
 			const result = stripTreesFromNexus(nexusWithComplexTrees);
-			
+
 			// Should preserve data
 			expect(result).toContain('BEGIN DATA');
 			expect(result).toContain('Human    ATGATGATGATG');
-			
+
 			// Should remove trees and comments
 			expect(result).not.toContain('BEGIN TREES');
 			expect(result).not.toContain('[This is a comment about trees]');
@@ -191,7 +191,7 @@ ATGATGATGATG`;
 			const mixedCaseNexus = nexusWithEmbeddedTree
 				.replace('BEGIN TREES', 'Begin Trees')
 				.replace('END;', 'End;');
-			
+
 			const result = stripTreesFromNexus(mixedCaseNexus);
 			expect(result).not.toContain('Begin Trees');
 			expect(result).not.toContain('TREE tree1');
@@ -221,7 +221,7 @@ END   ;`;
 
 		it('should preserve formatting of remaining blocks', () => {
 			const result = stripTreesFromNexus(nexusWithEmbeddedTree);
-			
+
 			// Check that indentation and structure is preserved
 			expect(result).toContain('\tDIMENSIONS NTAX=4');
 			expect(result).toContain('\t\tA ATGATGATG');
@@ -323,13 +323,13 @@ BEGIN TREES;
 END;`;
 
 			const result = stripTreesFromNexus(realWorldNexus);
-			
+
 			// Should preserve title, data, and assumptions
 			expect(result).toContain('[TITLE: Primate sequences]');
 			expect(result).toContain('BEGIN DATA');
 			expect(result).toContain('BEGIN ASSUMPTIONS');
 			expect(result).toContain('INTERLEAVE=YES');
-			
+
 			// Should remove trees and translate table
 			expect(result).not.toContain('BEGIN TREES');
 			expect(result).not.toContain('TRANSLATE');
@@ -353,15 +353,15 @@ BEGIN TREES;
 END;`;
 
 		const separateTaggedTree = '((A{FG}:0.1,B:0.1):0.1);';
-		
+
 		// Clean the NEXUS file
 		const cleanedAlignment = stripTreesFromNexus(nexusWithTree);
-		
+
 		// Verify workflow
 		expect(cleanedAlignment).toContain('BEGIN DATA');
 		expect(cleanedAlignment).not.toContain('BEGIN TREES');
 		expect(cleanedAlignment).not.toContain('embedded');
-		
+
 		// Now the separate tagged tree can be used without conflict
 		expect(separateTaggedTree).toContain('{FG}');
 	});

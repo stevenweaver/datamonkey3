@@ -535,7 +535,10 @@
 				...(methodOptions[selectedMethod] || {})
 			};
 			console.log(`🚀 METHODSELECTOR DEBUG - Running analysis with config:`, analysisConfig);
-			console.log(`🚀 METHODSELECTOR DEBUG - methodOptions[${selectedMethod}]:`, methodOptions[selectedMethod]);
+			console.log(
+				`🚀 METHODSELECTOR DEBUG - methodOptions[${selectedMethod}]:`,
+				methodOptions[selectedMethod]
+			);
 			runMethod(selectedMethod, analysisConfig);
 		}
 	}
@@ -550,7 +553,7 @@
 		console.log('🌳🔥 METHODSELECTOR EVENT FIRED! Branch selection changed:', event.detail);
 		console.log('🌳🔥 METHODSELECTOR - selectedMethod:', selectedMethod);
 		console.log('🌳🔥 METHODSELECTOR - methodOptions exist:', !!methodOptions[selectedMethod]);
-		
+
 		if (selectedMethod && methodOptions[selectedMethod]) {
 			const { taggedNewick, selectedBranches, count } = event.detail;
 			console.log('🌳🔥 METHODSELECTOR - Setting interactive tree:', {
@@ -564,9 +567,18 @@
 			methodOptions[selectedMethod].selectedBranchCount = count || 0;
 			methodOptions[selectedMethod].selectedBranchNames = selectedBranches || [];
 			methodOptions = { ...methodOptions }; // Trigger reactivity
-			console.log('🌳🔥 METHODSELECTOR - Updated methodOptions[' + selectedMethod + ']:', methodOptions[selectedMethod]);
-			console.log('🌳🔥 METHODSELECTOR - Stored interactiveTree length:', methodOptions[selectedMethod].interactiveTree.length);
-			console.log('🌳🔥 METHODSELECTOR - Stored interactiveTree has {fg}:', methodOptions[selectedMethod].interactiveTree.includes('{fg}'));
+			console.log(
+				'🌳🔥 METHODSELECTOR - Updated methodOptions[' + selectedMethod + ']:',
+				methodOptions[selectedMethod]
+			);
+			console.log(
+				'🌳🔥 METHODSELECTOR - Stored interactiveTree length:',
+				methodOptions[selectedMethod].interactiveTree.length
+			);
+			console.log(
+				'🌳🔥 METHODSELECTOR - Stored interactiveTree has {fg}:',
+				methodOptions[selectedMethod].interactiveTree.includes('{fg}')
+			);
 		} else {
 			console.log('🌳🔥 METHODSELECTOR - Missing selectedMethod or methodOptions');
 		}
@@ -769,7 +781,6 @@
 						{/if}
 					</div>
 				</div>
-
 			</div>
 		{/if}
 
@@ -778,9 +789,12 @@
 			<div class="interactive-tree-section">
 				<div class="tree-section-header">
 					<h4 class="tree-section-title">Interactive Branch Selection</h4>
-					<p class="tree-section-description">Click on tree branches to select them for testing. Use the dropdown menu on nodes for additional options.</p>
+					<p class="tree-section-description">
+						Click on tree branches to select them for testing. Use the dropdown menu on nodes for
+						additional options.
+					</p>
 				</div>
-				
+
 				{#if selectedTreeData}
 					<div class="tree-selector-wrapper">
 						<BranchSelector
@@ -790,16 +804,19 @@
 							on:selectionChange={handleBranchSelectionChange}
 						/>
 					</div>
-					
+
 					{#if methodOptions[selectedMethod].selectedBranchCount > 0}
 						<div class="selection-summary">
-							<strong>Selected {methodOptions[selectedMethod].selectedBranchCount} branches:</strong>
+							<strong>Selected {methodOptions[selectedMethod].selectedBranchCount} branches:</strong
+							>
 							<div class="selected-branches-list">
 								{#each (methodOptions[selectedMethod].selectedBranchNames || []).slice(0, 5) as branchName}
 									<span class="branch-tag">{branchName}</span>
 								{/each}
 								{#if methodOptions[selectedMethod].selectedBranchCount > 5}
-									<span class="more-branches">+{methodOptions[selectedMethod].selectedBranchCount - 5} more</span>
+									<span class="more-branches"
+										>+{methodOptions[selectedMethod].selectedBranchCount - 5} more</span
+									>
 								{/if}
 							</div>
 						</div>
@@ -813,7 +830,10 @@
 						<div class="no-tree-icon">🌳</div>
 						<div class="no-tree-text">
 							<strong>No tree data available</strong>
-							<p>Please upload a tree file or generate a neighbor-joining tree from your alignment data first.</p>
+							<p>
+								Please upload a tree file or generate a neighbor-joining tree from your alignment
+								data first.
+							</p>
 						</div>
 					</div>
 				{/if}

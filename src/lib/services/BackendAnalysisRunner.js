@@ -257,9 +257,10 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			case 'slac':
 				return {
 					...baseParams,
-					pvalue: config.pValueThreshold || 0.1,
-					branches: 'All',
-					samples: config.samples || 100
+					pvalue: config.pvalue || config.pValueThreshold || 0.1,
+					branches: config.branches || 'All',
+					samples: config.samples || 100,
+					code: config.code || 'Universal'
 				};
 
 			case 'meme':

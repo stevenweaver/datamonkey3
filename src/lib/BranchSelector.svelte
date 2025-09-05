@@ -35,10 +35,7 @@
 			console.log('=== BranchSelector Debug ===');
 			console.log('1. Tree data:', treeData);
 			console.log('2. Tree container element:', treeContainer);
-			console.log(
-				'3. Container exists in DOM:',
-				document.querySelector('#tree-container-id')
-			);
+			console.log('3. Container exists in DOM:', document.querySelector('#tree-container-id'));
 
 			// Make sure we have a valid Newick string
 			if (!treeData || treeData.trim() === '') {
@@ -80,11 +77,7 @@
 					d3.select(container)
 						.selectAll('*')
 						.on('click', (event, d) => {
-							console.log(
-								'🖱️🔥 Element clicked:',
-								event.target.tagName,
-								event.target.className
-							);
+							console.log('🖱️🔥 Element clicked:', event.target.tagName, event.target.className);
 							console.log('🖱️🔥 Data object:', d);
 
 							// Skip if no data object
@@ -102,35 +95,23 @@
 							// If this is a branch, try to get the target node
 							if (d.target) {
 								nodeToSelect = d.target;
-								console.log(
-									'🖱️🔥 This is a branch, using target node:',
-									nodeToSelect
-								);
+								console.log('🖱️🔥 This is a branch, using target node:', nodeToSelect);
 							}
 
 							// If this is a source node from a branch
 							if (d.source && !d.target) {
 								nodeToSelect = d.source;
-								console.log(
-									'🖱️🔥 This is a source node, using source:',
-									nodeToSelect
-								);
+								console.log('🖱️🔥 This is a source node, using source:', nodeToSelect);
 							}
 
 							// Toggle selection
 							if (nodeToSelect.selected) {
 								nodeToSelect.selected = false;
 								delete nodeToSelect.selected;
-								console.log(
-									'🖱️🔥 Deselected node:',
-									nodeToSelect.name || 'unnamed'
-								);
+								console.log('🖱️🔥 Deselected node:', nodeToSelect.name || 'unnamed');
 							} else {
 								nodeToSelect.selected = true;
-								console.log(
-									'🖱️🔥 Selected node:',
-									nodeToSelect.name || 'unnamed'
-								);
+								console.log('🖱️🔥 Selected node:', nodeToSelect.name || 'unnamed');
 							}
 
 							// Update visual styling
@@ -158,9 +139,7 @@
 				console.log('11. SVG found:', svg);
 				console.log(
 					'12. SVG dimensions:',
-					svg
-						? `${svg.getAttribute('width')} x ${svg.getAttribute('height')}`
-						: 'no svg'
+					svg ? `${svg.getAttribute('width')} x ${svg.getAttribute('height')}` : 'no svg'
 				);
 
 				const nodes = document.querySelectorAll('#tree-container-id .node');
@@ -196,10 +175,7 @@
 			findSelectedNodes(tree.json);
 		}
 
-		console.log(
-			'🔄 Updating selected branches, current selection:',
-			current_selection
-		);
+		console.log('🔄 Updating selected branches, current selection:', current_selection);
 
 		selectedBranches = current_selection.map((node) => {
 			return node.name || `node_${node.id || Math.random()}`;
@@ -208,23 +184,17 @@
 
 		// Generate tagged Newick string
 		const taggedNewick = generateTaggedNewick();
-		console.log(
-			'🔄 Generated tagged Newick length:',
-			taggedNewick?.length || 0
-		);
+		console.log('🔄 Generated tagged Newick length:', taggedNewick?.length || 0);
 
 		// Dispatch selection change event for FEL integration
-		console.log(
-			'🔄🔥 BRANCHSELECTOR - About to dispatch selectionChange event:',
-			{
-				selectedBranches,
-				taggedNewick: taggedNewick?.substring(0, 100) + '...',
-				count: current_selection.length,
-				fullTaggedNewickLength: taggedNewick?.length,
-				hasFullTaggedNewick: !!taggedNewick,
-				hasFGTags: (taggedNewick || '').includes('{FG}')
-			}
-		);
+		console.log('🔄🔥 BRANCHSELECTOR - About to dispatch selectionChange event:', {
+			selectedBranches,
+			taggedNewick: taggedNewick?.substring(0, 100) + '...',
+			count: current_selection.length,
+			fullTaggedNewickLength: taggedNewick?.length,
+			hasFullTaggedNewick: !!taggedNewick,
+			hasFGTags: (taggedNewick || '').includes('{FG}')
+		});
 
 		const eventData = {
 			selectedBranches,
@@ -232,10 +202,7 @@
 			count: current_selection.length
 		};
 
-		console.log(
-			'🔄🔥 BRANCHSELECTOR - Full event data being dispatched:',
-			eventData
-		);
+		console.log('🔄🔥 BRANCHSELECTOR - Full event data being dispatched:', eventData);
 		dispatch('selectionChange', eventData);
 		console.log('🔄🔥 BRANCHSELECTOR - Event dispatched successfully');
 	}
@@ -273,10 +240,7 @@
 		console.log('🏷️🔥 selectedBranches count:', selectedBranches.length);
 
 		if (!tree || !tree.getNewick) {
-			console.log(
-				'🏷️🔥 Falling back to original treeData:',
-				treeData.substring(0, 100)
-			);
+			console.log('🏷️🔥 Falling back to original treeData:', treeData.substring(0, 100));
 			return treeData;
 		}
 
@@ -287,12 +251,7 @@
 			const taggedNewick = tree.getNewick((node) => {
 				const tags = [];
 
-				console.log(
-					'🏷️🔥 Processing node:',
-					node.name || 'unnamed',
-					'selected:',
-					!!node.selected
-				);
+				console.log('🏷️🔥 Processing node:', node.name || 'unnamed', 'selected:', !!node.selected);
 
 				// Check if node is selected (using phylotree's selected property)
 				if (node.selected) {
@@ -317,18 +276,9 @@
 				return '';
 			});
 
-			console.log(
-				'🏷️🔥 Tagged Newick generated length:',
-				taggedNewick?.length || 0
-			);
-			console.log(
-				'🏷️🔥 Tagged Newick preview:',
-				taggedNewick?.substring(0, 200)
-			);
-			console.log(
-				'🏷️🔥 Contains {FG} tags:',
-				(taggedNewick || '').includes('{FG}')
-			);
+			console.log('🏷️🔥 Tagged Newick generated length:', taggedNewick?.length || 0);
+			console.log('🏷️🔥 Tagged Newick preview:', taggedNewick?.substring(0, 200));
+			console.log('🏷️🔥 Contains {FG} tags:', (taggedNewick || '').includes('{FG}'));
 
 			return taggedNewick;
 		} catch (e) {
@@ -357,10 +307,7 @@
 		src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
 	></script>
 	<!-- phylotree CSS -->
-	<link
-		rel="stylesheet"
-		href="https://unpkg.com/phylotree@1.0.0-alpha.24/dist/phylotree.css"
-	/>
+	<link rel="stylesheet" href="https://unpkg.com/phylotree@1.0.0-alpha.24/dist/phylotree.css" />
 </svelte:head>
 
 <div class="minimal-branch-selector">
