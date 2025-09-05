@@ -223,23 +223,50 @@
 			}
 		},
 		slac: {
-			pValueThreshold: {
+			// Branch selection options (similar to FEL)
+			branchesToTest: {
+				type: 'select',
+				label: 'Branches to Test',
+				default: 'All',
+				options: ['All', 'Internal', 'Leaves', 'Unlabeled', 'Custom', 'Interactive'],
+				description: 'Which branches to test for positive selection'
+			},
+			customBranches: {
+				type: 'text',
+				label: 'Custom branches (comma-separated or regex)',
+				default: '',
+				placeholder: 'e.g. Node1,Node2 or /^human/i',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Custom'],
+				description: 'Comma-separated branch names or regex pattern'
+			},
+			interactiveTree: {
+				type: 'interactive-tree',
+				label: 'Select branches on tree',
+				default: '',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Interactive'],
+				description: 'Click on tree branches to select them for testing'
+			},
+			// SLAC-specific parameters
+			samples: {
+				type: 'number',
+				label: 'Ancestral reconstruction samples',
+				default: 100,
+				min: 1,
+				max: 1000,
+				step: 1,
+				description: 'Number of samples for ancestral reconstruction uncertainty'
+			},
+			pvalue: {
 				type: 'number',
 				label: 'P-value threshold',
 				default: 0.1,
 				min: 0.001,
 				max: 1,
-				step: 0.001
-			},
-			confidenceLevel: {
-				type: 'number',
-				label: 'Confidence level',
-				default: 0.95,
-				min: 0.8,
-				max: 0.99,
-				step: 0.01
-			},
-			ancestralSequences: { type: 'boolean', label: 'Include ancestral sequences', default: false }
+				step: 0.001,
+				description: 'The p-value threshold to use when testing for selection'
+			}
 		},
 		fubar: {
 			posteriorThreshold: {
