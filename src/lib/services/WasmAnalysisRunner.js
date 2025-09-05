@@ -14,17 +14,17 @@ import { getCachedOrCompute, generateAnalysisKey } from '../utils/cacheUtils.js'
  */
 function stripTreesFromNexus(nexusData) {
 	console.log('🌳 Checking for embedded trees in NEXUS data...');
-	
+
 	// Check if this looks like NEXUS format
 	if (!nexusData.toLowerCase().includes('#nexus')) {
 		console.log('🌳 Not a NEXUS file, skipping tree stripping');
 		return nexusData;
 	}
-	
+
 	// Look for TREES block (case insensitive)
 	const treesBlockRegex = /begin\s+trees\s*;.*?end\s*;/gis;
 	const hasTreesBlock = treesBlockRegex.test(nexusData);
-	
+
 	if (hasTreesBlock) {
 		console.log('🌳 Found embedded TREES block in NEXUS file, removing it...');
 		const cleanedNexus = nexusData.replace(treesBlockRegex, '');
@@ -67,11 +67,14 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 			configKeys: Object.keys(config || {}),
 			config: config
 		});
-		
+
 		console.log('🌳 TREE DEBUG - Input tree data:');
 		console.log('Tree data length:', treeData?.length || 0);
 		if (treeData) {
-			console.log('Tree preview:', treeData.substring(0, 300) + (treeData.length > 300 ? '...' : ''));
+			console.log(
+				'Tree preview:',
+				treeData.substring(0, 300) + (treeData.length > 300 ? '...' : '')
+			);
 			console.log('Tree contains {FG} tags:', treeData.includes('{FG}'));
 		} else {
 			console.log('No tree data provided');
@@ -142,7 +145,7 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 
 		// Strip any embedded trees from NEXUS alignment data
 		const cleanedFastaData = stripTreesFromNexus(fastaData);
-		
+
 		// Create temporary file from cleaned FASTA data
 		const inputFile = new File([cleanedFastaData], 'user.nex', { type: 'text/plain' });
 
@@ -153,7 +156,10 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		if (treeData && treeData.trim()) {
 			console.log('🌳 TREE DEBUG - Tree data being mounted:');
 			console.log('Tree length:', treeData.length);
-			console.log('Tree content (first 200 chars):', treeData.substring(0, 200) + (treeData.length > 200 ? '...' : ''));
+			console.log(
+				'Tree content (first 200 chars):',
+				treeData.substring(0, 200) + (treeData.length > 200 ? '...' : '')
+			);
 			console.log('Tree has {FG} tags:', treeData.includes('{FG}'));
 			console.log('🌳🔥 FULL TREE FILE CONTENTS BEING WRITTEN TO /shared/data/user.tree:');
 			console.log('=== START TREE FILE ===');
@@ -178,7 +184,14 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 
 		// Map configuration parameters to HyPhy command line arguments
 		for (const [key, value] of Object.entries(config)) {
-			if (key !== 'tree' && key !== 'method' && key !== 'executionMode' && key !== 'interactiveTree' && key !== 'selectedBranchCount' && key !== 'selectedBranchNames') {
+			if (
+				key !== 'tree' &&
+				key !== 'method' &&
+				key !== 'executionMode' &&
+				key !== 'interactiveTree' &&
+				key !== 'selectedBranchCount' &&
+				key !== 'selectedBranchNames'
+			) {
 				// Handle specific FEL parameter mappings
 				if (key === 'branchesToTest') {
 					// Handle branch selection - convert Interactive to FG for HyPhy
@@ -292,7 +305,14 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 
 		// Map configuration parameters to HyPhy command line arguments
 		for (const [key, value] of Object.entries(config)) {
-			if (key !== 'tree' && key !== 'method' && key !== 'executionMode' && key !== 'interactiveTree' && key !== 'selectedBranchCount' && key !== 'selectedBranchNames') {
+			if (
+				key !== 'tree' &&
+				key !== 'method' &&
+				key !== 'executionMode' &&
+				key !== 'interactiveTree' &&
+				key !== 'selectedBranchCount' &&
+				key !== 'selectedBranchNames'
+			) {
 				// Handle specific FEL parameter mappings
 				if (key === 'branchesToTest') {
 					// Handle branch selection - convert Interactive to FG for HyPhy

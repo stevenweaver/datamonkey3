@@ -130,7 +130,7 @@
 		{#if currentMethod === 'fel'}
 			<FelOptions {runMethod} />
 		{:else if methodConfig}
-			<FormGenerator methodConfig={methodConfig} {runMethod} {trees} />
+			<FormGenerator {methodConfig} {runMethod} {trees} />
 		{:else}
 			<div class="rounded-lg bg-yellow-50 p-4 text-yellow-700">
 				<p>No configuration options available for {currentMethod}.</p>

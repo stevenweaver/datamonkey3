@@ -128,7 +128,7 @@
 
 				// Get tree data based on user's selection
 				let treeData = getSelectedTreeData();
-				
+
 				// Check if we have interactive branch selection with tagged tree
 				console.log('🔍 METHOD CONFIG DEBUG:', { method, config });
 				if (config.branchesToTest === 'Interactive' && config.interactiveTree) {
@@ -142,7 +142,7 @@
 					console.log('Original tree length:', treeData.length);
 					console.log('Original tree preview:', treeData.substring(0, 200));
 				}
-				
+
 				if (!treeData) {
 					const treeSourceName =
 						selectedTreeSource === 'uploaded'
