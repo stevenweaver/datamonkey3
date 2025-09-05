@@ -4,7 +4,8 @@
 	import { aioliStore } from '../../../stores/aioli';
 	import { alignmentFileStore, fileMetricsStore } from '../../../stores/fileInfo';
 	import { treeStore } from '../../../stores/tree';
-	import MethodForm from '../../../lib/FormGenerator.svelte';
+	import FormGenerator from '../../../lib/FormGenerator.svelte';
+	import FelOptions from '../../../lib/FelOptions.svelte';
 	import methodConfigToml from '../../../lib/config/methodOptions.toml?raw';
 	import { PAGES_URL, HYPHY_EYE_URL } from '../../../lib/config/env';
 
@@ -126,7 +127,15 @@
 			<p>Job is running. Please wait...</p>
 		</div>
 	{:else if !resultsCompleted}
-		<MethodForm {runMethod} {trees} />
+		{#if currentMethod === 'fel'}
+			<FelOptions {runMethod} />
+		{:else if methodConfig}
+			<FormGenerator methodConfig={methodConfig} {runMethod} {trees} />
+		{:else}
+			<div class="rounded-lg bg-yellow-50 p-4 text-yellow-700">
+				<p>No configuration options available for {currentMethod}.</p>
+			</div>
+		{/if}
 	{/if}
 
 	<div class={resultsCompleted ? '' : 'invisible absolute'}>

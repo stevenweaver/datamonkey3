@@ -1,6 +1,6 @@
 <script>
 	import { onMount, afterUpdate, createEventDispatcher } from 'svelte';
-	import { phylotree } from 'phylotree';
+	import * as phylotree from 'phylotree';
 	import * as d3 from 'd3';
 	// Removed hyphy-scope import - only using phylotree viewer
 
@@ -129,7 +129,7 @@
 
 	function renderPhylotreeViewer() {
 		// Initialize tree from Newick string
-		tree = new phylotree(newickString);
+		tree = new phylotree.phylotree(newickString);
 
 		// Check for parsed tags in the tree
 		if (tree.parsed_tags && tree.parsed_tags.length) {
