@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac'];
+	const SUPPORTED_METHODS = ['fel', 'slac', 'absrel'];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -44,7 +44,7 @@
 			name: 'aBSREL',
 			fullName: 'adaptive Branch-Site Random Effects Likelihood',
 			shortDescription: 'Test for selection on specific branches',
-			supported: false
+			supported: true
 		},
 		busted: {
 			name: 'BUSTED',
@@ -289,30 +289,55 @@
 			}
 		},
 		absrel: {
-			branchesType: {
+			// Branch selection options
+			branchesToTest: {
 				type: 'select',
-				label: 'Test branches',
+				label: 'Branches to Test',
 				default: 'All',
-				options: ['All', 'Internal', 'Leaves', 'Unlabeled-branches', 'Test']
+				options: ['All', 'Internal', 'Leaves', 'Unlabeled', 'Custom', 'Interactive'],
+				description: 'Which branches to test (default: All)'
 			},
-			pValueThreshold: {
-				type: 'number',
-				label: 'P-value threshold',
-				default: 0.05,
-				min: 0.001,
-				max: 1,
-				step: 0.001
+			customBranches: {
+				type: 'text',
+				label: 'Custom branches (comma-separated or regex)',
+				default: '',
+				placeholder: 'e.g. Node1,Node2 or /^human/i',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Custom'],
+				description: 'Comma-separated branch names or regex pattern'
 			},
-			synonymousRateVariation: {
-				type: 'boolean',
-				label: 'Synonymous rate variation',
-				default: true
+			interactiveTree: {
+				type: 'interactive-tree',
+				label: 'Select branches on tree',
+				default: '',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Interactive'],
+				description: 'Click on tree branches to select them for testing'
 			},
+			// Core aBSREL parameters
 			multipleHits: {
 				type: 'select',
-				label: 'Multiple hits',
-				default: 'Double',
-				options: ['None', 'Double', 'Double+Triple']
+				label: 'Multiple Hits',
+				default: 'None',
+				options: ['None', 'Double', 'Double+Triple'],
+				description: 'Include support for multiple nucleotide substitutions'
+			},
+			srv: {
+				type: 'select',
+				label: 'Synonymous Rate Variation',
+				default: 'Yes',
+				options: ['Yes', 'No'],
+				description: 'Include synonymous rate variation'
+			},
+			// Advanced parameters
+			blb: {
+				type: 'number',
+				label: 'Bag of Little Bootstrap (BLB) Rate',
+				default: 1.0,
+				min: 0.0,
+				max: 1.0,
+				step: 0.1,
+				description: '[Advanced] Bag of little bootstrap alignment resampling rate'
 			}
 		},
 		busted: {

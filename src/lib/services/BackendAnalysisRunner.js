@@ -279,6 +279,16 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					posterior: config.posteriorThreshold || 0.9
 				};
 
+			case 'absrel':
+				return {
+					...baseParams,
+					// Map aBSREL-specific parameters to backend format
+					branches: config.branchesToTest || 'All',
+					multiple_hits: config.multipleHits || 'None',
+					srv: config.srv || 'Yes',
+					blb: config.blb || 1.0
+				};
+
 			default:
 				return baseParams;
 		}
