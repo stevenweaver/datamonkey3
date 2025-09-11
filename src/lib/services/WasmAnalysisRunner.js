@@ -233,6 +233,21 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 					// P-value threshold (custom parameter, not standard HyPhy)
 					// This would be handled post-processing
 					continue;
+				} else if (key === 'steps') {
+					// BGM chain length steps
+					args.push(`--steps ${value}`);
+				} else if (key === 'burnIn') {
+					// BGM burn-in samples
+					args.push(`--burn-in ${value}`);
+				} else if (key === 'samples') {
+					// BGM samples
+					args.push(`--samples ${value}`);
+				} else if (key === 'maxParents') {
+					// BGM maximum parents per node
+					args.push(`--max-parents ${value}`);
+				} else if (key === 'minSubs') {
+					// BGM minimum substitutions per site
+					args.push(`--min-subs ${value}`);
 				} else if (typeof value === 'boolean') {
 					// Boolean parameters
 					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value ? 'Yes' : 'No'}`);
@@ -243,6 +258,18 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 					// Other parameters
 					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value}`);
 				}
+			}
+		}
+
+		// Add method-specific default arguments for BGM
+		if (method.toLowerCase() === 'bgm') {
+			// BGM requires explicit data type specification
+			if (!args.some(arg => arg.includes('--type'))) {
+				args.push('--type codon');
+			}
+			// BGM requires branches specification
+			if (!args.some(arg => arg.includes('--branches'))) {
+				args.push('--branches All');
 			}
 		}
 
@@ -356,6 +383,21 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 					// P-value threshold (custom parameter, not standard HyPhy)
 					// This would be handled post-processing
 					continue;
+				} else if (key === 'steps') {
+					// BGM chain length steps
+					args.push(`--steps ${value}`);
+				} else if (key === 'burnIn') {
+					// BGM burn-in samples
+					args.push(`--burn-in ${value}`);
+				} else if (key === 'samples') {
+					// BGM samples
+					args.push(`--samples ${value}`);
+				} else if (key === 'maxParents') {
+					// BGM maximum parents per node
+					args.push(`--max-parents ${value}`);
+				} else if (key === 'minSubs') {
+					// BGM minimum substitutions per site
+					args.push(`--min-subs ${value}`);
 				} else if (typeof value === 'boolean') {
 					// Boolean parameters
 					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value ? 'Yes' : 'No'}`);
@@ -366,6 +408,18 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 					// Other parameters
 					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value}`);
 				}
+			}
+		}
+
+		// Add method-specific default arguments for BGM (preview version)
+		if (method.toLowerCase() === 'bgm') {
+			// BGM requires explicit data type specification
+			if (!args.some(arg => arg.includes('--type'))) {
+				args.push('--type codon');
+			}
+			// BGM requires branches specification
+			if (!args.some(arg => arg.includes('--branches'))) {
+				args.push('--branches All');
 			}
 		}
 
