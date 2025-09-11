@@ -252,7 +252,32 @@
 								<h3 class="mb-4 text-lg font-semibold">
 									{analysis.method.toUpperCase()} Analysis Visualization
 								</h3>
-								<svelte:component this={hyphyScopeComponent} data={resultData} />
+								<!-- Debug logging for aBSREL data structure -->
+								{#if analysis.method.toLowerCase() === 'absrel'}
+									<div class="mb-4 text-xs text-gray-500">
+										<details>
+											<summary>Debug: aBSREL Data Structure</summary>
+											<pre class="max-h-40 overflow-auto bg-gray-50 p-2 text-xs">{JSON.stringify(resultData, null, 2)}</pre>
+										</details>
+									</div>
+								{/if}
+								{#try}
+									<svelte:component this={hyphyScopeComponent} data={resultData} />
+								{:catch error}
+									<div class="rounded-lg bg-yellow-50 p-4">
+										<p class="mb-2 text-yellow-800">
+											<strong>Visualization Error:</strong>
+											The hyphy-scope visualization component encountered an error.
+										</p>
+										<p class="mb-3 text-sm text-yellow-700">
+											Error: {error.message || 'Unknown error'}
+										</p>
+										<details class="text-xs">
+											<summary class="cursor-pointer text-yellow-600">Show full error details</summary>
+											<pre class="mt-2 bg-yellow-100 p-2">{error.stack || error}</pre>
+										</details>
+									</div>
+								{/try}
 							</div>
 						</div>
 					{/if}
