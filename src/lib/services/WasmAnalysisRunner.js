@@ -226,6 +226,9 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				} else if (key === 'confidenceIntervals') {
 					// Confidence intervals
 					args.push(`--ci ${value ? 'Yes' : 'No'}`);
+				} else if (key === 'blb') {
+					// Bag of Little Bootstrap parameter for aBSREL
+					args.push(`--blb ${value}`);
 				} else if (key === 'pValueThreshold') {
 					// P-value threshold (custom parameter, not standard HyPhy)
 					// This would be handled post-processing
@@ -346,6 +349,9 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				} else if (key === 'confidenceIntervals') {
 					// Confidence intervals
 					args.push(`--ci ${value ? 'Yes' : 'No'}`);
+				} else if (key === 'blb') {
+					// Bag of Little Bootstrap parameter for aBSREL
+					args.push(`--blb ${value}`);
 				} else if (key === 'pValueThreshold') {
 					// P-value threshold (custom parameter, not standard HyPhy)
 					// This would be handled post-processing

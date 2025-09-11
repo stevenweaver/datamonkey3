@@ -16,7 +16,6 @@
 		FelVisualization as HyphyScopeFel,
 		SimpleFelVisualization,
 		MemeVisualization,
-		AbsrelVisualization,
 		BustedVisualization,
 		RelaxVisualization,
 		SlacVisualization,
@@ -24,6 +23,7 @@
 		FadeVisualization,
 		GardVisualization
 	} from 'hyphy-scope';
+	import AbsrelVisualizationWrapper from './AbsrelVisualizationWrapper.svelte';
 
 	export let analysisId = null;
 
@@ -132,7 +132,7 @@
 				return MemeVisualization;
 			case 'absrel':
 			case 'abserel':
-				return AbsrelVisualization;
+				return AbsrelVisualizationWrapper;
 			case 'busted':
 				return BustedVisualization;
 			case 'relax':
@@ -252,6 +252,15 @@
 								<h3 class="mb-4 text-lg font-semibold">
 									{analysis.method.toUpperCase()} Analysis Visualization
 								</h3>
+								<!-- Debug logging for aBSREL data structure -->
+								{#if analysis.method.toLowerCase() === 'absrel'}
+									<div class="mb-4 text-xs text-gray-500">
+										<details>
+											<summary>Debug: aBSREL Data Structure</summary>
+											<pre class="max-h-40 overflow-auto bg-gray-50 p-2 text-xs">{JSON.stringify(resultData, null, 2)}</pre>
+										</details>
+									</div>
+								{/if}
 								<svelte:component this={hyphyScopeComponent} data={resultData} />
 							</div>
 						</div>
@@ -282,7 +291,7 @@
 								</div>
 							{/if}
 						</div>
-					{:else if ['FEL', 'SLAC', 'MEME', 'BUSTED', 'FUBAR', 'aBSREL', 'GARD', 'MULTI-HIT', 'NRM'].includes(analysis.method)}
+					{:else if ['FEL', 'SLAC', 'MEME', 'BUSTED', 'FUBAR', 'aBSREL', 'ABSREL', 'GARD', 'MULTI-HIT', 'NRM'].includes(analysis.method)}
 						<!-- Selection analysis results with fallback legacy visualization for FEL -->
 						<div class="selection-analysis">
 							{#if resultData.input && resultData.input.file}
