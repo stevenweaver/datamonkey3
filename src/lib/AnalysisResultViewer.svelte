@@ -16,7 +16,6 @@
 		FelVisualization as HyphyScopeFel,
 		SimpleFelVisualization,
 		MemeVisualization,
-		AbsrelVisualization,
 		BustedVisualization,
 		RelaxVisualization,
 		SlacVisualization,
@@ -24,6 +23,7 @@
 		FadeVisualization,
 		GardVisualization
 	} from 'hyphy-scope';
+	import AbsrelVisualizationWrapper from './AbsrelVisualizationWrapper.svelte';
 
 	export let analysisId = null;
 
@@ -132,7 +132,7 @@
 				return MemeVisualization;
 			case 'absrel':
 			case 'abserel':
-				return AbsrelVisualization;
+				return AbsrelVisualizationWrapper;
 			case 'busted':
 				return BustedVisualization;
 			case 'relax':
