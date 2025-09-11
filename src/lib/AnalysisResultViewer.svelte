@@ -261,23 +261,7 @@
 										</details>
 									</div>
 								{/if}
-								{#try}
-									<svelte:component this={hyphyScopeComponent} data={resultData} />
-								{:catch error}
-									<div class="rounded-lg bg-yellow-50 p-4">
-										<p class="mb-2 text-yellow-800">
-											<strong>Visualization Error:</strong>
-											The hyphy-scope visualization component encountered an error.
-										</p>
-										<p class="mb-3 text-sm text-yellow-700">
-											Error: {error.message || 'Unknown error'}
-										</p>
-										<details class="text-xs">
-											<summary class="cursor-pointer text-yellow-600">Show full error details</summary>
-											<pre class="mt-2 bg-yellow-100 p-2">{error.stack || error}</pre>
-										</details>
-									</div>
-								{/try}
+								<svelte:component this={hyphyScopeComponent} data={resultData} />
 							</div>
 						</div>
 					{/if}
