@@ -303,6 +303,20 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					'min-subs': config.minSubs || 1
 				};
 
+			case 'busted':
+				return {
+					...baseParams,
+					// Map BUSTED-specific parameters to backend format
+					branches: config.branchesToTest || 'All',
+					srv: config.srv || 'Yes',
+					'error-sink': config.errorSink === true ? 'Yes' : config.errorSink === false ? 'No' : (config.errorSink || 'No'),
+					'multiple-hits': config.multipleHits || 'None',
+					rates: config.rates || 3,
+					'syn-rates': config.synRates || 3,
+					'grid-size': config.gridSize || 250,
+					'starting-points': config.startingPoints || 1
+				};
+
 			default:
 				return baseParams;
 		}
