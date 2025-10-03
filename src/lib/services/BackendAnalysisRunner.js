@@ -306,10 +306,7 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			case 'busted':
 				// Handle both camelCase and kebab-case parameter names
 				const errorSinkValue = config.errorSink || config['error-sink'];
-				console.log('🔧 BUSTED Backend Mapping - Input config:', config);
-				console.log('🔧 BUSTED Backend Mapping - errorSinkValue:', errorSinkValue, typeof errorSinkValue);
-				
-				const mappedParams = {
+				return {
 					...baseParams,
 					// Map BUSTED-specific parameters to backend format
 					branches: config.branchesToTest || 'All',
@@ -321,9 +318,6 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					'grid-size': config.gridSize || config['grid-size'] || 250,
 					'starting-points': config.startingPoints || config['starting-points'] || 1
 				};
-				
-				console.log('🔧 BUSTED Backend Mapping - Output params:', mappedParams);
-				return mappedParams;
 
 			default:
 				return baseParams;
