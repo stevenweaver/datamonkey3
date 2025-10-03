@@ -344,27 +344,27 @@
 			// Branch selection options
 			branchesToTest: {
 				type: 'select',
-				label: 'Branches to Test',
+				label: 'Foreground Branches',
 				default: 'All',
 				options: ['All', 'Internal', 'Leaves', 'Unlabeled', 'Custom', 'Interactive'],
-				description: 'Which branches to test for positive selection'
+				description: 'Select foreground branches to test for positive selection. All other branches will be treated as background.'
 			},
 			customBranches: {
 				type: 'text',
-				label: 'Custom branches (comma-separated or regex)',
+				label: 'Custom foreground branches (comma-separated or regex)',
 				default: '',
 				placeholder: 'e.g. Node1,Node2 or /^human/i',
 				dependsOn: 'branchesToTest',
 				enabledWhen: ['Custom'],
-				description: 'Comma-separated branch names or regex pattern'
+				description: 'Comma-separated branch names or regex pattern for foreground branches'
 			},
 			interactiveTree: {
 				type: 'interactive-tree',
-				label: 'Select branches on tree',
+				label: 'Select foreground branches on tree',
 				default: '',
 				dependsOn: 'branchesToTest',
 				enabledWhen: ['Interactive'],
-				description: 'Click on tree branches to select them for testing'
+				description: 'Click on tree branches to select them as foreground branches for testing'
 			},
 			// Core BUSTED parameters
 			srv: {
@@ -928,10 +928,9 @@
 		{#if selectedMethod && methodOptions[selectedMethod] && methodOptions[selectedMethod].branchesToTest === 'Interactive'}
 			<div class="interactive-tree-section">
 				<div class="tree-section-header">
-					<h4 class="tree-section-title">Interactive Branch Selection</h4>
+					<h4 class="tree-section-title">Interactive Foreground Branch Selection</h4>
 					<p class="tree-section-description">
-						Click on tree branches to select them for testing. Use the dropdown menu on nodes for
-						additional options.
+						Click on tree branches to select them as <strong>foreground branches</strong> for testing. All other branches will be treated as <strong>background branches</strong>. Use the dropdown menu on nodes for additional options.
 					</p>
 				</div>
 
