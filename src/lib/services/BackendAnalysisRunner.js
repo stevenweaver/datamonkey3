@@ -304,18 +304,26 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 				};
 
 			case 'busted':
-				return {
+				// Handle both camelCase and kebab-case parameter names
+				const errorSinkValue = config.errorSink || config['error-sink'];
+				console.log('🔧 BUSTED Backend Mapping - Input config:', config);
+				console.log('🔧 BUSTED Backend Mapping - errorSinkValue:', errorSinkValue, typeof errorSinkValue);
+				
+				const mappedParams = {
 					...baseParams,
 					// Map BUSTED-specific parameters to backend format
 					branches: config.branchesToTest || 'All',
 					srv: config.srv || 'Yes',
-					'error-sink': config.errorSink === true ? 'Yes' : config.errorSink === false ? 'No' : (config.errorSink || 'No'),
-					'multiple-hits': config.multipleHits || 'None',
+					'error-sink': errorSinkValue === true ? 'Yes' : errorSinkValue === false ? 'No' : (errorSinkValue || 'No'),
+					'multiple-hits': config.multipleHits || config['multiple-hits'] || 'None',
 					rates: config.rates || 3,
-					'syn-rates': config.synRates || 3,
-					'grid-size': config.gridSize || 250,
-					'starting-points': config.startingPoints || 1
+					'syn-rates': config.synRates || config['syn-rates'] || 3,
+					'grid-size': config.gridSize || config['grid-size'] || 250,
+					'starting-points': config.startingPoints || config['starting-points'] || 1
 				};
+				
+				console.log('🔧 BUSTED Backend Mapping - Output params:', mappedParams);
+				return mappedParams;
 
 			default:
 				return baseParams;

@@ -174,6 +174,10 @@ AGTGGGACCGTCTGGGGTGCCCTGGGTCATGGCATCAACCTGGACATCCCT`;
 		isAnalysisRunning = true;
 		statusMessages = [...statusMessages, { msg: 'Starting BUSTED analysis...', type: 'info' }];
 
+		// Debug: Check parameter values before sending
+		console.log('🧪 BUSTED Demo - bustedParams before sending:', bustedParams);
+		console.log('🧪 BUSTED Demo - error-sink value:', bustedParams['error-sink'], typeof bustedParams['error-sink']);
+
 		// Send single object with alignment, tree, and job properties
 		socket.emit('busted:spawn', {
 			alignment: fastaData,
