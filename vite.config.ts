@@ -30,6 +30,7 @@ export default defineConfig({
 	},
 
 	server: {
+		host: true,
 		// Increase WebSocket timeout to prevent timeout errors
 		hmr: {
 			timeout: 60000 // 60 seconds instead of default 30
@@ -48,6 +49,10 @@ export default defineConfig({
 				}
 			}
 		}
+	},
+
+	preview: {
+		host: true
 	},
 
 	// Optimize dependencies to prevent long processing times
