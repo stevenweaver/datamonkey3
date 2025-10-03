@@ -303,6 +303,22 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					'min-subs': config.minSubs || 1
 				};
 
+			case 'busted':
+				// Handle both camelCase and kebab-case parameter names
+				const errorSinkValue = config.errorSink || config['error-sink'];
+				return {
+					...baseParams,
+					// Map BUSTED-specific parameters to backend format
+					branches: config.branchesToTest || 'All',
+					srv: config.srv || 'Yes',
+					'error-sink': errorSinkValue === true ? 'Yes' : errorSinkValue === false ? 'No' : (errorSinkValue || 'No'),
+					'multiple-hits': config.multipleHits || config['multiple-hits'] || 'None',
+					rates: config.rates || 3,
+					'syn-rates': config.synRates || config['syn-rates'] || 3,
+					'grid-size': config.gridSize || config['grid-size'] || 250,
+					'starting-points': config.startingPoints || config['starting-points'] || 1
+				};
+
 			default:
 				return baseParams;
 		}

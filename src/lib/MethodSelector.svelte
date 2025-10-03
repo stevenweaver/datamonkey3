@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac', 'absrel', 'bgm'];
+	const SUPPORTED_METHODS = ['fel', 'slac', 'absrel', 'bgm', 'busted'];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -50,7 +50,7 @@
 			name: 'BUSTED',
 			fullName: 'Branch-site Unrestricted Statistical Test for Episodic Diversification',
 			shortDescription: 'Test for gene-wide selection',
-			supported: false
+			supported: true
 		},
 		gard: {
 			name: 'GARD',
@@ -341,23 +341,89 @@
 			}
 		},
 		busted: {
-			branchesType: {
+			// Branch selection options
+			branchesToTest: {
 				type: 'select',
-				label: 'Test branches',
+				label: 'Foreground Branches',
 				default: 'All',
-				options: ['All', 'Internal', 'Leaves', 'Unlabeled-branches', 'Test']
+				options: ['All', 'Internal', 'Leaves', 'Unlabeled', 'Custom', 'Interactive'],
+				description: 'Select foreground branches to test for positive selection. All other branches will be treated as background.'
 			},
-			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
-			synonymousRateVariation: {
-				type: 'boolean',
-				label: 'Synonymous rate variation',
-				default: true
+			customBranches: {
+				type: 'text',
+				label: 'Custom foreground branches (comma-separated or regex)',
+				default: '',
+				placeholder: 'e.g. Node1,Node2 or /^human/i',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Custom'],
+				description: 'Comma-separated branch names or regex pattern for foreground branches'
+			},
+			interactiveTree: {
+				type: 'interactive-tree',
+				label: 'Select foreground branches on tree',
+				default: '',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Interactive'],
+				description: 'Click on tree branches to select them as foreground branches for testing'
+			},
+			// Core BUSTED parameters
+			srv: {
+				type: 'select',
+				label: 'Synonymous rate variation (BUSTED-S)',
+				default: 'Yes',
+				options: ['Yes', 'No', 'Branch-site'],
+				description: 'Include variations in synonymous substitution rates'
+			},
+			errorSink: {
+				type: 'select',
+				label: 'Error protection (BUSTED-E)',
+				default: 'No',
+				options: ['Yes', 'No'],
+				description: 'Enhance robustness against alignment errors'
 			},
 			multipleHits: {
 				type: 'select',
-				label: 'Multiple hits',
-				default: 'Double',
-				options: ['None', 'Double', 'Double+Triple']
+				label: 'Multiple Hits',
+				default: 'None',
+				options: ['None', 'Double', 'Double+Triple'],
+				description: 'Support for handling multiple nucleotide substitutions'
+			},
+			// Advanced parameters
+			rates: {
+				type: 'number',
+				label: 'Omega rate classes',
+				default: 3,
+				min: 2,
+				max: 10,
+				step: 1,
+				description: 'Number of omega rate classes in the model'
+			},
+			synRates: {
+				type: 'number',
+				label: 'Synonymous rate classes',
+				default: 3,
+				min: 2,
+				max: 10,
+				step: 1,
+				description: 'Number of synonymous rate classes in the model'
+			},
+			gridSize: {
+				type: 'number',
+				label: 'Grid size',
+				default: 250,
+				min: 50,
+				max: 1000,
+				step: 50,
+				description: 'Number of points in initial distributional guess for likelihood fitting'
+			},
+			startingPoints: {
+				type: 'number',
+				label: 'Starting points',
+				default: 1,
+				min: 1,
+				max: 10,
+				step: 1,
+				description: 'Number of initial random guesses to seed rate values optimization'
 			}
 		},
 		gard: {
@@ -862,10 +928,9 @@
 		{#if selectedMethod && methodOptions[selectedMethod] && methodOptions[selectedMethod].branchesToTest === 'Interactive'}
 			<div class="interactive-tree-section">
 				<div class="tree-section-header">
-					<h4 class="tree-section-title">Interactive Branch Selection</h4>
+					<h4 class="tree-section-title">Interactive Foreground Branch Selection</h4>
 					<p class="tree-section-description">
-						Click on tree branches to select them for testing. Use the dropdown menu on nodes for
-						additional options.
+						Click on tree branches to select them as <strong>foreground branches</strong> for testing. All other branches will be treated as <strong>background branches</strong>. Use the dropdown menu on nodes for additional options.
 					</p>
 				</div>
 
