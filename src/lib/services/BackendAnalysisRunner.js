@@ -289,6 +289,20 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					blb: config.blb || 1.0
 				};
 
+			case 'bgm':
+				return {
+					...baseParams,
+					branches: 'All',
+					code: 'Universal',
+					type: 'codon',
+					steps: config.steps || 10000,
+					'burn-in': config.burnIn || 1000,
+					samples: config.samples || 100,
+					'chain-sample': 100,
+					'max-parents': config.maxParents || 1,
+					'min-subs': config.minSubs || 1
+				};
+
 			default:
 				return baseParams;
 		}

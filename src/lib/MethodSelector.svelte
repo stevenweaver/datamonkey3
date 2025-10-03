@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac', 'absrel'];
+	const SUPPORTED_METHODS = ['fel', 'slac', 'absrel', 'bgm'];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -62,7 +62,7 @@
 			name: 'BGM',
 			fullName: 'Bayesian Graphical Model',
 			shortDescription: 'Detect correlated substitution patterns',
-			supported: false
+			supported: true
 		},
 		fade: {
 			name: 'FADE',
@@ -377,28 +377,50 @@
 			maxBreakpoints: { type: 'number', label: 'Max breakpoints', default: 10, min: 1, max: 50 }
 		},
 		bgm: {
-			chainLength: {
+			steps: {
 				type: 'number',
-				label: 'Chain length',
-				default: 2500000,
-				min: 100000,
-				max: 10000000,
-				step: 100000
+				label: 'Chain length steps',
+				default: 10000,
+				min: 1000,
+				max: 100000000,
+				step: 1000,
+				description: 'Length of each MCMC chain'
 			},
 			burnIn: {
 				type: 'number',
 				label: 'Burn-in samples',
-				default: 1000000,
-				min: 50000,
-				max: 5000000,
-				step: 50000
+				default: 1000,
+				min: 100,
+				max: 100000,
+				step: 100,
+				description: 'Number of burn-in samples to discard'
 			},
-			samples: { type: 'number', label: 'Samples', default: 100, min: 50, max: 1000 },
-			substitutionModel: {
-				type: 'select',
-				label: 'Substitution model',
-				default: 'GTR',
-				options: ['JC69', 'HKY85', 'TN93', 'GTR']
+			samples: {
+				type: 'number',
+				label: 'Samples',
+				default: 100,
+				min: 10,
+				max: 10000,
+				step: 10,
+				description: 'Number of samples to collect'
+			},
+			maxParents: {
+				type: 'number',
+				label: 'Maximum parents per node',
+				default: 1,
+				min: 0,
+				max: 10,
+				step: 1,
+				description: 'Maximum number of parents allowed per node in the graphical model'
+			},
+			minSubs: {
+				type: 'number',
+				label: 'Minimum substitutions per site',
+				default: 1,
+				min: 1,
+				max: 100,
+				step: 1,
+				description: 'Minimum number of substitutions required per site'
 			}
 		},
 		fade: {
