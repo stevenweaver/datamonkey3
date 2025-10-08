@@ -304,7 +304,11 @@
 		const eventData = {
 			selectedBranches,
 			taggedNewick,
-			count: current_selection.length
+			count: current_selection.length,
+			...(mode === 'multi-set' && {
+				selectionSets: selectionSets,
+				mode: 'multi-set'
+			})
 		};
 
 		console.log('🔄🔥 BRANCHSELECTOR - Full event data being dispatched:', eventData);
