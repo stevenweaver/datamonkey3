@@ -20,27 +20,17 @@
 	let tree;
 	let selectedBranches = [];
 
-	// Multi-set selection state (for contrast-fel)
-	let selectionSets = ['Foreground'];
+	// Multi-set selection state (for contrast-fel) - Initialize based on mode
 	let currentSetIndex = 0;
 	let setColors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']; // d3 category colors
 
-	// Initialize selection sets based on mode (reactive)
-	$: {
-		console.log('🔄 Mode reactive statement triggered, mode =', mode);
-		if (mode === 'multi-set') {
-			if (selectionSets.length === 1 && selectionSets[0] === 'Foreground') {
-				console.log('🔄 Switching to multi-set, initializing sets');
-				selectionSets = ['Set 1', 'Set 2'];
-				currentSetIndex = 0;
-			}
-		} else if (mode === 'single-set') {
-			if (selectionSets.length > 1 || selectionSets[0] !== 'Foreground') {
-				console.log('🔄 Switching to single-set, resetting to Foreground');
-				selectionSets = ['Foreground'];
-				currentSetIndex = 0;
-			}
-		}
+	// Reactive: Update selection sets when mode changes
+	$: selectionSets = mode === 'multi-set' ? ['Set 1', 'Set 2'] : ['Foreground'];
+
+	// Reset current index when mode changes
+	$: if (mode) {
+		currentSetIndex = 0;
+		console.log('🔄 Mode changed to:', mode, 'selectionSets:', selectionSets);
 	}
 
 	onMount(() => {
