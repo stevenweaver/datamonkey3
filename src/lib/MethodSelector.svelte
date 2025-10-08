@@ -998,6 +998,7 @@
 		{#if selectedMethod && methodOptions[selectedMethod] && methodOptions[selectedMethod].branchesToTest === 'Interactive'}
 			<div class="interactive-tree-section">
 				<div class="tree-section-header">
+					<!-- Debug: selectedMethod = {selectedMethod} -->
 					{#if selectedMethod === 'contrast-fel'}
 						<h4 class="tree-section-title">Interactive Branch Set Selection</h4>
 						<p class="tree-section-description">

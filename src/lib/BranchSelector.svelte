@@ -21,15 +21,29 @@
 	let selectedBranches = [];
 
 	// Multi-set selection state (for contrast-fel)
-	let selectionSets = mode === 'multi-set' ? ['Set 1', 'Set 2'] : ['Foreground'];
+	let selectionSets = ['Foreground'];
 	let currentSetIndex = 0;
 	let setColors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']; // d3 category colors
 
+	// Initialize selection sets based on mode
+	$: if (mode === 'multi-set' && selectionSets.length === 1 && selectionSets[0] === 'Foreground') {
+		selectionSets = ['Set 1', 'Set 2'];
+		currentSetIndex = 0;
+	} else if (mode === 'single-set' && selectionSets[0] !== 'Foreground') {
+		selectionSets = ['Foreground'];
+		currentSetIndex = 0;
+	}
+
 	onMount(() => {
+		console.log('🎨 BranchSelector mounted with mode:', mode);
+		console.log('🎨 Initial selectionSets:', selectionSets);
 		if (treeData) {
 			renderTree();
 		}
 	});
+
+	// Log when mode changes
+	$: console.log('🎨 BranchSelector mode changed to:', mode, 'selectionSets:', selectionSets);
 
 	// Watch for tree data changes
 	$: if (treeData && treeContainer) {
@@ -431,6 +445,7 @@
 
 <div class="minimal-branch-selector">
 	<h3>Minimal BranchSelector Test</h3>
+	<p style="background: yellow; padding: 0.5rem;">DEBUG: Mode = {mode}, Sets = {JSON.stringify(selectionSets)}</p>
 
 	{#if mode === 'multi-set'}
 		<div class="set-management-controls">
