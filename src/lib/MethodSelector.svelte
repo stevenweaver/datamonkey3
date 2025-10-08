@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac', 'contrast-fel'];
+	const SUPPORTED_METHODS = ['fel', 'slac', 'absrel', 'bgm', 'busted', 'contrast-fel'];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -44,13 +44,13 @@
 			name: 'aBSREL',
 			fullName: 'adaptive Branch-Site Random Effects Likelihood',
 			shortDescription: 'Test for selection on specific branches',
-			supported: false
+			supported: true
 		},
 		busted: {
 			name: 'BUSTED',
 			fullName: 'Branch-site Unrestricted Statistical Test for Episodic Diversification',
 			shortDescription: 'Test for gene-wide selection',
-			supported: false
+			supported: true
 		},
 		gard: {
 			name: 'GARD',
@@ -62,7 +62,7 @@
 			name: 'BGM',
 			fullName: 'Bayesian Graphical Model',
 			shortDescription: 'Detect correlated substitution patterns',
-			supported: false
+			supported: true
 		},
 		fade: {
 			name: 'FADE',
@@ -289,50 +289,141 @@
 			}
 		},
 		absrel: {
-			branchesType: {
+			// Branch selection options
+			branchesToTest: {
 				type: 'select',
-				label: 'Test branches',
+				label: 'Branches to Test',
 				default: 'All',
-				options: ['All', 'Internal', 'Leaves', 'Unlabeled-branches', 'Test']
+				options: ['All', 'Internal', 'Leaves', 'Unlabeled', 'Custom', 'Interactive'],
+				description: 'Which branches to test (default: All)'
 			},
-			pValueThreshold: {
-				type: 'number',
-				label: 'P-value threshold',
-				default: 0.05,
-				min: 0.001,
-				max: 1,
-				step: 0.001
+			customBranches: {
+				type: 'text',
+				label: 'Custom branches (comma-separated or regex)',
+				default: '',
+				placeholder: 'e.g. Node1,Node2 or /^human/i',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Custom'],
+				description: 'Comma-separated branch names or regex pattern'
 			},
-			synonymousRateVariation: {
-				type: 'boolean',
-				label: 'Synonymous rate variation',
-				default: true
+			interactiveTree: {
+				type: 'interactive-tree',
+				label: 'Select branches on tree',
+				default: '',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Interactive'],
+				description: 'Click on tree branches to select them for testing'
 			},
+			// Core aBSREL parameters
 			multipleHits: {
 				type: 'select',
-				label: 'Multiple hits',
-				default: 'Double',
-				options: ['None', 'Double', 'Double+Triple']
+				label: 'Multiple Hits',
+				default: 'None',
+				options: ['None', 'Double', 'Double+Triple'],
+				description: 'Include support for multiple nucleotide substitutions'
+			},
+			srv: {
+				type: 'select',
+				label: 'Synonymous Rate Variation',
+				default: 'Yes',
+				options: ['Yes', 'No'],
+				description: 'Include synonymous rate variation'
+			},
+			// Advanced parameters
+			blb: {
+				type: 'number',
+				label: 'Bag of Little Bootstrap (BLB) Rate',
+				default: 1.0,
+				min: 0.0,
+				max: 1.0,
+				step: 0.1,
+				description: '[Advanced] Bag of little bootstrap alignment resampling rate'
 			}
 		},
 		busted: {
-			branchesType: {
+			// Branch selection options
+			branchesToTest: {
 				type: 'select',
-				label: 'Test branches',
+				label: 'Foreground Branches',
 				default: 'All',
-				options: ['All', 'Internal', 'Leaves', 'Unlabeled-branches', 'Test']
+				options: ['All', 'Internal', 'Leaves', 'Unlabeled', 'Custom', 'Interactive'],
+				description: 'Select foreground branches to test for positive selection. All other branches will be treated as background.'
 			},
-			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
-			synonymousRateVariation: {
-				type: 'boolean',
-				label: 'Synonymous rate variation',
-				default: true
+			customBranches: {
+				type: 'text',
+				label: 'Custom foreground branches (comma-separated or regex)',
+				default: '',
+				placeholder: 'e.g. Node1,Node2 or /^human/i',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Custom'],
+				description: 'Comma-separated branch names or regex pattern for foreground branches'
+			},
+			interactiveTree: {
+				type: 'interactive-tree',
+				label: 'Select foreground branches on tree',
+				default: '',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Interactive'],
+				description: 'Click on tree branches to select them as foreground branches for testing'
+			},
+			// Core BUSTED parameters
+			srv: {
+				type: 'select',
+				label: 'Synonymous rate variation (BUSTED-S)',
+				default: 'Yes',
+				options: ['Yes', 'No', 'Branch-site'],
+				description: 'Include variations in synonymous substitution rates'
+			},
+			errorSink: {
+				type: 'select',
+				label: 'Error protection (BUSTED-E)',
+				default: 'No',
+				options: ['Yes', 'No'],
+				description: 'Enhance robustness against alignment errors'
 			},
 			multipleHits: {
 				type: 'select',
-				label: 'Multiple hits',
-				default: 'Double',
-				options: ['None', 'Double', 'Double+Triple']
+				label: 'Multiple Hits',
+				default: 'None',
+				options: ['None', 'Double', 'Double+Triple'],
+				description: 'Support for handling multiple nucleotide substitutions'
+			},
+			// Advanced parameters
+			rates: {
+				type: 'number',
+				label: 'Omega rate classes',
+				default: 3,
+				min: 2,
+				max: 10,
+				step: 1,
+				description: 'Number of omega rate classes in the model'
+			},
+			synRates: {
+				type: 'number',
+				label: 'Synonymous rate classes',
+				default: 3,
+				min: 2,
+				max: 10,
+				step: 1,
+				description: 'Number of synonymous rate classes in the model'
+			},
+			gridSize: {
+				type: 'number',
+				label: 'Grid size',
+				default: 250,
+				min: 50,
+				max: 1000,
+				step: 50,
+				description: 'Number of points in initial distributional guess for likelihood fitting'
+			},
+			startingPoints: {
+				type: 'number',
+				label: 'Starting points',
+				default: 1,
+				min: 1,
+				max: 10,
+				step: 1,
+				description: 'Number of initial random guesses to seed rate values optimization'
 			}
 		},
 		gard: {
@@ -352,28 +443,50 @@
 			maxBreakpoints: { type: 'number', label: 'Max breakpoints', default: 10, min: 1, max: 50 }
 		},
 		bgm: {
-			chainLength: {
+			steps: {
 				type: 'number',
-				label: 'Chain length',
-				default: 2500000,
-				min: 100000,
-				max: 10000000,
-				step: 100000
+				label: 'Chain length steps',
+				default: 10000,
+				min: 1000,
+				max: 100000000,
+				step: 1000,
+				description: 'Length of each MCMC chain'
 			},
 			burnIn: {
 				type: 'number',
 				label: 'Burn-in samples',
-				default: 1000000,
-				min: 50000,
-				max: 5000000,
-				step: 50000
+				default: 1000,
+				min: 100,
+				max: 100000,
+				step: 100,
+				description: 'Number of burn-in samples to discard'
 			},
-			samples: { type: 'number', label: 'Samples', default: 100, min: 50, max: 1000 },
-			substitutionModel: {
-				type: 'select',
-				label: 'Substitution model',
-				default: 'GTR',
-				options: ['JC69', 'HKY85', 'TN93', 'GTR']
+			samples: {
+				type: 'number',
+				label: 'Samples',
+				default: 100,
+				min: 10,
+				max: 10000,
+				step: 10,
+				description: 'Number of samples to collect'
+			},
+			maxParents: {
+				type: 'number',
+				label: 'Maximum parents per node',
+				default: 1,
+				min: 0,
+				max: 10,
+				step: 1,
+				description: 'Maximum number of parents allowed per node in the graphical model'
+			},
+			minSubs: {
+				type: 'number',
+				label: 'Minimum substitutions per site',
+				default: 1,
+				min: 1,
+				max: 100,
+				step: 1,
+				description: 'Minimum number of substitutions required per site'
 			}
 		},
 		fade: {
@@ -862,10 +975,9 @@
 		{#if selectedMethod && methodOptions[selectedMethod] && methodOptions[selectedMethod].branchesToTest === 'Interactive'}
 			<div class="interactive-tree-section">
 				<div class="tree-section-header">
-					<h4 class="tree-section-title">Interactive Branch Selection</h4>
+					<h4 class="tree-section-title">Interactive Foreground Branch Selection</h4>
 					<p class="tree-section-description">
-						Click on tree branches to select them for testing. Use the dropdown menu on nodes for
-						additional options.
+						Click on tree branches to select them as <strong>foreground branches</strong> for testing. All other branches will be treated as <strong>background branches</strong>. Use the dropdown menu on nodes for additional options.
 					</p>
 				</div>
 

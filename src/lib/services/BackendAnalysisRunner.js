@@ -279,17 +279,57 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					posterior: config.posteriorThreshold || 0.9
 				};
 
-			case 'contrast-fel':
+			case 'absrel':
 				return {
 					...baseParams,
-					// Map Contrast-FEL specific parameters to backend format
-					srv: config.srv === 'Yes' ? 'Yes' : 'No',
-					permutations: config.permutations === 'Yes' ? 'Yes' : 'No',
-					pvalue: config.pvalue || config.pValueThreshold || 0.05,
-					qvalue: config.qvalue || config.qValueThreshold || 0.20,
-					'branch-set': config.branchSet || config['branch-set'] || '',
-					output: config.output || ''
+					// Map aBSREL-specific parameters to backend format
+					branches: config.branchesToTest || 'All',
+					multiple_hits: config.multipleHits || 'None',
+					srv: config.srv || 'Yes',
+					blb: config.blb || 1.0
 				};
+
+			case 'bgm':
+				return {
+					...baseParams,
+					branches: 'All',
+					code: 'Universal',
+					type: 'codon',
+					steps: config.steps || 10000,
+					'burn-in': config.burnIn || 1000,
+					samples: config.samples || 100,
+					'chain-sample': 100,
+					'max-parents': config.maxParents || 1,
+					'min-subs': config.minSubs || 1
+				};
+
+			case 'busted':
+				// Handle both camelCase and kebab-case parameter names
+				const errorSinkValue = config.errorSink || config['error-sink'];
+				return {
+					...baseParams,
+					// Map BUSTED-specific parameters to backend format
+					branches: config.branchesToTest || 'All',
+					srv: config.srv || 'Yes',
+					'error-sink': errorSinkValue === true ? 'Yes' : errorSinkValue === false ? 'No' : (errorSinkValue || 'No'),
+					'multiple-hits': config.multipleHits || config['multiple-hits'] || 'None',
+					rates: config.rates || 3,
+					'syn-rates': config.synRates || config['syn-rates'] || 3,
+					'grid-size': config.gridSize || config['grid-size'] || 250,
+					'starting-points': config.startingPoints || config['starting-points'] || 1
+				};
+
+		case 'contrast-fel':
+			return {
+				...baseParams,
+				// Map Contrast-FEL specific parameters to backend format
+				srv: config.srv === 'Yes' ? 'Yes' : 'No',
+				permutations: config.permutations === 'Yes' ? 'Yes' : 'No',
+				pvalue: config.pvalue || config.pValueThreshold || 0.05,
+				qvalue: config.qvalue || config.qValueThreshold || 0.20,
+				'branch-set': config.branchSet || config['branch-set'] || '',
+				output: config.output || ''
+			};
 
 			default:
 				return baseParams;
