@@ -998,7 +998,11 @@
 		{#if selectedMethod && methodOptions[selectedMethod] && methodOptions[selectedMethod].branchesToTest === 'Interactive'}
 			<div class="interactive-tree-section">
 				<div class="tree-section-header">
-					<!-- Debug: selectedMethod = {selectedMethod} -->
+					<p style="background: cyan; padding: 0.5rem; margin: 0;">
+						DEBUG MethodSelector: selectedMethod = "{selectedMethod}" |
+						Is contrast-fel? {selectedMethod === 'contrast-fel'} |
+						Mode will be: {selectedMethod === 'contrast-fel' ? 'multi-set' : 'single-set'}
+					</p>
 					{#if selectedMethod === 'contrast-fel'}
 						<h4 class="tree-section-title">Interactive Branch Set Selection</h4>
 						<p class="tree-section-description">
