@@ -559,12 +559,22 @@
 			}
 		},
 		'contrast-fel': {
-			// Branch set configuration
+			// Branch selection options
+			branchesToTest: {
+				type: 'select',
+				label: 'Branch Selection Mode',
+				default: 'Custom',
+				options: ['Custom', 'Interactive'],
+				description: 'How to specify branch sets for comparison'
+			},
+			// Custom branch set configuration (when not using Interactive)
 			branchSet1: {
 				type: 'text',
 				label: 'Branch Set 1 (Source)',
 				default: 'Source',
 				placeholder: 'e.g. Source, Internal, Leaves',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Custom'],
 				description: 'First group of branches to compare'
 			},
 			branchSet2: {
@@ -572,6 +582,8 @@
 				label: 'Branch Set 2 (Test)',
 				default: 'Test',
 				placeholder: 'e.g. Test, Unlabeled, Custom',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Custom'],
 				description: 'Second group of branches to compare'
 			},
 			branchSet3: {
@@ -579,7 +591,18 @@
 				label: 'Branch Set 3 (optional)',
 				default: '',
 				placeholder: 'e.g. Reference, Background',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Custom'],
 				description: 'Optional third group of branches for comparison'
+			},
+			// Interactive tree selection
+			interactiveTree: {
+				type: 'interactive-tree',
+				label: 'Select branch sets on tree',
+				default: '',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Interactive'],
+				description: 'Click on tree branches to assign them to different sets for comparison'
 			},
 			// Core Contrast-FEL parameters
 			srv: {
@@ -975,10 +998,17 @@
 		{#if selectedMethod && methodOptions[selectedMethod] && methodOptions[selectedMethod].branchesToTest === 'Interactive'}
 			<div class="interactive-tree-section">
 				<div class="tree-section-header">
-					<h4 class="tree-section-title">Interactive Foreground Branch Selection</h4>
-					<p class="tree-section-description">
-						Click on tree branches to select them as <strong>foreground branches</strong> for testing. All other branches will be treated as <strong>background branches</strong>. Use the dropdown menu on nodes for additional options.
-					</p>
+					{#if selectedMethod === 'contrast-fel'}
+						<h4 class="tree-section-title">Interactive Branch Set Selection</h4>
+						<p class="tree-section-description">
+							Click on tree branches to assign them to different <strong>branch sets</strong> for comparison. Use the dropdown menu on nodes to assign branches to Set 1, Set 2, or Set 3.
+						</p>
+					{:else}
+						<h4 class="tree-section-title">Interactive Foreground Branch Selection</h4>
+						<p class="tree-section-description">
+							Click on tree branches to select them as <strong>foreground branches</strong> for testing. All other branches will be treated as <strong>background branches</strong>. Use the dropdown menu on nodes for additional options.
+						</p>
+					{/if}
 				</div>
 
 				{#if selectedTreeData}
