@@ -305,3 +305,96 @@ choices = [
     { value = "Yes", description = "[Default] Perform branch length re-optimization under the full codon model" },
     { value = "No", description = "Skip branch length re-optimization under the full codon model (faster but less precise)" },
 ]
+
+[contrast-fel]
+description = "Contrast-FEL (Contrast Fixed Effects Likelihood) is a method used to assess whether selective pressures differ between two or more sets of branches at a particular site in a phylogenetic tree."
+
+[[contrast-fel.options]]
+name = "code"
+description = "Which genetic code should be used"
+takes_value = true
+type = "string"
+default = "Universal"
+choices = [
+    { value = "Universal", description = "Universal code" },
+    { value = "Vertebrate mtDNA", description = "Vertebrate mitochondrial DNA code" },
+    { value = "Yeast mtDNA", description = "Yeast mitochondrial DNA code" },
+    { value = "Mold/Protozoan mtDNA", description = "Mold, Protozoan and Coelenterate mt; Mycoplasma/Spiroplasma" },
+    { value = "Invertebrate mtDNA", description = "Invertebrate mitochondrial DNA code" },
+    { value = "Ciliate Nuclear", description = "Ciliate, Dasycladacean and Hexamita Nuclear code" },
+    { value = "Echinoderm mtDNA", description = "Echinoderm mitochondrial DNA code" },
+    { value = "Euplotid Nuclear", description = "Euplotid Nuclear code" },
+    { value = "Alt. Yeast Nuclear", description = "Alternative Yeast Nuclear code" },
+    { value = "Ascidian mtDNA", description = "Ascidian mitochondrial DNA code" },
+    { value = "Flatworm mtDNA", description = "Flatworm mitochondrial DNA code" },
+    { value = "Blepharisma Nuclear", description = "Blepharisma Nuclear code" },
+]
+
+[[contrast-fel.options]]
+name = "alignment"
+description = "An in-frame codon alignment in one of the formats supported by HyPhy"
+takes_value = true
+type = "file"
+choices = []
+
+[[contrast-fel.options]]
+name = "tree"
+description = "A phylogenetic tree (optionally annotated with {})"
+takes_value = true
+type = "tree"
+default = ""
+choices = []
+
+[[contrast-fel.options]]
+name = "branch-set"
+description = "Specify which branches to compare (e.g., Source and Test groups)"
+takes_value = true
+type = "branch-set"
+default = ""
+choices = []
+
+[[contrast-fel.options]]
+name = "srv"
+description = "Include synonymous rate variation in the model"
+takes_value = true
+type = "string"
+default = "Yes"
+choices = [
+    { value = "Yes", description = "[Recommended] Consider synonymous rate variation (dS varies across sites)." },
+    { value = "No", description = "Ignore synonymous rate variation (dS := 1 at each site)." },
+]
+
+[[contrast-fel.options]]
+name = "permutations"
+description = "Specify whether to perform permutation tests"
+takes_value = true
+type = "string"
+default = "Yes"
+choices = [
+    { value = "Yes", description = "[Default] Perform permutation significance tests" },
+    { value = "No", description = "Skip permutation significance tests" },
+]
+
+[[contrast-fel.options]]
+name = "pvalue"
+description = "The significance value for site tests"
+takes_value = true
+type = "number"
+default = 0.05
+choices = []
+
+[[contrast-fel.options]]
+name = "qvalue"
+description = "The significance value for False Discovery Rate reporting"
+takes_value = true
+type = "number"
+default = 0.20
+choices = []
+
+[[contrast-fel.options]]
+name = "output"
+description = "Specify an output file for the results"
+takes_value = true
+type = "string"
+default = ""
+choices = []

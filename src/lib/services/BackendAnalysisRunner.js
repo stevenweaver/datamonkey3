@@ -279,6 +279,18 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					posterior: config.posteriorThreshold || 0.9
 				};
 
+			case 'contrast-fel':
+				return {
+					...baseParams,
+					// Map Contrast-FEL specific parameters to backend format
+					srv: config.srv === 'Yes' ? 'Yes' : 'No',
+					permutations: config.permutations === 'Yes' ? 'Yes' : 'No',
+					pvalue: config.pvalue || config.pValueThreshold || 0.05,
+					qvalue: config.qvalue || config.qValueThreshold || 0.20,
+					'branch-set': config.branchSet || config['branch-set'] || '',
+					output: config.output || ''
+				};
+
 			default:
 				return baseParams;
 		}

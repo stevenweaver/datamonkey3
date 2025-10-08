@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac'];
+	const SUPPORTED_METHODS = ['fel', 'slac', 'contrast-fel'];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -92,7 +92,7 @@
 			name: 'Contrast-FEL',
 			fullName: 'Contrast Fixed Effects Likelihood',
 			shortDescription: 'Compare selection between groups',
-			supported: false
+			supported: true
 		}
 	};
 
@@ -446,22 +446,69 @@
 			}
 		},
 		'contrast-fel': {
-			branchSets: { type: 'select', label: 'Branch sets', default: '2', options: ['2', '3', '4'] },
-			pValueThreshold: {
+			// Branch set configuration
+			branchSet1: {
+				type: 'text',
+				label: 'Branch Set 1 (Source)',
+				default: 'Source',
+				placeholder: 'e.g. Source, Internal, Leaves',
+				description: 'First group of branches to compare'
+			},
+			branchSet2: {
+				type: 'text',
+				label: 'Branch Set 2 (Test)',
+				default: 'Test',
+				placeholder: 'e.g. Test, Unlabeled, Custom',
+				description: 'Second group of branches to compare'
+			},
+			branchSet3: {
+				type: 'text',
+				label: 'Branch Set 3 (optional)',
+				default: '',
+				placeholder: 'e.g. Reference, Background',
+				description: 'Optional third group of branches for comparison'
+			},
+			// Core Contrast-FEL parameters
+			srv: {
+				type: 'select',
+				label: 'Synonymous rate variation (recommended)',
+				default: 'Yes',
+				options: ['Yes', 'No'],
+				description: 'Include synonymous rate variation in the model'
+			},
+			permutations: {
+				type: 'select',
+				label: 'Perform permutation tests',
+				default: 'Yes',
+				options: ['Yes', 'No'],
+				description: 'Use permutation tests to evaluate significance'
+			},
+			// Statistical thresholds
+			pvalue: {
 				type: 'number',
 				label: 'P-value threshold',
-				default: 0.1,
+				default: 0.05,
 				min: 0.001,
 				max: 1,
-				step: 0.001
+				step: 0.001,
+				description: 'Significance value for site tests'
 			},
-			confidenceLevel: {
+			qvalue: {
 				type: 'number',
-				label: 'Confidence level',
-				default: 0.95,
-				min: 0.8,
-				max: 0.99,
-				step: 0.01
+				label: 'Q-value threshold (FDR)',
+				default: 0.20,
+				min: 0.001,
+				max: 1,
+				step: 0.001,
+				description: 'False Discovery Rate threshold for reporting'
+			},
+			// Output options
+			output: {
+				type: 'text',
+				label: 'Output file name (optional)',
+				default: '',
+				placeholder: 'e.g. contrast_results.json',
+				description: 'Custom name for output file (defaults to automatic naming)'
 			}
 		}
 	};
