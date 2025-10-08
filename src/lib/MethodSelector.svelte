@@ -1017,6 +1017,7 @@
 							treeData={selectedTreeData}
 							height={400}
 							width={800}
+							mode={selectedMethod === 'contrast-fel' ? 'multi-set' : 'single-set'}
 							on:selectionChange={handleBranchSelectionChange}
 						/>
 					</div>

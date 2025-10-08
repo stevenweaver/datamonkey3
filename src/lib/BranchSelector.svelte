@@ -13,11 +13,17 @@
 	export let treeData = '';
 	export let height = 400;
 	export let width = 800;
+	export let mode = 'single-set'; // 'single-set' for FG/BG, 'multi-set' for contrast-fel
 
 	// Component state
 	let treeContainer;
 	let tree;
 	let selectedBranches = [];
+
+	// Multi-set selection state (for contrast-fel)
+	let selectionSets = mode === 'multi-set' ? ['Set 1', 'Set 2'] : ['Foreground'];
+	let currentSetIndex = 0;
+	let setColors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']; // d3 category colors
 
 	onMount(() => {
 		if (treeData) {
@@ -28,6 +34,89 @@
 	// Watch for tree data changes
 	$: if (treeData && treeContainer) {
 		renderTree();
+	}
+
+	// Multi-set management functions
+	function addNewSet() {
+		const newSetName = `Set ${selectionSets.length + 1}`;
+		selectionSets = [...selectionSets, newSetName];
+		currentSetIndex = selectionSets.length - 1;
+	}
+
+	function deleteCurrentSet() {
+		if (selectionSets.length <= 1) {
+			alert('Cannot delete the only remaining set');
+			return;
+		}
+		// Remove branches tagged with this set
+		const setToDelete = selectionSets[currentSetIndex];
+		if (tree && tree.json) {
+			traverseAndRemoveSet(tree.json, setToDelete);
+		}
+		selectionSets = selectionSets.filter((_, i) => i !== currentSetIndex);
+		currentSetIndex = Math.max(0, currentSetIndex - 1);
+		updateSelectedBranches();
+	}
+
+	function renameCurrentSet(newName) {
+		const oldName = selectionSets[currentSetIndex];
+		selectionSets[currentSetIndex] = newName;
+		selectionSets = [...selectionSets];
+
+		// Update all nodes with old set name to new name
+		if (tree && tree.json) {
+			traverseAndRenameSet(tree.json, oldName, newName);
+			updateSelectedBranches();
+		}
+	}
+
+	function switchToSet(index) {
+		currentSetIndex = index;
+	}
+
+	function traverseAndRemoveSet(node, setName) {
+		if (node[setName]) {
+			delete node[setName];
+		}
+		if (node.children) {
+			node.children.forEach(child => traverseAndRemoveSet(child, setName));
+		}
+	}
+
+	function traverseAndRenameSet(node, oldName, newName) {
+		if (node[oldName]) {
+			node[newName] = true;
+			delete node[oldName];
+		}
+		if (node.children) {
+			node.children.forEach(child => traverseAndRenameSet(child, oldName, newName));
+		}
+	}
+
+	// Update node styling based on set memberships
+	function updateNodeStyling(node, targetElement) {
+		const element = d3.select(targetElement);
+
+		// Find which sets this node belongs to
+		const nodeSets = [];
+		selectionSets.forEach((setName, index) => {
+			if (node[setName]) {
+				nodeSets.push(index);
+			}
+		});
+
+		if (nodeSets.length === 0) {
+			// No sets: reset to default
+			element.style('fill', '').style('stroke', '');
+		} else if (nodeSets.length === 1) {
+			// One set: use that set's color
+			const color = setColors[nodeSets[0]];
+			element.style('fill', color).style('stroke', color);
+		} else {
+			// Multiple sets: use special styling (e.g., striped or mixed)
+			const color = setColors[nodeSets[0]];
+			element.style('fill', color).style('stroke', color).classed('branch-multiple', true);
+		}
 	}
 
 	function renderTree() {
@@ -104,22 +193,38 @@
 								console.log('🖱️🔥 This is a source node, using source:', nodeToSelect);
 							}
 
-							// Toggle selection
-							if (nodeToSelect.selected) {
-								nodeToSelect.selected = false;
-								delete nodeToSelect.selected;
-								console.log('🖱️🔥 Deselected node:', nodeToSelect.name || 'unnamed');
-							} else {
-								nodeToSelect.selected = true;
-								console.log('🖱️🔥 Selected node:', nodeToSelect.name || 'unnamed');
-							}
+							// Toggle selection based on mode
+							if (mode === 'multi-set') {
+								// Multi-set mode: toggle current set on the node
+								const currentSet = selectionSets[currentSetIndex];
+								if (nodeToSelect[currentSet]) {
+									delete nodeToSelect[currentSet];
+									console.log('🖱️🔥 Removed node from set:', currentSet, nodeToSelect.name || 'unnamed');
+								} else {
+									nodeToSelect[currentSet] = true;
+									console.log('🖱️🔥 Added node to set:', currentSet, nodeToSelect.name || 'unnamed');
+								}
 
-							// Update visual styling
-							const targetElement = d3.select(event.target);
-							if (nodeToSelect.selected) {
-								targetElement.style('fill', 'red').style('stroke', 'red');
+								// Update visual styling with set color
+								updateNodeStyling(nodeToSelect, event.target);
 							} else {
-								targetElement.style('fill', '').style('stroke', '');
+								// Single-set mode: toggle foreground selection
+								if (nodeToSelect.selected) {
+									nodeToSelect.selected = false;
+									delete nodeToSelect.selected;
+									console.log('🖱️🔥 Deselected node:', nodeToSelect.name || 'unnamed');
+								} else {
+									nodeToSelect.selected = true;
+									console.log('🖱️🔥 Selected node:', nodeToSelect.name || 'unnamed');
+								}
+
+								// Update visual styling
+								const targetElement = d3.select(event.target);
+								if (nodeToSelect.selected) {
+									targetElement.style('fill', 'red').style('stroke', 'red');
+								} else {
+									targetElement.style('fill', '').style('stroke', '');
+								}
 							}
 
 							// Trigger update
@@ -251,20 +356,30 @@
 			const taggedNewick = tree.getNewick((node) => {
 				const tags = [];
 
-				console.log('🏷️🔥 Processing node:', node.name || 'unnamed', 'selected:', !!node.selected);
+				if (mode === 'multi-set') {
+					// Multi-set mode: check all sets
+					console.log('🏷️🔥 Processing node (multi-set):', node.name || 'unnamed');
+					selectionSets.forEach((setName) => {
+						if (node[setName]) {
+							tags.push(setName);
+							console.log('🏷️🔥 Node belongs to set:', setName);
+						}
+					});
+				} else {
+					// Single-set mode: check for foreground selection
+					console.log('🏷️🔥 Processing node (single-set):', node.name || 'unnamed', 'selected:', !!node.selected);
+					if (node.selected) {
+						tags.push('FG'); // Use uppercase FG tags
+						console.log('🏷️🔥 Node is selected, adding FG tag');
+					}
 
-				// Check if node is selected (using phylotree's selected property)
-				if (node.selected) {
-					tags.push('FG'); // Use uppercase FG tags
-					console.log('🏷️🔥 Node is selected, adding FG tag');
-				}
-
-				// Future support for test/reference branches
-				if (node.test) {
-					tags.push('TEST');
-				}
-				if (node.reference) {
-					tags.push('REFERENCE');
+					// Future support for test/reference branches
+					if (node.test) {
+						tags.push('TEST');
+					}
+					if (node.reference) {
+						tags.push('REFERENCE');
+					}
 				}
 
 				// Return tags in curly braces if any exist
@@ -312,6 +427,61 @@
 
 <div class="minimal-branch-selector">
 	<h3>Minimal BranchSelector Test</h3>
+
+	{#if mode === 'multi-set'}
+		<div class="set-management-controls">
+			<div class="set-selector-group">
+				<label for="set-selector">Current Set:</label>
+				<select
+					id="set-selector"
+					bind:value={currentSetIndex}
+					on:change={() => switchToSet(currentSetIndex)}
+					style="color: {setColors[currentSetIndex]}; font-weight: bold;"
+				>
+					{#each selectionSets as setName, index}
+						<option value={index} style="color: {setColors[index]}">
+							{setName}
+						</option>
+					{/each}
+				</select>
+			</div>
+
+			<div class="set-name-input">
+				<label for="set-name">Rename:</label>
+				<input
+					id="set-name"
+					type="text"
+					value={selectionSets[currentSetIndex]}
+					on:input={(e) => renameCurrentSet(e.target.value)}
+					style="border-color: {setColors[currentSetIndex]}; color: {setColors[currentSetIndex]};"
+				/>
+			</div>
+
+			<div class="set-actions">
+				<button on:click={addNewSet} class="btn-add-set">+ New Set</button>
+				<button
+					on:click={deleteCurrentSet}
+					class="btn-delete-set"
+					disabled={selectionSets.length <= 1}
+				>
+					Delete Set
+				</button>
+			</div>
+
+			<div class="set-legend">
+				<strong>Sets:</strong>
+				{#each selectionSets as setName, index}
+					<span
+						class="set-tag"
+						style="background-color: {setColors[index]}; opacity: {index === currentSetIndex ? 1 : 0.5};"
+					>
+						{setName}
+					</span>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
 	<div
 		id="tree-container-id"
 		bind:this={treeContainer}
@@ -334,6 +504,105 @@
 	.tree-container {
 		background: #f9fafb;
 		overflow: auto;
+	}
+
+	/* Multi-set management controls */
+	.set-management-controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		align-items: center;
+		padding: 1rem;
+		background: #f9fafb;
+		border: 1px solid #e5e7eb;
+		border-radius: 6px;
+		margin-bottom: 1rem;
+	}
+
+	.set-selector-group {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.set-selector-group select {
+		padding: 0.5rem;
+		border: 2px solid #e5e7eb;
+		border-radius: 4px;
+		font-size: 14px;
+	}
+
+	.set-name-input {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.set-name-input input {
+		padding: 0.5rem;
+		border: 2px solid #e5e7eb;
+		border-radius: 4px;
+		font-size: 14px;
+		font-weight: bold;
+	}
+
+	.set-actions {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.btn-add-set,
+	.btn-delete-set {
+		padding: 0.5rem 1rem;
+		border: none;
+		border-radius: 4px;
+		font-size: 14px;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.btn-add-set {
+		background: #10b981;
+		color: white;
+	}
+
+	.btn-add-set:hover {
+		background: #059669;
+	}
+
+	.btn-delete-set {
+		background: #ef4444;
+		color: white;
+	}
+
+	.btn-delete-set:hover:not(:disabled) {
+		background: #dc2626;
+	}
+
+	.btn-delete-set:disabled {
+		background: #9ca3af;
+		cursor: not-allowed;
+	}
+
+	.set-legend {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.set-tag {
+		padding: 0.25rem 0.75rem;
+		border-radius: 12px;
+		color: white;
+		font-size: 12px;
+		font-weight: 600;
+	}
+
+	/* Styling for branches in multiple sets */
+	:global(.branch-multiple) {
+		stroke-width: 3px !important;
+		stroke-dasharray: 5, 5 !important;
 	}
 
 	/* Support for phylotree dropdown menus */
