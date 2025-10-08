@@ -1000,10 +1000,10 @@
 				<div class="tree-section-header">
 					<p style="background: cyan; padding: 0.5rem; margin: 0;">
 						DEBUG MethodSelector: selectedMethod = "{selectedMethod}" |
-						Is contrast-fel? {selectedMethod === 'contrast-fel'} |
-						Mode will be: {selectedMethod === 'contrast-fel' ? 'multi-set' : 'single-set'}
+						Is contrast-fel? {selectedMethod?.toLowerCase() === 'contrast-fel'} |
+						Mode will be: {selectedMethod?.toLowerCase() === 'contrast-fel' ? 'multi-set' : 'single-set'}
 					</p>
-					{#if selectedMethod === 'contrast-fel'}
+					{#if selectedMethod?.toLowerCase() === 'contrast-fel'}
 						<h4 class="tree-section-title">Interactive Branch Set Selection</h4>
 						<p class="tree-section-description">
 							Click on tree branches to assign them to different <strong>branch sets</strong> for comparison. Use the dropdown menu on nodes to assign branches to Set 1, Set 2, or Set 3.
@@ -1023,7 +1023,7 @@
 								treeData={selectedTreeData}
 								height={400}
 								width={800}
-								mode={selectedMethod === 'contrast-fel' ? 'multi-set' : 'single-set'}
+								mode={selectedMethod?.toLowerCase() === 'contrast-fel' ? 'multi-set' : 'single-set'}
 								on:selectionChange={handleBranchSelectionChange}
 							/>
 						{/key}
