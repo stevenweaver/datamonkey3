@@ -1014,13 +1014,15 @@
 
 				{#if selectedTreeData}
 					<div class="tree-selector-wrapper">
-						<BranchSelector
-							treeData={selectedTreeData}
-							height={400}
-							width={800}
-							mode={selectedMethod === 'contrast-fel' ? 'multi-set' : 'single-set'}
-							on:selectionChange={handleBranchSelectionChange}
-						/>
+						{#key selectedMethod}
+							<BranchSelector
+								treeData={selectedTreeData}
+								height={400}
+								width={800}
+								mode={selectedMethod === 'contrast-fel' ? 'multi-set' : 'single-set'}
+								on:selectionChange={handleBranchSelectionChange}
+							/>
+						{/key}
 					</div>
 
 					{#if methodOptions[selectedMethod].selectedBranchCount > 0}
