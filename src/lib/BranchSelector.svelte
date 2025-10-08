@@ -30,19 +30,13 @@
 	// Reset current index when mode changes
 	$: if (mode) {
 		currentSetIndex = 0;
-		console.log('🔄 Mode changed to:', mode, 'selectionSets:', selectionSets);
 	}
 
 	onMount(() => {
-		console.log('🎨 BranchSelector mounted with mode:', mode);
-		console.log('🎨 Initial selectionSets:', selectionSets);
 		if (treeData) {
 			renderTree();
 		}
 	});
-
-	// Log when mode changes
-	$: console.log('🎨 BranchSelector mode changed to:', mode, 'selectionSets:', selectionSets);
 
 	// Watch for tree data changes
 	$: if (treeData && treeContainer) {
@@ -443,8 +437,7 @@
 </svelte:head>
 
 <div class="minimal-branch-selector">
-	<h3>Minimal BranchSelector Test</h3>
-	<p style="background: yellow; padding: 0.5rem;">DEBUG: Mode = {mode}, Sets = {JSON.stringify(selectionSets)}</p>
+	<h3>Branch Selection</h3>
 
 	{#if mode === 'multi-set'}
 		<div class="set-management-controls">
