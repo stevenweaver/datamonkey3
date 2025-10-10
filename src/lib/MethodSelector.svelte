@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac', 'fubar', 'absrel', 'bgm', 'busted', 'contrast-fel'];
+	const SUPPORTED_METHODS = ['fel', 'slac', 'fubar', 'absrel', 'bgm', 'busted', 'contrast-fel', 'gard'];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -56,7 +56,7 @@
 			name: 'GARD',
 			fullName: 'Genetic Algorithm for Recombination Detection',
 			shortDescription: 'Detect recombination breakpoints',
-			supported: false
+			supported: true
 		},
 		bgm: {
 			name: 'BGM',
@@ -435,20 +435,42 @@
 			}
 		},
 		gard: {
-			rateClasses: { type: 'number', label: 'Rate classes', default: 4, min: 2, max: 10 },
-			modelSelection: {
+			datatype: {
 				type: 'select',
-				label: 'Model selection',
-				default: 'AIC',
-				options: ['AIC', 'AICc', 'BIC']
+				label: 'Data type',
+				default: 'codon',
+				options: ['codon', 'nucleotide', 'protein'],
+				description: 'Type of data to analyze for recombination'
 			},
-			breakpointMethod: {
+			model: {
 				type: 'select',
-				label: 'Breakpoint method',
-				default: 'GA',
-				options: ['GA', 'Exhaustive']
+				label: 'Substitution model',
+				default: 'JTT',
+				options: ['JTT', 'WAG', 'LG', 'Dayhoff', 'GTR', 'HKY85', 'TN93', 'JC69'],
+				description: 'Substitution model to use for the analysis'
 			},
-			maxBreakpoints: { type: 'number', label: 'Max breakpoints', default: 10, min: 1, max: 50 }
+			mode: {
+				type: 'select',
+				label: 'Run mode',
+				default: 'Normal',
+				options: ['Normal', 'Faster'],
+				description: 'Normal: thorough analysis; Faster: quicker but less comprehensive'
+			},
+			rv: {
+				type: 'select',
+				label: 'Site-to-site rate variation',
+				default: 'None',
+				options: ['None', 'GDD', 'Gamma'],
+				description: 'Model for rate variation among sites (None, General Discrete, Beta-Gamma)'
+			},
+			rate_classes: {
+				type: 'number',
+				label: 'Rate classes',
+				default: 4,
+				min: 2,
+				max: 10,
+				description: 'Number of discrete rate classes for rate variation'
+			}
 		},
 		bgm: {
 			steps: {

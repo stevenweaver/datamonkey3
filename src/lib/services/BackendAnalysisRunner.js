@@ -395,6 +395,20 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 				output: config.output || ''
 			};
 
+			case 'gard':
+				// Map frontend rv to backend site_to_site_variation
+				const rvMap = { None: 'none', GDD: 'general_discrete', Gamma: 'beta_gamma' };
+				return {
+					...baseParams,
+					// Map GARD-specific parameters to backend format
+					datatype: config.datatype || 'codon',
+					model: config.model || 'JTT',
+					run_mode: config.mode || 'Normal',
+					site_to_site_variation: rvMap[config.rv] || 'none',
+					rate_classes: config.rate_classes || 4,
+					max_breakpoints: config.max_breakpoints || 10000
+				};
+
 			default:
 				return baseParams;
 		}
