@@ -1,7 +1,7 @@
 {
 	"name": "datamonkey3",
 	"private": true,
-	"version": "0.1.0-beta.2",
+	"version": "0.1.0-beta.0",
 	"type": "module",
 	"license": "MIT",
 	"scripts": {
@@ -36,8 +36,7 @@
 		"deploy:cloudflare": "npx wrangler pages deploy .svelte-kit/cloudflare",
 		"deploy:cloudflare:storybook": "npm run build-storybook && npx wrangler pages deploy storybook-static --project-name datamonkey3-storybook",
 		"deploy:cloudflare:all": "./scripts/deploy-with-storybook.sh",
-		"dev:cloudflare": "npx wrangler pages dev .svelte-kit/cloudflare",
-		"clear-hyphy-cache": "./scripts/clear-hyphy-scope-cache.sh"
+		"dev:cloudflare": "npx wrangler pages dev .svelte-kit/cloudflare"
 	},
 	"devDependencies": {
 		"@chromatic-com/storybook": "^4.1.1",
@@ -86,7 +85,7 @@
 		"@biowasm/aioli": "^3.2.1",
 		"@sentry/sveltekit": "^9",
 		"d3": "^7.9.0",
-		"hyphy-scope": "1.4.1",
+		"hyphy-scope": "^1.5.0",
 		"marked": "^15.0.12",
 		"phylotree": "^2.1.0",
 		"socket.io-client": "^4.8.1",

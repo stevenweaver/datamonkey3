@@ -329,10 +329,9 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			case 'fubar':
 				return {
 					...baseParams,
-					chains: config.mcmcChains || 5,
-					samples: config.mcmcSamples || 2000000,
-					burnin: 1000000,
-					posterior: config.posteriorThreshold || 0.9
+					grid: config.grid || 20,
+					concentration_parameter: config.concentration_parameter || 0.5,
+					branches: 'All'
 				};
 
 			case 'absrel':

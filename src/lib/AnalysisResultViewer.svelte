@@ -21,9 +21,11 @@
 		SlacVisualization,
 		BgmVisualization,
 		FadeVisualization,
-		GardVisualization
+		GardVisualization,
+		FubarVisualization
 	} from 'hyphy-scope';
 	import AbsrelVisualizationWrapper from './AbsrelVisualizationWrapper.svelte';
+	import FubarVisualizationWrapper from './FubarVisualizationWrapper.svelte';
 
 	export let analysisId = null;
 
@@ -140,6 +142,8 @@
 				return RelaxVisualization;
 			case 'slac':
 				return SlacVisualization;
+			case 'fubar':
+				return FubarVisualizationWrapper;
 			case 'bgm':
 				return BgmVisualization;
 			case 'fade':
