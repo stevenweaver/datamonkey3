@@ -330,7 +330,8 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 				return {
 					...baseParams,
 					grid: config.grid || 20,
-					concentration_parameter: config.concentration_parameter || 0.5
+					concentration_parameter: config.concentration_parameter || 0.5,
+					branches: 'All'
 				};
 
 			case 'absrel':
