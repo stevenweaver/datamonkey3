@@ -269,23 +269,31 @@
 			}
 		},
 		fubar: {
+			grid: {
+				type: 'number',
+				label: 'Number of grid points',
+				default: 20,
+				min: 5,
+				max: 50,
+				description: 'Specifies the number of grid points for the Bayesian analysis'
+			},
+			concentration_parameter: {
+				type: 'number',
+				label: 'Concentration parameter',
+				default: 0.5,
+				min: 0.001,
+				max: 1,
+				step: 0.001,
+				description: 'The concentration parameter for the Dirichlet prior in the Bayesian estimation'
+			},
 			posteriorThreshold: {
 				type: 'number',
-				label: 'Posterior threshold',
+				label: 'Posterior probability threshold',
 				default: 0.9,
 				min: 0.5,
 				max: 0.99,
-				step: 0.01
-			},
-			gridPoints: { type: 'number', label: 'Grid points', default: 20, min: 5, max: 50 },
-			mcmcChains: { type: 'number', label: 'MCMC chains', default: 5, min: 2, max: 20 },
-			mcmcSamples: {
-				type: 'number',
-				label: 'MCMC samples',
-				default: 2000000,
-				min: 100000,
-				max: 10000000,
-				step: 100000
+				step: 0.01,
+				description: 'Sites with posterior probability above this threshold are considered under positive selection'
 			}
 		},
 		absrel: {
