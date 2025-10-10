@@ -7,6 +7,53 @@ import io from 'socket.io-client';
 import { DATAMONKEY_SERVER_URL } from '../config/env.ts';
 import { BaseAnalysisRunner } from './BaseAnalysisRunner.js';
 
+/**
+ * Strip embedded trees from alignment data
+ * Both NEXUS and FASTA files can contain embedded trees that take precedence over separate tree files
+ */
+function stripEmbeddedTrees(alignmentData) {
+	console.log('🌳 BACKEND: Checking for embedded trees in alignment data...');
+	let cleaned = alignmentData;
+
+	// Handle NEXUS format - look for TREES blocks
+	if (alignmentData.toLowerCase().includes('#nexus')) {
+		const treesBlockRegex = /begin\s+trees\s*;.*?end\s*;/gis;
+		const hasTreesBlock = treesBlockRegex.test(alignmentData);
+
+		if (hasTreesBlock) {
+			console.log('🌳 BACKEND: Found embedded TREES block in NEXUS file, removing it...');
+			cleaned = alignmentData.replace(treesBlockRegex, '');
+			console.log('🌳 BACKEND: Stripped TREES block from NEXUS file');
+		}
+	}
+
+	// Handle FASTA format - look for Newick trees appended at the end
+	const lines = cleaned.split('\n');
+	const filteredLines = [];
+
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i].trim();
+
+		// Check if this looks like a Newick tree (starts with parenthesis, contains colons and semicolon)
+		if (line.startsWith('(') && line.includes(':') && line.includes(';')) {
+			console.log('🌳 BACKEND: Found appended Newick tree in FASTA file, removing it...');
+			// Skip this line
+			continue;
+		}
+
+		// Keep all other lines
+		filteredLines.push(lines[i]);
+	}
+
+	const result = filteredLines.join('\n');
+
+	if (result !== alignmentData) {
+		console.log('🌳 BACKEND: Stripped embedded tree from alignment file');
+	}
+
+	return result;
+}
+
 class BackendAnalysisRunner extends BaseAnalysisRunner {
 	constructor() {
 		super();
@@ -173,15 +220,24 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			this.startAnalysisTracking(analysisId, method, 'backend', null, argsPreview);
 
 			// Submit to backend
-			const eventName = `${method.toLowerCase()}:spawn`;
+			// Map method names to backend socket event names
+			const methodNameMap = {
+				'contrast-fel': 'cfel'
+			};
+			const backendMethodName = methodNameMap[method.toLowerCase()] || method.toLowerCase();
+			const eventName = `${backendMethodName}:spawn`;
+
+			// Strip embedded trees from alignment data (NEXUS or FASTA)
+			const cleanedFastaData = stripEmbeddedTrees(fastaData);
+
 			console.log(`📤 Submitting ${method} analysis to backend:`, eventName, {
-				alignmentLength: fastaData.length,
+				alignmentLength: cleanedFastaData.length,
 				treeLength: treeData.length,
 				jobParams: analysisParams
 			});
 
 			const submitData = {
-				alignment: fastaData,
+				alignment: cleanedFastaData,
 				tree: treeData,
 				job: analysisParams
 			};
@@ -318,6 +374,27 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					'grid-size': config.gridSize || config['grid-size'] || 250,
 					'starting-points': config.startingPoints || config['starting-points'] || 1
 				};
+
+		case 'contrast-fel':
+			// Contrast-FEL uses branch-set as an array for multiple sets
+			const branchSets = [];
+			if (config.branchSet1 || config['branch-set1']) {
+				branchSets.push(config.branchSet1 || config['branch-set1'] || 'Set_1');
+			}
+			if (config.branchSet2 || config['branch-set2']) {
+				branchSets.push(config.branchSet2 || config['branch-set2'] || 'Set_2');
+			}
+
+			return {
+				...baseParams,
+				// Map Contrast-FEL specific parameters to backend format
+				srv: config.srv === 'Yes' ? 'Yes' : 'No',
+				permutations: config.permutations === 'Yes' ? 'Yes' : 'No',
+				pvalue: config.pvalue || config.pValueThreshold || 0.05,
+				qvalue: config.qvalue || config.qValueThreshold || 0.20,
+				'branch-set': branchSets.length > 0 ? branchSets : ['Set_1', 'Set_2'],
+				output: config.output || ''
+			};
 
 			default:
 				return baseParams;

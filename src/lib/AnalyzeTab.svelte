@@ -53,6 +53,71 @@
 		currentExecutionMode = executionMode || 'local';
 	}
 
+	/**
+	 * Strip embedded trees from alignment data
+	 * Both NEXUS and FASTA files can contain embedded trees that take precedence over separate tree files
+	 */
+	function stripEmbeddedTrees(alignmentData) {
+		console.log('🌳 Checking for embedded trees in alignment data...');
+		let cleaned = alignmentData;
+
+		// Handle NEXUS format - look for TREES blocks
+		if (alignmentData.toLowerCase().includes('#nexus')) {
+			const treesBlockRegex = /begin\s+trees\s*;.*?end\s*;/gis;
+			const hasTreesBlock = treesBlockRegex.test(alignmentData);
+
+			if (hasTreesBlock) {
+				console.log('🌳 Found embedded TREES block in NEXUS file, removing it...');
+				cleaned = alignmentData.replace(treesBlockRegex, '');
+				console.log('🌳 Stripped TREES block from NEXUS file');
+			}
+		}
+
+		// Handle FASTA format - look for Newick trees appended at the end
+		// Trees typically start with "(" and end with ";" after the sequences
+		const lines = cleaned.split('\n');
+		const filteredLines = [];
+		let inSequence = false;
+
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i].trim();
+
+			// Sequence header
+			if (line.startsWith('>')) {
+				inSequence = true;
+				filteredLines.push(lines[i]);
+				continue;
+			}
+
+			// Empty line
+			if (!line) {
+				filteredLines.push(lines[i]);
+				continue;
+			}
+
+			// Check if this looks like a Newick tree (starts with parenthesis, contains colons and semicolon)
+			if (line.startsWith('(') && line.includes(':') && line.includes(';')) {
+				console.log('🌳 Found appended Newick tree in FASTA file, removing it...');
+				console.log('🌳 Removed tree:', line.substring(0, 100) + '...');
+				// Skip this line (don't add to filtered)
+				continue;
+			}
+
+			// Regular sequence data
+			filteredLines.push(lines[i]);
+		}
+
+		const result = filteredLines.join('\n');
+
+		if (result !== alignmentData) {
+			console.log('🌳 Stripped embedded tree from alignment file');
+		} else {
+			console.log('🌳 No embedded trees found');
+		}
+
+		return result;
+	}
+
 	// Enhanced runMethod that handles both local and backend execution
 	async function enhancedRunMethod(method, config) {
 		try {
@@ -74,13 +139,21 @@
 				}
 
 				// Convert file to text to get FASTA data
-				const fastaData = await fullFileData.text();
+				let fastaData = await fullFileData.text();
 				if (!fastaData || !fastaData.trim()) {
 					throw new Error('No sequence data available in selected file');
 				}
 
+				// Strip embedded trees from alignment files (NEXUS or FASTA)
+				fastaData = stripEmbeddedTrees(fastaData);
+
 				// Get tree data based on user's selection
-				const treeData = getSelectedTreeData();
+				let treeData = getSelectedTreeData();
+
+				// Check if we have interactive branch selection with tagged tree
+				if (config.branchesToTest === 'Interactive' && config.interactiveTree) {
+					treeData = config.interactiveTree;
+				}
 				if (!treeData) {
 					const treeSourceName =
 						selectedTreeSource === 'uploaded'
@@ -93,13 +166,6 @@
 					);
 				}
 
-				console.log('📤 Submitting to backend with data:', {
-					method,
-					fastaLength: fastaData.length,
-					treeLength: treeData.length,
-					fileName: $currentFile.filename
-				});
-
 				const result = await backendAnalysisRunner.runAnalysis(
 					method,
 					config,
@@ -107,7 +173,6 @@
 					treeData,
 					$currentFile?.id
 				);
-				console.log('✅ Backend analysis submitted:', result);
 			} else {
 				// Local WASM execution
 				if (!$currentFile || !$currentFile.id) {
@@ -121,26 +186,20 @@
 				}
 
 				// Convert file to text to get FASTA data
-				const fastaData = await fullFileData.text();
+				let fastaData = await fullFileData.text();
 				if (!fastaData || !fastaData.trim()) {
 					throw new Error('No sequence data available in selected file');
 				}
+
+				// Strip embedded trees from alignment files (NEXUS or FASTA)
+				fastaData = stripEmbeddedTrees(fastaData);
 
 				// Get tree data based on user's selection
 				let treeData = getSelectedTreeData();
 
 				// Check if we have interactive branch selection with tagged tree
-				console.log('🔍 METHOD CONFIG DEBUG:', { method, config });
 				if (config.branchesToTest === 'Interactive' && config.interactiveTree) {
-					console.log('🌳 Using tagged tree from interactive selection');
-					console.log('Tagged tree length:', config.interactiveTree.length);
-					console.log('Tagged tree preview:', config.interactiveTree.substring(0, 300));
-					console.log('Tagged tree has {FG}:', config.interactiveTree.includes('{FG}'));
 					treeData = config.interactiveTree;
-				} else {
-					console.log('🌳 Using original tree data from tree store');
-					console.log('Original tree length:', treeData.length);
-					console.log('Original tree preview:', treeData.substring(0, 200));
 				}
 
 				if (!treeData) {
@@ -155,16 +214,6 @@
 					);
 				}
 
-				console.log('🖥️ Submitting to WASM with data:', {
-					method,
-					fastaLength: fastaData.length,
-					treeLength: treeData.length,
-					fileName: $currentFile.filename,
-					selectedTreeSource,
-					branchesToTest: config.branchesToTest,
-					hasTaggedTree: treeData.includes('{FG}')
-				});
-
 				const result = await wasmAnalysisRunner.runAnalysis(
 					method,
 					config,
@@ -172,7 +221,6 @@
 					treeData,
 					$currentFile?.id
 				);
-				console.log('✅ WASM analysis completed:', result);
 			}
 		} catch (error) {
 			console.error('❌ Analysis execution failed:', error);

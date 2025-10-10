@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac', 'absrel', 'bgm', 'busted'];
+	const SUPPORTED_METHODS = ['fel', 'slac', 'absrel', 'bgm', 'busted', 'contrast-fel'];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -92,7 +92,7 @@
 			name: 'Contrast-FEL',
 			fullName: 'Contrast Fixed Effects Likelihood',
 			shortDescription: 'Compare selection between groups',
-			supported: false
+			supported: true
 		}
 	};
 
@@ -559,22 +559,92 @@
 			}
 		},
 		'contrast-fel': {
-			branchSets: { type: 'select', label: 'Branch sets', default: '2', options: ['2', '3', '4'] },
-			pValueThreshold: {
+			// Branch selection options
+			branchesToTest: {
+				type: 'select',
+				label: 'Branch Selection Mode',
+				default: 'Custom',
+				options: ['Custom', 'Interactive'],
+				description: 'How to specify branch sets for comparison'
+			},
+			// Custom branch set configuration (when not using Interactive)
+			branchSet1: {
+				type: 'text',
+				label: 'Branch Set 1 (Source)',
+				default: 'Source',
+				placeholder: 'e.g. Source, Internal, Leaves',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Custom'],
+				description: 'First group of branches to compare'
+			},
+			branchSet2: {
+				type: 'text',
+				label: 'Branch Set 2 (Test)',
+				default: 'Test',
+				placeholder: 'e.g. Test, Unlabeled, Custom',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Custom'],
+				description: 'Second group of branches to compare'
+			},
+			branchSet3: {
+				type: 'text',
+				label: 'Branch Set 3 (optional)',
+				default: '',
+				placeholder: 'e.g. Reference, Background',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Custom'],
+				description: 'Optional third group of branches for comparison'
+			},
+			// Interactive tree selection
+			interactiveTree: {
+				type: 'interactive-tree',
+				label: 'Select branch sets on tree',
+				default: '',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Interactive'],
+				description: 'Click on tree branches to assign them to different sets for comparison'
+			},
+			// Core Contrast-FEL parameters
+			srv: {
+				type: 'select',
+				label: 'Synonymous rate variation (recommended)',
+				default: 'Yes',
+				options: ['Yes', 'No'],
+				description: 'Include synonymous rate variation in the model'
+			},
+			permutations: {
+				type: 'select',
+				label: 'Perform permutation tests',
+				default: 'Yes',
+				options: ['Yes', 'No'],
+				description: 'Use permutation tests to evaluate significance'
+			},
+			// Statistical thresholds
+			pvalue: {
 				type: 'number',
 				label: 'P-value threshold',
-				default: 0.1,
+				default: 0.05,
 				min: 0.001,
 				max: 1,
-				step: 0.001
+				step: 0.001,
+				description: 'Significance value for site tests'
 			},
-			confidenceLevel: {
+			qvalue: {
 				type: 'number',
-				label: 'Confidence level',
-				default: 0.95,
-				min: 0.8,
-				max: 0.99,
-				step: 0.01
+				label: 'Q-value threshold (FDR)',
+				default: 0.20,
+				min: 0.001,
+				max: 1,
+				step: 0.001,
+				description: 'False Discovery Rate threshold for reporting'
+			},
+			// Output options
+			output: {
+				type: 'text',
+				label: 'Output file name (optional)',
+				default: '',
+				placeholder: 'e.g. contrast_results.json',
+				description: 'Custom name for output file (defaults to automatic naming)'
 			}
 		}
 	};
@@ -679,6 +749,7 @@
 				`🚀 METHODSELECTOR DEBUG - methodOptions[${selectedMethod}]:`,
 				methodOptions[selectedMethod]
 			);
+			console.log(`🚀 METHODSELECTOR DEBUG - branchSet1: "${analysisConfig.branchSet1}", branchSet2: "${analysisConfig.branchSet2}"`);
 			runMethod(selectedMethod, analysisConfig);
 		}
 	}
@@ -695,17 +766,36 @@
 		console.log('🌳🔥 METHODSELECTOR - methodOptions exist:', !!methodOptions[selectedMethod]);
 
 		if (selectedMethod && methodOptions[selectedMethod]) {
-			const { taggedNewick, selectedBranches, count } = event.detail;
+			const { taggedNewick, selectedBranches, count, selectionSets, mode } = event.detail;
 			console.log('🌳🔥 METHODSELECTOR - Setting interactive tree:', {
 				taggedNewick: taggedNewick || '',
 				selectedBranches: selectedBranches || [],
 				count: count || 0,
 				taggedTreeLength: (taggedNewick || '').length,
-				hasFgTags: (taggedNewick || '').includes('{fg}')
+				hasFgTags: (taggedNewick || '').includes('{fg}'),
+				selectionSets: selectionSets || [],
+				mode: mode || 'single-set'
 			});
 			methodOptions[selectedMethod].interactiveTree = taggedNewick || '';
 			methodOptions[selectedMethod].selectedBranchCount = count || 0;
 			methodOptions[selectedMethod].selectedBranchNames = selectedBranches || [];
+
+			// For Contrast-FEL multi-set mode, use the actual set names as branch-set parameters
+			console.log('🌳🔥 METHODSELECTOR - Checking Contrast-FEL conditions:', {
+				selectedMethod: selectedMethod,
+				selectedMethodLower: selectedMethod?.toLowerCase(),
+				isContrastFel: selectedMethod?.toLowerCase() === 'contrast-fel',
+				mode: mode,
+				isMultiSet: mode === 'multi-set',
+				selectionSets: selectionSets,
+				selectionSetsLength: selectionSets?.length
+			});
+			if (selectedMethod?.toLowerCase() === 'contrast-fel' && mode === 'multi-set' && selectionSets && selectionSets.length >= 2) {
+				console.log('🌳🔥 METHODSELECTOR - Setting Contrast-FEL branch sets:', selectionSets);
+				methodOptions[selectedMethod].branchSet1 = selectionSets[0];
+				methodOptions[selectedMethod].branchSet2 = selectionSets[1];
+			}
+
 			methodOptions = { ...methodOptions }; // Trigger reactivity
 			console.log(
 				'🌳🔥 METHODSELECTOR - Updated methodOptions[' + selectedMethod + ']:',
@@ -928,20 +1018,30 @@
 		{#if selectedMethod && methodOptions[selectedMethod] && methodOptions[selectedMethod].branchesToTest === 'Interactive'}
 			<div class="interactive-tree-section">
 				<div class="tree-section-header">
-					<h4 class="tree-section-title">Interactive Foreground Branch Selection</h4>
-					<p class="tree-section-description">
-						Click on tree branches to select them as <strong>foreground branches</strong> for testing. All other branches will be treated as <strong>background branches</strong>. Use the dropdown menu on nodes for additional options.
-					</p>
+					{#if selectedMethod?.toLowerCase() === 'contrast-fel'}
+						<h4 class="tree-section-title">Interactive Branch Set Selection</h4>
+						<p class="tree-section-description">
+							Click on tree branches to assign them to different <strong>branch sets</strong> for comparison. Use the dropdown menu on nodes to assign branches to Set 1, Set 2, or Set 3.
+						</p>
+					{:else}
+						<h4 class="tree-section-title">Interactive Foreground Branch Selection</h4>
+						<p class="tree-section-description">
+							Click on tree branches to select them as <strong>foreground branches</strong> for testing. All other branches will be treated as <strong>background branches</strong>. Use the dropdown menu on nodes for additional options.
+						</p>
+					{/if}
 				</div>
 
 				{#if selectedTreeData}
 					<div class="tree-selector-wrapper">
-						<BranchSelector
-							treeData={selectedTreeData}
-							height={400}
-							width={800}
-							on:selectionChange={handleBranchSelectionChange}
-						/>
+						{#key selectedMethod}
+							<BranchSelector
+								treeData={selectedTreeData}
+								height={400}
+								width={800}
+								mode={selectedMethod?.toLowerCase() === 'contrast-fel' ? 'multi-set' : 'single-set'}
+								on:selectionChange={handleBranchSelectionChange}
+							/>
+						{/key}
 					</div>
 
 					{#if methodOptions[selectedMethod].selectedBranchCount > 0}
