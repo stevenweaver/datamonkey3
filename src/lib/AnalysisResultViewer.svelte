@@ -127,6 +127,7 @@
 		const methodLower = method.toLowerCase();
 		switch (methodLower) {
 			case 'fel':
+			case 'contrast-fel':
 				return HyphyScopeFel;
 			case 'meme':
 				return MemeVisualization;
@@ -291,7 +292,7 @@
 								</div>
 							{/if}
 						</div>
-					{:else if ['FEL', 'SLAC', 'MEME', 'BUSTED', 'FUBAR', 'aBSREL', 'ABSREL', 'GARD', 'MULTI-HIT', 'NRM'].includes(analysis.method)}
+					{:else if ['FEL', 'CONTRAST-FEL', 'SLAC', 'MEME', 'BUSTED', 'FUBAR', 'aBSREL', 'ABSREL', 'GARD', 'MULTI-HIT', 'NRM'].includes(analysis.method)}
 						<!-- Selection analysis results with fallback legacy visualization for FEL -->
 						<div class="selection-analysis">
 							{#if resultData.input && resultData.input.file}

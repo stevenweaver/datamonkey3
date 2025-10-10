@@ -25,7 +25,7 @@
 	let setColors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']; // d3 category colors
 
 	// Reactive: Update selection sets when mode changes
-	$: selectionSets = mode === 'multi-set' ? ['Set 1', 'Set 2'] : ['Foreground'];
+	$: selectionSets = mode === 'multi-set' ? ['Set_1', 'Set_2'] : ['Foreground'];
 
 	// Reset current index when mode changes
 	$: if (mode) {
@@ -45,7 +45,7 @@
 
 	// Multi-set management functions
 	function addNewSet() {
-		const newSetName = `Set ${selectionSets.length + 1}`;
+		const newSetName = `Set_${selectionSets.length + 1}`;
 		selectionSets = [...selectionSets, newSetName];
 		currentSetIndex = selectionSets.length - 1;
 	}

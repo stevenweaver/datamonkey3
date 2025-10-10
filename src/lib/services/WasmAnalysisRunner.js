@@ -9,31 +9,50 @@ import { get } from 'svelte/store';
 import { getCachedOrCompute, generateAnalysisKey } from '../utils/cacheUtils.js';
 
 /**
- * Strip embedded trees from NEXUS alignment data
- * NEXUS files can contain TREES blocks that take precedence over separate tree files
+ * Strip embedded trees from alignment data
+ * Both NEXUS and FASTA files can contain embedded trees that take precedence over separate tree files
  */
-function stripTreesFromNexus(nexusData) {
-	console.log('🌳 Checking for embedded trees in NEXUS data...');
+function stripEmbeddedTrees(alignmentData) {
+	console.log('🌳 WASM: Checking for embedded trees in alignment data...');
+	let cleaned = alignmentData;
 
-	// Check if this looks like NEXUS format
-	if (!nexusData.toLowerCase().includes('#nexus')) {
-		console.log('🌳 Not a NEXUS file, skipping tree stripping');
-		return nexusData;
+	// Handle NEXUS format - look for TREES blocks
+	if (alignmentData.toLowerCase().includes('#nexus')) {
+		const treesBlockRegex = /begin\s+trees\s*;.*?end\s*;/gis;
+		const hasTreesBlock = treesBlockRegex.test(alignmentData);
+
+		if (hasTreesBlock) {
+			console.log('🌳 WASM: Found embedded TREES block in NEXUS file, removing it...');
+			cleaned = alignmentData.replace(treesBlockRegex, '');
+			console.log('🌳 WASM: Stripped TREES block from NEXUS file');
+		}
 	}
 
-	// Look for TREES block (case insensitive)
-	const treesBlockRegex = /begin\s+trees\s*;.*?end\s*;/gis;
-	const hasTreesBlock = treesBlockRegex.test(nexusData);
+	// Handle FASTA format - look for Newick trees appended at the end
+	const lines = cleaned.split('\n');
+	const filteredLines = [];
 
-	if (hasTreesBlock) {
-		console.log('🌳 Found embedded TREES block in NEXUS file, removing it...');
-		const cleanedNexus = nexusData.replace(treesBlockRegex, '');
-		console.log('🌳 Stripped TREES block from NEXUS file');
-		return cleanedNexus;
-	} else {
-		console.log('🌳 No TREES block found in NEXUS file');
-		return nexusData;
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i].trim();
+
+		// Check if this looks like a Newick tree (starts with parenthesis, contains colons and semicolon)
+		if (line.startsWith('(') && line.includes(':') && line.includes(';')) {
+			console.log('🌳 WASM: Found appended Newick tree in FASTA file, removing it...');
+			// Skip this line
+			continue;
+		}
+
+		// Keep all other lines
+		filteredLines.push(lines[i]);
 	}
+
+	const result = filteredLines.join('\n');
+
+	if (result !== alignmentData) {
+		console.log('🌳 WASM: Stripped embedded tree from alignment file');
+	}
+
+	return result;
 }
 
 class WasmAnalysisRunner extends BaseAnalysisRunner {
@@ -143,8 +162,8 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 
 		this.updateProgress(analysisId, 'mounting', 10, 'Preparing analysis files...');
 
-		// Strip any embedded trees from NEXUS alignment data
-		const cleanedFastaData = stripTreesFromNexus(fastaData);
+		// Strip any embedded trees from alignment data (NEXUS or FASTA)
+		const cleanedFastaData = stripEmbeddedTrees(fastaData);
 
 		// Create temporary file from cleaned FASTA data
 		const inputFile = new File([cleanedFastaData], 'user.nex', { type: 'text/plain' });
@@ -190,14 +209,22 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				key !== 'executionMode' &&
 				key !== 'interactiveTree' &&
 				key !== 'selectedBranchCount' &&
-				key !== 'selectedBranchNames'
+				key !== 'selectedBranchNames' &&
+				key !== 'branchSet1' &&
+				key !== 'branchSet2'
 			) {
 				// Handle specific FEL parameter mappings
 				if (key === 'branchesToTest') {
 					// Handle branch selection - convert Interactive to FG for HyPhy
+					// EXCEPT for Contrast-FEL which uses --branch-set parameters instead
 					if (value === 'Interactive') {
-						console.log('🌳 WASM - Converting Interactive to FG for HyPhy');
-						args.push(`--branches FG`);
+						if (method.toLowerCase() === 'contrast-fel') {
+							console.log('🌳 WASM - Skipping --branches FG for Contrast-FEL (uses --branch-set instead)');
+							// Skip - Contrast-FEL uses --branch-set parameters
+						} else {
+							console.log('🌳 WASM - Converting Interactive to FG for HyPhy');
+							args.push(`--branches FG`);
+						}
 					} else if (value && value !== 'All') {
 						// For other values like 'Internal', 'Leaves', etc., pass them directly
 						args.push(`--branches ${value}`);
@@ -251,13 +278,25 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				} else if (typeof value === 'boolean') {
 					// Boolean parameters
 					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value ? 'Yes' : 'No'}`);
-				} else if (typeof value === 'string' && value.includes(' ')) {
-					// String parameters with spaces
-					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} "${value}"`);
 				} else if (value !== null && value !== undefined && value !== '') {
-					// Other parameters
+					// All other parameters (including strings with spaces)
+					// Don't add quotes - HyPhy WASM doesn't parse them correctly
 					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value}`);
 				}
+			}
+		}
+
+		// Add Contrast-FEL branch set parameters (repeatable --branch-set with tag names)
+		if (method.toLowerCase() === 'contrast-fel') {
+			if (config.branchSet1) {
+				console.log('🌳 WASM - Adding Contrast-FEL branch-set:', config.branchSet1);
+				args.push(`--branch-set`);
+				args.push(config.branchSet1);
+			}
+			if (config.branchSet2) {
+				console.log('🌳 WASM - Adding Contrast-FEL branch-set:', config.branchSet2);
+				args.push(`--branch-set`);
+				args.push(config.branchSet2);
 			}
 		}
 
@@ -341,13 +380,20 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				key !== 'executionMode' &&
 				key !== 'interactiveTree' &&
 				key !== 'selectedBranchCount' &&
-				key !== 'selectedBranchNames'
+				key !== 'selectedBranchNames' &&
+				key !== 'branchSet1' &&
+				key !== 'branchSet2'
 			) {
 				// Handle specific FEL parameter mappings
 				if (key === 'branchesToTest') {
 					// Handle branch selection - convert Interactive to FG for HyPhy
+					// EXCEPT for Contrast-FEL which uses --branch-set parameters instead
 					if (value === 'Interactive') {
-						args.push(`--branches FG`);
+						if (method.toLowerCase() === 'contrast-fel') {
+							// Skip - Contrast-FEL uses --branch-set parameters
+						} else {
+							args.push(`--branches FG`);
+						}
 					} else if (value && value !== 'All') {
 						// For other values like 'Internal', 'Leaves', etc., pass them directly
 						args.push(`--branches ${value}`);
@@ -401,13 +447,23 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				} else if (typeof value === 'boolean') {
 					// Boolean parameters
 					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value ? 'Yes' : 'No'}`);
-				} else if (typeof value === 'string' && value.includes(' ')) {
-					// String parameters with spaces
-					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} "${value}"`);
 				} else if (value !== null && value !== undefined && value !== '') {
-					// Other parameters
+					// All other parameters (including strings with spaces)
+					// Don't add quotes - HyPhy WASM doesn't parse them correctly
 					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value}`);
 				}
+			}
+		}
+
+		// Add Contrast-FEL branch set parameters (repeatable --branch-set with tag names)
+		if (method.toLowerCase() === 'contrast-fel') {
+			if (config.branchSet1) {
+				args.push(`--branch-set`);
+				args.push(config.branchSet1);
+			}
+			if (config.branchSet2) {
+				args.push(`--branch-set`);
+				args.push(config.branchSet2);
 			}
 		}
 

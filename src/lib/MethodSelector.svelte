@@ -749,6 +749,7 @@
 				`🚀 METHODSELECTOR DEBUG - methodOptions[${selectedMethod}]:`,
 				methodOptions[selectedMethod]
 			);
+			console.log(`🚀 METHODSELECTOR DEBUG - branchSet1: "${analysisConfig.branchSet1}", branchSet2: "${analysisConfig.branchSet2}"`);
 			runMethod(selectedMethod, analysisConfig);
 		}
 	}
@@ -765,17 +766,36 @@
 		console.log('🌳🔥 METHODSELECTOR - methodOptions exist:', !!methodOptions[selectedMethod]);
 
 		if (selectedMethod && methodOptions[selectedMethod]) {
-			const { taggedNewick, selectedBranches, count } = event.detail;
+			const { taggedNewick, selectedBranches, count, selectionSets, mode } = event.detail;
 			console.log('🌳🔥 METHODSELECTOR - Setting interactive tree:', {
 				taggedNewick: taggedNewick || '',
 				selectedBranches: selectedBranches || [],
 				count: count || 0,
 				taggedTreeLength: (taggedNewick || '').length,
-				hasFgTags: (taggedNewick || '').includes('{fg}')
+				hasFgTags: (taggedNewick || '').includes('{fg}'),
+				selectionSets: selectionSets || [],
+				mode: mode || 'single-set'
 			});
 			methodOptions[selectedMethod].interactiveTree = taggedNewick || '';
 			methodOptions[selectedMethod].selectedBranchCount = count || 0;
 			methodOptions[selectedMethod].selectedBranchNames = selectedBranches || [];
+
+			// For Contrast-FEL multi-set mode, use the actual set names as branch-set parameters
+			console.log('🌳🔥 METHODSELECTOR - Checking Contrast-FEL conditions:', {
+				selectedMethod: selectedMethod,
+				selectedMethodLower: selectedMethod?.toLowerCase(),
+				isContrastFel: selectedMethod?.toLowerCase() === 'contrast-fel',
+				mode: mode,
+				isMultiSet: mode === 'multi-set',
+				selectionSets: selectionSets,
+				selectionSetsLength: selectionSets?.length
+			});
+			if (selectedMethod?.toLowerCase() === 'contrast-fel' && mode === 'multi-set' && selectionSets && selectionSets.length >= 2) {
+				console.log('🌳🔥 METHODSELECTOR - Setting Contrast-FEL branch sets:', selectionSets);
+				methodOptions[selectedMethod].branchSet1 = selectionSets[0];
+				methodOptions[selectedMethod].branchSet2 = selectionSets[1];
+			}
+
 			methodOptions = { ...methodOptions }; // Trigger reactivity
 			console.log(
 				'🌳🔥 METHODSELECTOR - Updated methodOptions[' + selectedMethod + ']:',
