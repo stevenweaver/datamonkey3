@@ -53,3 +53,9 @@ lerna-debug.log*
 # Coverage directory used by testing tools
 coverage
 .nyc_output
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
