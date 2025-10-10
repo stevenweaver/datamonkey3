@@ -322,7 +322,13 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			case 'meme':
 				return {
 					...baseParams,
-					pvalue: config.pValueThreshold || 0.1,
+					// Map MEME-specific parameters to backend format
+					pvalue: config.pvalue || config.pValueThreshold || 0.1,
+					rates: config.rates || 2,
+					multiple_hits: config.multiple_hits || 'None',
+					site_multihit: config.site_multihit || 'Estimate',
+					impute_states: config.impute_states || 'No',
+					resample: config.resample || 0,
 					branches: 'All'
 				};
 

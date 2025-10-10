@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac', 'fubar', 'absrel', 'bgm', 'busted', 'contrast-fel', 'gard'];
+	const SUPPORTED_METHODS = ['fel', 'slac', 'fubar', 'absrel', 'bgm', 'busted', 'contrast-fel', 'gard', 'meme'];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -26,7 +26,7 @@
 			name: 'MEME',
 			fullName: 'Mixed Effects Model of Evolution',
 			shortDescription: 'Detect episodic selection at individual sites',
-			supported: false
+			supported: true
 		},
 		slac: {
 			name: 'SLAC',
@@ -199,27 +199,44 @@
 			}
 		},
 		meme: {
-			pValueThreshold: {
+			pvalue: {
 				type: 'number',
 				label: 'P-value threshold',
 				default: 0.1,
 				min: 0.001,
 				max: 1,
-				step: 0.001
+				step: 0.001,
+				description: 'P-value threshold for calling a site under selection'
 			},
-			confidenceLevel: {
+			rates: {
 				type: 'number',
-				label: 'Confidence level',
-				default: 0.95,
-				min: 0.8,
-				max: 0.99,
-				step: 0.01
+				label: 'Rate classes',
+				default: 2,
+				min: 2,
+				max: 10,
+				step: 1,
+				description: 'Number of site rate classes'
 			},
-			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
-			siteToSiteRateVariation: {
-				type: 'boolean',
-				label: 'Site-to-site rate variation',
-				default: true
+			multiple_hits: {
+				type: 'select',
+				label: 'Multiple hits',
+				default: 'None',
+				options: ['None', 'Double', 'Triple', 'Double+Triple'],
+				description: 'Include support for multiple nucleotide substitutions'
+			},
+			site_multihit: {
+				type: 'select',
+				label: 'Site multiple hits',
+				default: 'Estimate',
+				options: ['Estimate', 'None'],
+				description: 'How to handle multiple hits per site'
+			},
+			impute_states: {
+				type: 'select',
+				label: 'Impute states',
+				default: 'No',
+				options: ['No', 'Yes'],
+				description: 'Impute ancestral states for internal nodes'
 			}
 		},
 		slac: {
