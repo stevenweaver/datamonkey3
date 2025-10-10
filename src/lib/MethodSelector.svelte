@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac'];
+	const SUPPORTED_METHODS = ['fel', 'slac', 'fubar'];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -38,7 +38,7 @@
 			name: 'FUBAR',
 			fullName: 'Fast Unconstrained Bayesian AppRoximation',
 			shortDescription: 'Bayesian approach to detect selection',
-			supported: false
+			supported: true
 		},
 		absrel: {
 			name: 'aBSREL',

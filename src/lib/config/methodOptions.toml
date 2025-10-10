@@ -305,3 +305,62 @@ choices = [
     { value = "Yes", description = "[Default] Perform branch length re-optimization under the full codon model" },
     { value = "No", description = "Skip branch length re-optimization under the full codon model (faster but less precise)" },
 ]
+
+[fubar]
+description = "FUBAR (Fast Unconstrained Bayesian AppRoximation) uses a Bayesian approach to infer nonsynonymous (dN) and synonymous (dS) substitution rates on a per-site basis for a given coding alignment and corresponding phylogeny. This method assumes that the selection pressure for each site is constant along the entire phylogeny."
+
+[[fubar.options]]
+name = "code"
+description = "Which genetic code should be used"
+takes_value = true
+type = "string"
+default = "Universal"
+choices = [
+    { value = "Universal", description = "Universal code" },
+    { value = "Vertebrate mtDNA", description = "Vertebrate mitochondrial DNA code" },
+    { value = "Yeast mtDNA", description = "Yeast mitochondrial DNA code" },
+    { value = "Mold/Protozoan mtDNA", description = "Mold, Protozoan and Coelenterate mt; Mycoplasma/Spiroplasma" },
+    { value = "Invertebrate mtDNA", description = "Invertebrate mitochondrial DNA code" },
+    { value = "Ciliate Nuclear", description = "Ciliate, Dasycladacean and Hexamita Nuclear code" },
+    { value = "Echinoderm mtDNA", description = "Echinoderm mitochondrial DNA code" },
+    { value = "Euplotid Nuclear", description = "Euplotid Nuclear code" },
+    { value = "Alt. Yeast Nuclear", description = "Alternative Yeast Nuclear code" },
+    { value = "Ascidian mtDNA", description = "Ascidian mitochondrial DNA code" },
+    { value = "Flatworm mtDNA", description = "Flatworm mitochondrial DNA code" },
+    { value = "Blepharisma Nuclear", description = "Blepharisma Nuclear code" },
+]
+
+[[fubar.options]]
+name = "alignment"
+description = "An in-frame codon alignment in one of the formats supported by HyPhy"
+takes_value = true
+type = "file"
+choices = []
+
+[[fubar.options]]
+name = "tree"
+description = "A phylogenetic tree (optionally annotated with {})"
+takes_value = true
+type = "tree"
+default = ""
+choices = []
+
+[[fubar.options]]
+name = "grid"
+description = "Number of grid points for the Bayesian analysis"
+takes_value = true
+type = "number"
+default = 20
+minimum = 5
+maximum = 50
+choices = []
+
+[[fubar.options]]
+name = "concentration_parameter"
+description = "Concentration of Dirichlet prior"
+takes_value = true
+type = "number"
+default = 0.5
+minimum = 0.001
+maximum = 1
+choices = []
