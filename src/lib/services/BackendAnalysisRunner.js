@@ -427,6 +427,14 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					branches: 'All'
 				};
 
+
+		case 'nrm':
+			return {
+				...baseParams,
+				// Map NRM specific parameters to backend format
+				rate_classes: config.rate_classes || 1,
+				triple_islands: config.triple_islands || 'No'
+			};
 			default:
 				return baseParams;
 		}

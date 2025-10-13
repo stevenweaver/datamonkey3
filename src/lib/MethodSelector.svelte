@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac', 'fubar', 'absrel', 'bgm', 'busted', 'contrast-fel', 'gard', 'meme', 'multi-hit'];
+	const SUPPORTED_METHODS = ['fel', 'slac', 'fubar', 'absrel', 'bgm', 'busted', 'contrast-fel', 'gard', 'meme', 'multi-hit', 'nrm'];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -86,7 +86,7 @@
 			name: 'NRM',
 			fullName: 'Non-Reversible Model',
 			shortDescription: 'Directional evolution analysis',
-			supported: false
+			supported: true
 		},
 		'contrast-fel': {
 			name: 'Contrast-FEL',
@@ -591,17 +591,21 @@
 			}
 		},
 		nrm: {
-			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
-			modelSelection: {
-				type: 'select',
-				label: 'Model selection',
-				default: 'AIC',
-				options: ['AIC', 'AICc', 'BIC']
+			rate_classes: {
+				type: 'number',
+				label: 'Rate classes',
+				default: 1,
+				min: 1,
+				max: 10,
+				step: 1,
+				description: 'Number of rate classes for the analysis'
 			},
-			equilibriumFrequencies: {
-				type: 'boolean',
-				label: 'Estimate equilibrium frequencies',
-				default: true
+			triple_islands: {
+				type: 'select',
+				label: 'Triple islands',
+				default: 'No',
+				options: ['No', 'Yes'],
+				description: 'Use triple islands for the analysis'
 			}
 		},
 		'contrast-fel': {
