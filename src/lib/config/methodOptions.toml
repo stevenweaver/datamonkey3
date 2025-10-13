@@ -398,3 +398,178 @@ takes_value = true
 type = "string"
 default = ""
 choices = []
+
+[gard]
+description = "GARD (Genetic Algorithm for Recombination Detection) screens a multiple sequence alignment for recombination. It is useful as a pre-processing step for selection inference since recombinant sequences cannot be adequately described with a single phylogenetic history."
+
+[[gard.options]]
+name = "code"
+description = "Which genetic code should be used"
+takes_value = true
+type = "string"
+default = "Universal"
+choices = [
+    { value = "Universal", description = "Universal code" },
+    { value = "Vertebrate mtDNA", description = "Vertebrate mitochondrial DNA code" },
+    { value = "Yeast mtDNA", description = "Yeast mitochondrial DNA code" },
+    { value = "Mold/Protozoan mtDNA", description = "Mold, Protozoan and Coelenterate mt; Mycoplasma/Spiroplasma" },
+    { value = "Invertebrate mtDNA", description = "Invertebrate mitochondrial DNA code" },
+    { value = "Ciliate Nuclear", description = "Ciliate, Dasycladacean and Hexamita Nuclear code" },
+    { value = "Echinoderm mtDNA", description = "Echinoderm mitochondrial DNA code" },
+    { value = "Euplotid Nuclear", description = "Euplotid Nuclear code" },
+    { value = "Alt. Yeast Nuclear", description = "Alternative Yeast Nuclear code" },
+    { value = "Ascidian mtDNA", description = "Ascidian mitochondrial DNA code" },
+    { value = "Flatworm mtDNA", description = "Flatworm mitochondrial DNA code" },
+    { value = "Blepharisma Nuclear", description = "Blepharisma Nuclear code" },
+]
+
+[[gard.options]]
+name = "alignment"
+description = "Sequence alignment to screen for recombination"
+takes_value = true
+type = "file"
+choices = []
+
+[[gard.options]]
+name = "type"
+description = "The type of data to perform screening on"
+takes_value = true
+type = "string"
+default = "codon"
+choices = [
+    { value = "codon", description = "Codon-based analysis" },
+    { value = "nucleotide", description = "Nucleotide-based analysis" },
+    { value = "protein", description = "Protein-based analysis" },
+]
+
+[[gard.options]]
+name = "model"
+description = "The substitution model to use"
+takes_value = true
+type = "string"
+default = "JTT"
+choices = [
+    { value = "JTT", description = "Jones-Taylor-Thornton model" },
+    { value = "WAG", description = "Whelan and Goldman model" },
+    { value = "LG", description = "Le and Gascuel model" },
+    { value = "Dayhoff", description = "Dayhoff model" },
+    { value = "GTR", description = "General Time Reversible model" },
+    { value = "HKY85", description = "Hasegawa-Kishino-Yano model" },
+    { value = "TN93", description = "Tamura-Nei model" },
+    { value = "JC69", description = "Jukes-Cantor model" },
+]
+
+[[gard.options]]
+name = "mode"
+description = "Run mode"
+takes_value = true
+type = "string"
+default = "Normal"
+choices = [
+    { value = "Normal", description = "Thorough analysis (recommended)" },
+    { value = "Faster", description = "Faster but less comprehensive analysis" },
+]
+
+[[gard.options]]
+name = "rv"
+description = "Site-to-site rate variation"
+takes_value = true
+type = "string"
+default = "None"
+choices = [
+    { value = "None", description = "No rate variation" },
+    { value = "GDD", description = "General Discrete Distribution" },
+    { value = "Gamma", description = "Beta-Gamma distribution" },
+]
+
+[[gard.options]]
+name = "rate-classes"
+description = "Number of site rate classes to use"
+takes_value = true
+type = "number"
+default = 4
+minimum = 2
+maximum = 10
+
+[[gard.options]]
+name = "output"
+description = "Write the resulting JSON to this file"
+takes_value = true
+type = "string"
+default = ""
+choices = []
+
+[multi-hit]
+description = "MULTI-HIT (FitMultiModel) examines the fit of models accommodating multiple instantaneous nucleotide substitutions in sequence data, expanding traditional models by incorporating complexities of multiple hits at a single position."
+
+[[multi-hit.options]]
+name = "code"
+description = "Which genetic code should be used"
+takes_value = true
+type = "string"
+default = "Universal"
+choices = [
+    { value = "Universal", description = "Universal code" },
+    { value = "Vertebrate mtDNA", description = "Vertebrate mitochondrial DNA code" },
+    { value = "Yeast mtDNA", description = "Yeast mitochondrial DNA code" },
+    { value = "Mold/Protozoan mtDNA", description = "Mold, Protozoan and Coelenterate mt; Mycoplasma/Spiroplasma" },
+    { value = "Invertebrate mtDNA", description = "Invertebrate mitochondrial DNA code" },
+    { value = "Ciliate Nuclear", description = "Ciliate, Dasycladacean and Hexamita Nuclear code" },
+    { value = "Echinoderm mtDNA", description = "Echinoderm mitochondrial DNA code" },
+    { value = "Euplotid Nuclear", description = "Euplotid Nuclear code" },
+    { value = "Alt. Yeast Nuclear", description = "Alternative Yeast Nuclear code" },
+    { value = "Ascidian mtDNA", description = "Ascidian mitochondrial DNA code" },
+    { value = "Flatworm mtDNA", description = "Flatworm mitochondrial DNA code" },
+    { value = "Blepharisma Nuclear", description = "Blepharisma Nuclear code" },
+]
+
+[[multi-hit.options]]
+name = "alignment"
+description = "An in-frame codon alignment in one of the formats supported by HyPhy"
+takes_value = true
+type = "file"
+choices = []
+
+[[multi-hit.options]]
+name = "tree"
+description = "A phylogenetic tree file (optional)"
+takes_value = true
+type = "tree"
+default = ""
+choices = []
+
+[[multi-hit.options]]
+name = "rates"
+description = "The number of omega rate classes to include in the model"
+takes_value = true
+type = "number"
+default = 3
+minimum = 1
+maximum = 10
+
+[[multi-hit.options]]
+name = "triple-islands"
+description = "Use a separate rate parameter for synonymous triple-hit substitutions"
+takes_value = true
+type = "string"
+default = "No"
+choices = [
+    { value = "Yes", description = "Use separate rate for synonymous triple-hit substitutions" },
+    { value = "No", description = "[Default] Do not use separate rate for triple-hit substitutions" },
+]
+
+[[multi-hit.options]]
+name = "output"
+description = "File path to save the resulting JSON"
+takes_value = true
+type = "string"
+default = ""
+choices = []
+
+[[multi-hit.options]]
+name = "save-fit"
+description = "File path to save model fit files (with extensions .MODEL_NAME.bf)"
+takes_value = true
+type = "string"
+default = ""
+choices = []

@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac', 'fubar', 'absrel', 'bgm', 'busted', 'contrast-fel'];
+	const SUPPORTED_METHODS = ['fel', 'slac', 'fubar', 'absrel', 'bgm', 'busted', 'contrast-fel', 'gard', 'meme', 'multi-hit'];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -26,7 +26,7 @@
 			name: 'MEME',
 			fullName: 'Mixed Effects Model of Evolution',
 			shortDescription: 'Detect episodic selection at individual sites',
-			supported: false
+			supported: true
 		},
 		slac: {
 			name: 'SLAC',
@@ -56,7 +56,7 @@
 			name: 'GARD',
 			fullName: 'Genetic Algorithm for Recombination Detection',
 			shortDescription: 'Detect recombination breakpoints',
-			supported: false
+			supported: true
 		},
 		bgm: {
 			name: 'BGM',
@@ -80,7 +80,7 @@
 			name: 'MULTI-HIT',
 			fullName: 'Multiple Hit Model',
 			shortDescription: 'Account for multiple substitutions',
-			supported: false
+			supported: true
 		},
 		nrm: {
 			name: 'NRM',
@@ -199,27 +199,44 @@
 			}
 		},
 		meme: {
-			pValueThreshold: {
+			pvalue: {
 				type: 'number',
 				label: 'P-value threshold',
 				default: 0.1,
 				min: 0.001,
 				max: 1,
-				step: 0.001
+				step: 0.001,
+				description: 'P-value threshold for calling a site under selection'
 			},
-			confidenceLevel: {
+			rates: {
 				type: 'number',
-				label: 'Confidence level',
-				default: 0.95,
-				min: 0.8,
-				max: 0.99,
-				step: 0.01
+				label: 'Rate classes',
+				default: 2,
+				min: 2,
+				max: 10,
+				step: 1,
+				description: 'Number of site rate classes'
 			},
-			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
-			siteToSiteRateVariation: {
-				type: 'boolean',
-				label: 'Site-to-site rate variation',
-				default: true
+			multiple_hits: {
+				type: 'select',
+				label: 'Multiple hits',
+				default: 'None',
+				options: ['None', 'Double', 'Triple', 'Double+Triple'],
+				description: 'Include support for multiple nucleotide substitutions'
+			},
+			site_multihit: {
+				type: 'select',
+				label: 'Site multiple hits',
+				default: 'Estimate',
+				options: ['Estimate', 'None'],
+				description: 'How to handle multiple hits per site'
+			},
+			impute_states: {
+				type: 'select',
+				label: 'Impute states',
+				default: 'No',
+				options: ['No', 'Yes'],
+				description: 'Impute ancestral states for internal nodes'
 			}
 		},
 		slac: {
@@ -435,20 +452,42 @@
 			}
 		},
 		gard: {
-			rateClasses: { type: 'number', label: 'Rate classes', default: 4, min: 2, max: 10 },
-			modelSelection: {
+			datatype: {
 				type: 'select',
-				label: 'Model selection',
-				default: 'AIC',
-				options: ['AIC', 'AICc', 'BIC']
+				label: 'Data type',
+				default: 'codon',
+				options: ['codon', 'nucleotide', 'protein'],
+				description: 'Type of data to analyze for recombination'
 			},
-			breakpointMethod: {
+			model: {
 				type: 'select',
-				label: 'Breakpoint method',
-				default: 'GA',
-				options: ['GA', 'Exhaustive']
+				label: 'Substitution model',
+				default: 'JTT',
+				options: ['JTT', 'WAG', 'LG', 'Dayhoff', 'GTR', 'HKY85', 'TN93', 'JC69'],
+				description: 'Substitution model to use for the analysis'
 			},
-			maxBreakpoints: { type: 'number', label: 'Max breakpoints', default: 10, min: 1, max: 50 }
+			mode: {
+				type: 'select',
+				label: 'Run mode',
+				default: 'Normal',
+				options: ['Normal', 'Faster'],
+				description: 'Normal: thorough analysis; Faster: quicker but less comprehensive'
+			},
+			rv: {
+				type: 'select',
+				label: 'Site-to-site rate variation',
+				default: 'None',
+				options: ['None', 'GDD', 'Gamma'],
+				description: 'Model for rate variation among sites (None, General Discrete, Beta-Gamma)'
+			},
+			rate_classes: {
+				type: 'number',
+				label: 'Rate classes',
+				default: 4,
+				min: 2,
+				max: 10,
+				description: 'Number of discrete rate classes for rate variation'
+			}
 		},
 		bgm: {
 			steps: {
@@ -534,22 +573,21 @@
 			modelSelection: { type: 'boolean', label: 'Perform model selection', default: true }
 		},
 		'multi-hit': {
-			tripleHits: { type: 'boolean', label: 'Include triple hits', default: false },
-			pValueThreshold: {
+			rates: {
 				type: 'number',
-				label: 'P-value threshold',
-				default: 0.05,
-				min: 0.001,
-				max: 1,
-				step: 0.001
+				label: 'Rate classes',
+				default: 3,
+				min: 1,
+				max: 10,
+				step: 1,
+				description: 'Number of omega rate classes to include in the model'
 			},
-			confidenceLevel: {
-				type: 'number',
-				label: 'Confidence level',
-				default: 0.95,
-				min: 0.8,
-				max: 0.99,
-				step: 0.01
+			triple_islands: {
+				type: 'select',
+				label: 'Triple islands',
+				default: 'No',
+				options: ['No', 'Yes'],
+				description: 'Use separate rate parameter for synonymous triple-hit substitutions'
 			}
 		},
 		nrm: {

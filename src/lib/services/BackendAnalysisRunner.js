@@ -222,7 +222,8 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			// Submit to backend
 			// Map method names to backend socket event names
 			const methodNameMap = {
-				'contrast-fel': 'cfel'
+				'contrast-fel': 'cfel',
+				'multi-hit': 'multihit'
 			};
 			const backendMethodName = methodNameMap[method.toLowerCase()] || method.toLowerCase();
 			const eventName = `${backendMethodName}:spawn`;
@@ -322,7 +323,13 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			case 'meme':
 				return {
 					...baseParams,
-					pvalue: config.pValueThreshold || 0.1,
+					// Map MEME-specific parameters to backend format
+					pvalue: config.pvalue || config.pValueThreshold || 0.1,
+					rates: config.rates || 2,
+					multiple_hits: config.multiple_hits || 'None',
+					site_multihit: config.site_multihit || 'Estimate',
+					impute_states: config.impute_states || 'No',
+					resample: config.resample || 0,
 					branches: 'All'
 				};
 
@@ -394,6 +401,31 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 				'branch-set': branchSets.length > 0 ? branchSets : ['Set_1', 'Set_2'],
 				output: config.output || ''
 			};
+
+			case 'gard':
+				// Map frontend rv to backend site_to_site_variation
+				const rvMap = { None: 'none', GDD: 'general_discrete', Gamma: 'beta_gamma' };
+				return {
+					...baseParams,
+					// Map GARD-specific parameters to backend format
+					datatype: config.datatype || 'codon',
+					model: config.model || 'JTT',
+					run_mode: config.mode || 'Normal',
+					site_to_site_variation: rvMap[config.rv] || 'none',
+					rate_classes: config.rate_classes || 4,
+					max_breakpoints: config.max_breakpoints || 10000
+				};
+
+			case 'multi-hit':
+			case 'multihit':
+				return {
+					...baseParams,
+					// Map Multi-Hit specific parameters to backend format
+					rate_classes: config.rates || config.rate_classes || 3,
+					rates: config.rates || config.rate_classes || 3,
+					triple_islands: config.triple_islands || 'No',
+					branches: 'All'
+				};
 
 			default:
 				return baseParams;
