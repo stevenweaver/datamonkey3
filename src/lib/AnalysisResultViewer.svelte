@@ -26,6 +26,7 @@
 	} from 'hyphy-scope';
 	import AbsrelVisualizationWrapper from './AbsrelVisualizationWrapper.svelte';
 	import FubarVisualizationWrapper from './FubarVisualizationWrapper.svelte';
+	import MultiHitVisualizationWrapper from './MultiHitVisualizationWrapper.svelte';
 
 	export let analysisId = null;
 
@@ -150,6 +151,9 @@
 				return FadeVisualization;
 			case 'gard':
 				return GardVisualization;
+			case 'multi-hit':
+			case 'multihit':
+				return MultiHitVisualizationWrapper;
 			default:
 				return null;
 		}

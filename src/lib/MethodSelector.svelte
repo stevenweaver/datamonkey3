@@ -12,7 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac', 'fubar', 'absrel', 'bgm', 'busted', 'contrast-fel', 'gard', 'meme'];
+	const SUPPORTED_METHODS = ['fel', 'slac', 'fubar', 'absrel', 'bgm', 'busted', 'contrast-fel', 'gard', 'meme', 'multi-hit'];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -80,7 +80,7 @@
 			name: 'MULTI-HIT',
 			fullName: 'Multiple Hit Model',
 			shortDescription: 'Account for multiple substitutions',
-			supported: false
+			supported: true
 		},
 		nrm: {
 			name: 'NRM',
@@ -573,22 +573,21 @@
 			modelSelection: { type: 'boolean', label: 'Perform model selection', default: true }
 		},
 		'multi-hit': {
-			tripleHits: { type: 'boolean', label: 'Include triple hits', default: false },
-			pValueThreshold: {
+			rates: {
 				type: 'number',
-				label: 'P-value threshold',
-				default: 0.05,
-				min: 0.001,
-				max: 1,
-				step: 0.001
+				label: 'Rate classes',
+				default: 3,
+				min: 1,
+				max: 10,
+				step: 1,
+				description: 'Number of omega rate classes to include in the model'
 			},
-			confidenceLevel: {
-				type: 'number',
-				label: 'Confidence level',
-				default: 0.95,
-				min: 0.8,
-				max: 0.99,
-				step: 0.01
+			triple_islands: {
+				type: 'select',
+				label: 'Triple islands',
+				default: 'No',
+				options: ['No', 'Yes'],
+				description: 'Use separate rate parameter for synonymous triple-hit substitutions'
 			}
 		},
 		nrm: {

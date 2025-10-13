@@ -275,6 +275,12 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				} else if (key === 'minSubs') {
 					// BGM minimum substitutions per site
 					args.push(`--min-subs ${value}`);
+				} else if (key === 'rates') {
+					// Multi-Hit rate classes parameter
+					args.push(`--rates ${value}`);
+				} else if (key === 'triple_islands') {
+					// Multi-Hit triple islands parameter (convert underscore to hyphen)
+					args.push(`--triple-islands ${value}`);
 				} else if (typeof value === 'boolean') {
 					// Boolean parameters
 					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value ? 'Yes' : 'No'}`);
@@ -312,8 +318,16 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 			}
 		}
 
+		// Map method names to HyPhy command names
+		const methodCommandMap = {
+			'multi-hit': 'fmm',
+			'multihit': 'fmm',
+			'MULTI-HIT': 'fmm'
+		};
+		const hyphyCommand = methodCommandMap[method] || method;
+
 		// Build and execute the command
-		const fullHyphyCommand = `hyphy LIBPATH=/shared/hyphy/ ${method} ${args.join(' ')}`;
+		const fullHyphyCommand = `hyphy LIBPATH=/shared/hyphy/ ${hyphyCommand} ${args.join(' ')}`;
 		console.log(`Executing HyPhy command: ${fullHyphyCommand}`);
 
 		this.updateProgress(analysisId, 'running', 40, `Executing ${method} analysis...`);
@@ -343,8 +357,16 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 
 		this.updateProgress(analysisId, 'processing', 80, 'Processing results...');
 
+		// Map method names to their result file extensions
+		const resultFileMap = {
+			'multi-hit': 'FITTER',
+			'multihit': 'FITTER',
+			'MULTI-HIT': 'FITTER'
+		};
+		const resultFileSuffix = resultFileMap[method] || method.toUpperCase();
+
 		// Get the JSON result
-		const jsonBlob = await cliObj.download(`/shared/data/user.nex.${method.toUpperCase()}.json`);
+		const jsonBlob = await cliObj.download(`/shared/data/user.nex.${resultFileSuffix}.json`);
 		const response = await fetch(jsonBlob);
 		const blob = await response.blob();
 		const jsonText = await blob.text();
@@ -444,6 +466,12 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				} else if (key === 'minSubs') {
 					// BGM minimum substitutions per site
 					args.push(`--min-subs ${value}`);
+				} else if (key === 'rates') {
+					// Multi-Hit rate classes parameter
+					args.push(`--rates ${value}`);
+				} else if (key === 'triple_islands') {
+					// Multi-Hit triple islands parameter (convert underscore to hyphen)
+					args.push(`--triple-islands ${value}`);
 				} else if (typeof value === 'boolean') {
 					// Boolean parameters
 					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value ? 'Yes' : 'No'}`);

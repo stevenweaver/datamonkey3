@@ -222,7 +222,8 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			// Submit to backend
 			// Map method names to backend socket event names
 			const methodNameMap = {
-				'contrast-fel': 'cfel'
+				'contrast-fel': 'cfel',
+				'multi-hit': 'multihit'
 			};
 			const backendMethodName = methodNameMap[method.toLowerCase()] || method.toLowerCase();
 			const eventName = `${backendMethodName}:spawn`;
@@ -413,6 +414,17 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					site_to_site_variation: rvMap[config.rv] || 'none',
 					rate_classes: config.rate_classes || 4,
 					max_breakpoints: config.max_breakpoints || 10000
+				};
+
+			case 'multi-hit':
+			case 'multihit':
+				return {
+					...baseParams,
+					// Map Multi-Hit specific parameters to backend format
+					rate_classes: config.rates || config.rate_classes || 3,
+					rates: config.rates || config.rate_classes || 3,
+					triple_islands: config.triple_islands || 'No',
+					branches: 'All'
 				};
 
 			default:
