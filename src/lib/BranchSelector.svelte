@@ -14,6 +14,7 @@
 	export let height = 400;
 	export let width = 800;
 	export let mode = 'single-set'; // 'single-set' for FG/BG, 'multi-set' for contrast-fel
+	export let initialSetNames = null; // Optional: custom names for sets (e.g., ['TEST', 'REFERENCE'] for RELAX)
 
 	// Component state
 	let treeContainer;
@@ -25,7 +26,12 @@
 	let setColors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']; // d3 category colors
 
 	// Reactive: Update selection sets when mode changes
-	$: selectionSets = mode === 'multi-set' ? ['Set_1', 'Set_2'] : ['Foreground'];
+	$: selectionSets =
+		mode === 'multi-set'
+			? initialSetNames && initialSetNames.length > 0
+				? initialSetNames
+				: ['Set_1', 'Set_2']
+			: ['Foreground'];
 
 	// Reset current index when mode changes
 	$: if (mode) {
@@ -86,7 +92,7 @@
 			delete node[setName];
 		}
 		if (node.children) {
-			node.children.forEach(child => traverseAndRemoveSet(child, setName));
+			node.children.forEach((child) => traverseAndRemoveSet(child, setName));
 		}
 	}
 
@@ -96,7 +102,7 @@
 			delete node[oldName];
 		}
 		if (node.children) {
-			node.children.forEach(child => traverseAndRenameSet(child, oldName, newName));
+			node.children.forEach((child) => traverseAndRenameSet(child, oldName, newName));
 		}
 	}
 
@@ -206,10 +212,18 @@
 								const currentSet = selectionSets[currentSetIndex];
 								if (nodeToSelect[currentSet]) {
 									delete nodeToSelect[currentSet];
-									console.log('🖱️🔥 Removed node from set:', currentSet, nodeToSelect.name || 'unnamed');
+									console.log(
+										'🖱️🔥 Removed node from set:',
+										currentSet,
+										nodeToSelect.name || 'unnamed'
+									);
 								} else {
 									nodeToSelect[currentSet] = true;
-									console.log('🖱️🔥 Added node to set:', currentSet, nodeToSelect.name || 'unnamed');
+									console.log(
+										'🖱️🔥 Added node to set:',
+										currentSet,
+										nodeToSelect.name || 'unnamed'
+									);
 								}
 
 								// Update visual styling with set color
@@ -378,7 +392,12 @@
 					});
 				} else {
 					// Single-set mode: check for foreground selection
-					console.log('🏷️🔥 Processing node (single-set):', node.name || 'unnamed', 'selected:', !!node.selected);
+					console.log(
+						'🏷️🔥 Processing node (single-set):',
+						node.name || 'unnamed',
+						'selected:',
+						!!node.selected
+					);
 					if (node.selected) {
 						tags.push('FG'); // Use uppercase FG tags
 						console.log('🏷️🔥 Node is selected, adding FG tag');
@@ -484,7 +503,9 @@
 				{#each selectionSets as setName, index}
 					<span
 						class="set-tag"
-						style="background-color: {setColors[index]}; opacity: {index === currentSetIndex ? 1 : 0.5};"
+						style="background-color: {setColors[index]}; opacity: {index === currentSetIndex
+							? 1
+							: 0.5};"
 					>
 						{setName}
 					</span>

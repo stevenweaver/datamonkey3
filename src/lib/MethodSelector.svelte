@@ -12,7 +12,19 @@
 	const dispatch = createEventDispatcher();
 
 	// Supported methods - easy to update when methods are implemented
-	const SUPPORTED_METHODS = ['fel', 'slac', 'fubar', 'absrel', 'bgm', 'busted', 'contrast-fel', 'gard', 'meme', 'multi-hit'];
+	const SUPPORTED_METHODS = [
+		'fel',
+		'slac',
+		'fubar',
+		'absrel',
+		'bgm',
+		'busted',
+		'contrast-fel',
+		'gard',
+		'meme',
+		'multi-hit',
+		'relax'
+	];
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
@@ -74,7 +86,7 @@
 			name: 'RELAX',
 			fullName: 'Relaxation Test',
 			shortDescription: 'Test for relaxed or intensified selection',
-			supported: false
+			supported: true
 		},
 		'multi-hit': {
 			name: 'MULTI-HIT',
@@ -301,7 +313,8 @@
 				min: 0.001,
 				max: 1,
 				step: 0.001,
-				description: 'The concentration parameter for the Dirichlet prior in the Bayesian estimation'
+				description:
+					'The concentration parameter for the Dirichlet prior in the Bayesian estimation'
 			},
 			posteriorThreshold: {
 				type: 'number',
@@ -310,7 +323,8 @@
 				min: 0.5,
 				max: 0.99,
 				step: 0.01,
-				description: 'Sites with posterior probability above this threshold are considered under positive selection'
+				description:
+					'Sites with posterior probability above this threshold are considered under positive selection'
 			}
 		},
 		absrel: {
@@ -372,7 +386,8 @@
 				label: 'Foreground Branches',
 				default: 'All',
 				options: ['All', 'Internal', 'Leaves', 'Unlabeled', 'Custom', 'Interactive'],
-				description: 'Select foreground branches to test for positive selection. All other branches will be treated as background.'
+				description:
+					'Select foreground branches to test for positive selection. All other branches will be treated as background.'
 			},
 			customBranches: {
 				type: 'text',
@@ -557,20 +572,53 @@
 			}
 		},
 		relax: {
-			testBranches: {
+			// Branch selection options
+			branchesToTest: {
 				type: 'select',
-				label: 'Test branches',
-				default: 'Test',
-				options: ['Test', 'All', 'Internal', 'Leaves']
+				label: 'Branch Selection Mode',
+				default: 'Interactive',
+				options: ['Interactive'],
+				description: 'Select TEST and REFERENCE branches interactively on the tree'
 			},
-			referenceBranches: {
+			interactiveTree: {
+				type: 'interactive-tree',
+				label: 'Select TEST and REFERENCE branches on tree',
+				default: '',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Interactive'],
+				description: 'Click on tree branches to assign them to TEST or REFERENCE sets'
+			},
+			// RELAX-specific parameters
+			models: {
 				type: 'select',
-				label: 'Reference branches',
-				default: 'Reference',
-				options: ['Reference', 'All-except-test', 'Internal', 'Leaves']
+				label: 'Analysis models',
+				default: 'All',
+				options: ['All', 'Minimal'],
+				description: 'All: descriptive models and RELAX test; Minimal: RELAX test only'
 			},
-			rateClasses: { type: 'number', label: 'Rate classes', default: 3, min: 2, max: 10 },
-			modelSelection: { type: 'boolean', label: 'Perform model selection', default: true }
+			rates: {
+				type: 'number',
+				label: 'Omega rate classes',
+				default: 3,
+				min: 2,
+				max: 10,
+				step: 1,
+				description: 'Number of omega rate classes'
+			},
+			mode: {
+				type: 'select',
+				label: 'Run mode',
+				default: 'Classic mode',
+				options: ['Classic mode'],
+				description: 'RELAX analysis mode'
+			},
+			killZeroLengths: {
+				type: 'select',
+				label: 'Kill zero-length branches',
+				default: 'No',
+				options: ['No', 'Yes'],
+				description: 'How to handle zero-length branches'
+			}
 		},
 		'multi-hit': {
 			rates: {
@@ -678,7 +726,7 @@
 			qvalue: {
 				type: 'number',
 				label: 'Q-value threshold (FDR)',
-				default: 0.20,
+				default: 0.2,
 				min: 0.001,
 				max: 1,
 				step: 0.001,
@@ -795,7 +843,9 @@
 				`🚀 METHODSELECTOR DEBUG - methodOptions[${selectedMethod}]:`,
 				methodOptions[selectedMethod]
 			);
-			console.log(`🚀 METHODSELECTOR DEBUG - branchSet1: "${analysisConfig.branchSet1}", branchSet2: "${analysisConfig.branchSet2}"`);
+			console.log(
+				`🚀 METHODSELECTOR DEBUG - branchSet1: "${analysisConfig.branchSet1}", branchSet2: "${analysisConfig.branchSet2}"`
+			);
 			runMethod(selectedMethod, analysisConfig);
 		}
 	}
@@ -836,10 +886,27 @@
 				selectionSets: selectionSets,
 				selectionSetsLength: selectionSets?.length
 			});
-			if (selectedMethod?.toLowerCase() === 'contrast-fel' && mode === 'multi-set' && selectionSets && selectionSets.length >= 2) {
+			if (
+				selectedMethod?.toLowerCase() === 'contrast-fel' &&
+				mode === 'multi-set' &&
+				selectionSets &&
+				selectionSets.length >= 2
+			) {
 				console.log('🌳🔥 METHODSELECTOR - Setting Contrast-FEL branch sets:', selectionSets);
 				methodOptions[selectedMethod].branchSet1 = selectionSets[0];
 				methodOptions[selectedMethod].branchSet2 = selectionSets[1];
+			}
+
+			// For RELAX multi-set mode, use TEST and REFERENCE sets
+			if (
+				selectedMethod?.toLowerCase() === 'relax' &&
+				mode === 'multi-set' &&
+				selectionSets &&
+				selectionSets.length >= 2
+			) {
+				console.log('🌳🔥 METHODSELECTOR - Setting RELAX branch sets:', selectionSets);
+				methodOptions[selectedMethod].testBranches = selectionSets[0];
+				methodOptions[selectedMethod].referenceBranches = selectionSets[1];
 			}
 
 			methodOptions = { ...methodOptions }; // Trigger reactivity
@@ -1067,12 +1134,22 @@
 					{#if selectedMethod?.toLowerCase() === 'contrast-fel'}
 						<h4 class="tree-section-title">Interactive Branch Set Selection</h4>
 						<p class="tree-section-description">
-							Click on tree branches to assign them to different <strong>branch sets</strong> for comparison. Use the dropdown menu on nodes to assign branches to Set 1, Set 2, or Set 3.
+							Click on tree branches to assign them to different <strong>branch sets</strong> for comparison.
+							Use the dropdown menu on nodes to assign branches to Set 1, Set 2, or Set 3.
+						</p>
+					{:else if selectedMethod?.toLowerCase() === 'relax'}
+						<h4 class="tree-section-title">Interactive TEST and REFERENCE Branch Selection</h4>
+						<p class="tree-section-description">
+							Click on tree branches to assign them to <strong>TEST</strong> or
+							<strong>REFERENCE</strong> branch sets. RELAX compares selection pressures between these
+							two sets to detect relaxation or intensification of selection.
 						</p>
 					{:else}
 						<h4 class="tree-section-title">Interactive Foreground Branch Selection</h4>
 						<p class="tree-section-description">
-							Click on tree branches to select them as <strong>foreground branches</strong> for testing. All other branches will be treated as <strong>background branches</strong>. Use the dropdown menu on nodes for additional options.
+							Click on tree branches to select them as <strong>foreground branches</strong> for
+							testing. All other branches will be treated as <strong>background branches</strong>.
+							Use the dropdown menu on nodes for additional options.
 						</p>
 					{/if}
 				</div>
@@ -1084,7 +1161,13 @@
 								treeData={selectedTreeData}
 								height={400}
 								width={800}
-								mode={selectedMethod?.toLowerCase() === 'contrast-fel' ? 'multi-set' : 'single-set'}
+								mode={selectedMethod?.toLowerCase() === 'contrast-fel' ||
+								selectedMethod?.toLowerCase() === 'relax'
+									? 'multi-set'
+									: 'single-set'}
+								initialSetNames={selectedMethod?.toLowerCase() === 'relax'
+									? ['TEST', 'REFERENCE']
+									: null}
 								on:selectionChange={handleBranchSelectionChange}
 							/>
 						{/key}
