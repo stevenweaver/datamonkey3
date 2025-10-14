@@ -573,3 +573,107 @@ takes_value = true
 type = "string"
 default = ""
 choices = []
+
+[relax]
+description = "RELAX tests whether the strength of natural selection has been relaxed or intensified along a specified set of test branches compared to reference branches. The method uses a selection intensity parameter K to compare ω distributions between test and reference branches."
+
+[[relax.options]]
+name = "code"
+description = "Which genetic code should be used"
+takes_value = true
+type = "string"
+default = "Universal"
+choices = [
+    { value = "Universal", description = "Universal code" },
+    { value = "Vertebrate mtDNA", description = "Vertebrate mitochondrial DNA code" },
+    { value = "Yeast mtDNA", description = "Yeast mitochondrial DNA code" },
+    { value = "Mold/Protozoan mtDNA", description = "Mold, Protozoan and Coelenterate mt; Mycoplasma/Spiroplasma" },
+    { value = "Invertebrate mtDNA", description = "Invertebrate mitochondrial DNA code" },
+    { value = "Ciliate Nuclear", description = "Ciliate, Dasycladacean and Hexamita Nuclear code" },
+    { value = "Echinoderm mtDNA", description = "Echinoderm mitochondrial DNA code" },
+    { value = "Euplotid Nuclear", description = "Euplotid Nuclear code" },
+    { value = "Alt. Yeast Nuclear", description = "Alternative Yeast Nuclear code" },
+    { value = "Ascidian mtDNA", description = "Ascidian mitochondrial DNA code" },
+    { value = "Flatworm mtDNA", description = "Flatworm mitochondrial DNA code" },
+    { value = "Blepharisma Nuclear", description = "Blepharisma Nuclear code" },
+]
+
+[[relax.options]]
+name = "alignment"
+description = "An in-frame codon alignment in one of the formats supported by HyPhy"
+takes_value = true
+type = "file"
+choices = []
+
+[[relax.options]]
+name = "tree"
+description = "A phylogenetic tree file (Newick format, with branches tagged {TEST} and {REFERENCE})"
+takes_value = true
+type = "tree"
+default = ""
+choices = []
+
+[[relax.options]]
+name = "test"
+description = "Designate branches to consider as the test set (branches experiencing potential changes in selection strength)"
+takes_value = true
+type = "string"
+default = "TEST"
+choices = []
+
+[[relax.options]]
+name = "reference"
+description = "Specify the reference branches for comparison against test branches"
+takes_value = true
+type = "string"
+default = "REFERENCE"
+choices = []
+
+[[relax.options]]
+name = "models"
+description = "Type of analysis to perform"
+takes_value = true
+type = "string"
+default = "All"
+choices = [
+    { value = "All", description = "Fit descriptive models AND run the RELAX test" },
+    { value = "Minimal", description = "Run RELAX test only" },
+]
+
+[[relax.options]]
+name = "rates"
+description = "The number of omega rate classes to include in the model"
+takes_value = true
+type = "number"
+default = 3
+minimum = 2
+maximum = 10
+
+[[relax.options]]
+name = "mode"
+description = "Run mode for RELAX analysis"
+takes_value = true
+type = "string"
+default = "Classic mode"
+choices = [
+    { value = "Classic mode", description = "Standard RELAX analysis" },
+]
+
+[[relax.options]]
+name = "kill-zero-lengths"
+description = "How to handle zero-length branches in the phylogeny"
+takes_value = true
+type = "string"
+default = "No"
+choices = [
+    { value = "Yes", description = "Remove zero-length branches" },
+    { value = "No", description = "[Default] Keep zero-length branches" },
+]
+
+[[relax.options]]
+name = "output"
+description = "File path to save the resulting JSON"
+takes_value = true
+type = "string"
+default = ""
+choices = []

@@ -211,7 +211,9 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				key !== 'selectedBranchCount' &&
 				key !== 'selectedBranchNames' &&
 				key !== 'branchSet1' &&
-				key !== 'branchSet2'
+				key !== 'branchSet2' &&
+				key !== 'testBranches' &&
+				key !== 'referenceBranches'
 			) {
 				// Handle specific FEL parameter mappings
 				if (key === 'branchesToTest') {
@@ -219,8 +221,15 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 					// EXCEPT for Contrast-FEL which uses --branch-set parameters instead
 					if (value === 'Interactive') {
 						if (method.toLowerCase() === 'contrast-fel') {
-							console.log('🌳 WASM - Skipping --branches FG for Contrast-FEL (uses --branch-set instead)');
+							console.log(
+								'🌳 WASM - Skipping --branches FG for Contrast-FEL (uses --branch-set instead)'
+							);
 							// Skip - Contrast-FEL uses --branch-set parameters
+						} else if (method.toLowerCase() === 'relax') {
+							console.log(
+								'🌳 WASM - Skipping --branches FG for RELAX (uses --test and --reference instead)'
+							);
+							// Skip - RELAX uses --test and --reference parameters
 						} else {
 							console.log('🌳 WASM - Converting Interactive to FG for HyPhy');
 							args.push(`--branches FG`);
@@ -281,6 +290,14 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				} else if (key === 'triple_islands') {
 					// Multi-Hit triple islands parameter (convert underscore to hyphen)
 					args.push(`--triple-islands ${value}`);
+				} else if (key === 'mode') {
+					// RELAX mode parameter - skip if default value to avoid space-in-value issues
+					// "Classic mode" is the default, so we only need to pass it if different
+					if (value !== 'Classic mode') {
+						// For now, only Classic mode is supported, so this shouldn't happen
+						console.warn('🚨 WASM - Non-default mode value:', value);
+					}
+					// Skip passing --mode parameter
 				} else if (typeof value === 'boolean') {
 					// Boolean parameters
 					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value ? 'Yes' : 'No'}`);
@@ -306,14 +323,28 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 			}
 		}
 
+		// Add RELAX test and reference branch parameters
+		if (method.toLowerCase() === 'relax') {
+			if (config.testBranches) {
+				console.log('🌳 WASM - Adding RELAX test branches:', config.testBranches);
+				args.push('--test');
+				args.push(config.testBranches);
+			}
+			if (config.referenceBranches) {
+				console.log('🌳 WASM - Adding RELAX reference branches:', config.referenceBranches);
+				args.push('--reference');
+				args.push(config.referenceBranches);
+			}
+		}
+
 		// Add method-specific default arguments for BGM
 		if (method.toLowerCase() === 'bgm') {
 			// BGM requires explicit data type specification
-			if (!args.some(arg => arg.includes('--type'))) {
+			if (!args.some((arg) => arg.includes('--type'))) {
 				args.push('--type codon');
 			}
 			// BGM requires branches specification
-			if (!args.some(arg => arg.includes('--branches'))) {
+			if (!args.some((arg) => arg.includes('--branches'))) {
 				args.push('--branches All');
 			}
 		}
@@ -321,7 +352,7 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		// Map method names to HyPhy command names
 		const methodCommandMap = {
 			'multi-hit': 'fmm',
-			'multihit': 'fmm',
+			multihit: 'fmm',
 			'MULTI-HIT': 'fmm'
 		};
 		const hyphyCommand = methodCommandMap[method] || method;
@@ -360,7 +391,7 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		// Map method names to their result file extensions
 		const resultFileMap = {
 			'multi-hit': 'FITTER',
-			'multihit': 'FITTER',
+			multihit: 'FITTER',
 			'MULTI-HIT': 'FITTER'
 		};
 		const resultFileSuffix = resultFileMap[method] || method.toUpperCase();
@@ -404,7 +435,9 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				key !== 'selectedBranchCount' &&
 				key !== 'selectedBranchNames' &&
 				key !== 'branchSet1' &&
-				key !== 'branchSet2'
+				key !== 'branchSet2' &&
+				key !== 'testBranches' &&
+				key !== 'referenceBranches'
 			) {
 				// Handle specific FEL parameter mappings
 				if (key === 'branchesToTest') {
@@ -413,6 +446,8 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 					if (value === 'Interactive') {
 						if (method.toLowerCase() === 'contrast-fel') {
 							// Skip - Contrast-FEL uses --branch-set parameters
+						} else if (method.toLowerCase() === 'relax') {
+							// Skip - RELAX uses --test and --reference parameters
 						} else {
 							args.push(`--branches FG`);
 						}
@@ -472,6 +507,12 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				} else if (key === 'triple_islands') {
 					// Multi-Hit triple islands parameter (convert underscore to hyphen)
 					args.push(`--triple-islands ${value}`);
+				} else if (key === 'mode') {
+					// RELAX mode parameter - skip if default value to avoid space-in-value issues
+					if (value !== 'Classic mode') {
+						console.warn('🚨 WASM - Non-default mode value:', value);
+					}
+					// Skip passing --mode parameter
 				} else if (typeof value === 'boolean') {
 					// Boolean parameters
 					args.push(`--${key.replace(/([A-Z])/g, '-$1').toLowerCase()} ${value ? 'Yes' : 'No'}`);
@@ -494,15 +535,26 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				args.push(config.branchSet2);
 			}
 		}
+		// Add RELAX test and reference branch parameters (preview version)
+		if (method.toLowerCase() === 'relax') {
+			if (config.testBranches) {
+				args.push('--test');
+				args.push(config.testBranches);
+			}
+			if (config.referenceBranches) {
+				args.push('--reference');
+				args.push(config.referenceBranches);
+			}
+		}
 
 		// Add method-specific default arguments for BGM (preview version)
 		if (method.toLowerCase() === 'bgm') {
 			// BGM requires explicit data type specification
-			if (!args.some(arg => arg.includes('--type'))) {
+			if (!args.some((arg) => arg.includes('--type'))) {
 				args.push('--type codon');
 			}
 			// BGM requires branches specification
-			if (!args.some(arg => arg.includes('--branches'))) {
+			if (!args.some((arg) => arg.includes('--branches'))) {
 				args.push('--branches All');
 			}
 		}

@@ -266,7 +266,11 @@
 									<div class="mb-4 text-xs text-gray-500">
 										<details>
 											<summary>Debug: aBSREL Data Structure</summary>
-											<pre class="max-h-40 overflow-auto bg-gray-50 p-2 text-xs">{JSON.stringify(resultData, null, 2)}</pre>
+											<pre class="max-h-40 overflow-auto bg-gray-50 p-2 text-xs">{JSON.stringify(
+													resultData,
+													null,
+													2
+												)}</pre>
 										</details>
 									</div>
 								{/if}
@@ -300,7 +304,7 @@
 								</div>
 							{/if}
 						</div>
-					{:else if ['FEL', 'CONTRAST-FEL', 'SLAC', 'MEME', 'BUSTED', 'FUBAR', 'aBSREL', 'ABSREL', 'GARD', 'MULTI-HIT', 'NRM'].includes(analysis.method)}
+					{:else if ['FEL', 'CONTRAST-FEL', 'SLAC', 'MEME', 'BUSTED', 'RELAX', 'FUBAR', 'aBSREL', 'ABSREL', 'GARD', 'MULTI-HIT', 'NRM'].includes(analysis.method)}
 						<!-- Selection analysis results with fallback legacy visualization for FEL -->
 						<div class="selection-analysis">
 							{#if resultData.input && resultData.input.file}
