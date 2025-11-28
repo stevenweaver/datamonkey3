@@ -159,7 +159,7 @@
 </script>
 
 {#if fileMetricsJSON && showExport}
-	<div class="fasta-export mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+	<div class="fasta-export mb-4 rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
 		<h3 class="mb-3 text-lg font-bold">Export Sequences</h3>
 
 		<div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -200,7 +200,7 @@
 								min="0"
 								max="10000"
 								step="10"
-								class="w-16 rounded border border-gray-300 px-2 py-1 text-sm"
+								class="w-16 rounded border border-border-subtle px-2 py-1 text-sm"
 							/>
 						</div>
 					</div>
@@ -212,7 +212,7 @@
 		<div class="export-actions flex items-center">
 			<button
 				on:click={exportSequences}
-				class="flex items-center rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+				class="flex items-center rounded bg-brand-royal px-3 py-1 text-white hover:bg-brand-deep"
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -232,8 +232,8 @@
 			{#if exportStatus}
 				<span
 					class="ml-3 text-sm"
-					class:text-green-600={!exportStatus.includes('failed')}
-					class:text-red-600={exportStatus.includes('failed')}
+					class:text-status-success={!exportStatus.includes('failed')}
+					class:text-status-error={exportStatus.includes('failed')}
 				>
 					{exportStatus}
 				</span>
@@ -241,7 +241,7 @@
 		</div>
 
 		<!-- Help text -->
-		<div class="mt-3 text-xs text-gray-500">
+		<div class="mt-3 text-xs text-text-silver">
 			{#if exportFormat === 'fasta'}
 				<p>
 					Exports sequences in standard FASTA format with each sequence preceded by a header line

@@ -58,7 +58,7 @@
 			id="method-selector"
 			bind:value={selectedMethod}
 			on:change={handleMethodSelect}
-			class="w-full rounded-lg border border-gray-300 p-2 text-gray-700"
+			class="w-full rounded-premium border border-border-subtle p-2 text-text-slate"
 		>
 			<option value="FEL">FEL (Fixed Effects Likelihood)</option>
 			<option value="SLAC">SLAC (Single-Likelihood Ancestor Counting)</option>
@@ -70,7 +70,7 @@
 		</select>
 	</div>
 
-	<div class="method-description mb-4 rounded-lg bg-gray-50 p-4 text-gray-700">
+	<div class="method-description mb-4 rounded-premium bg-surface-raised p-4 text-text-slate">
 		{#if methodConfigs[selectedMethod?.toLowerCase()]?.description}
 			<p>{methodConfigs[selectedMethod?.toLowerCase()].description}</p>
 		{:else}
@@ -91,13 +91,13 @@
 				{trees}
 			/>
 		{:else}
-			<div class="rounded-lg bg-yellow-50 p-4 text-yellow-700">
+			<div class="rounded-premium bg-status-warning-bg p-4 text-status-warning-text">
 				<p>
 					No configuration options available for {selectedMethod}. Click "Run Analysis" to continue
 					with default settings.
 				</p>
 				<button
-					class="mt-4 w-full rounded bg-blue-500 px-4 py-2 font-semibold text-white transition hover:bg-blue-600"
+					class="mt-4 w-full rounded-premium-sm bg-brand-royal px-4 py-2 font-semibold text-white transition duration-premium hover:bg-brand-deep"
 					on:click={() => handleRunMethod(selectedMethod)}
 				>
 					Run {selectedMethod} Analysis

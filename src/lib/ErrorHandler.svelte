@@ -21,22 +21,22 @@
 		switch (level) {
 			case 'error':
 				return {
-					container: 'bg-red-50 border-red-300 text-red-900',
-					icon: 'text-red-500',
-					button: 'hover:bg-red-100 focus:ring-red-600'
+					container: 'bg-status-error-bg border-status-error-border text-status-error-text',
+					icon: 'text-status-error',
+					button: 'hover:bg-status-error-border focus:ring-status-error'
 				};
 			case 'warning':
 				return {
-					container: 'bg-yellow-50 border-yellow-300 text-yellow-900',
-					icon: 'text-yellow-500',
-					button: 'hover:bg-yellow-100 focus:ring-yellow-600'
+					container: 'bg-status-warning-bg border-status-warning-border text-status-warning-text',
+					icon: 'text-status-warning',
+					button: 'hover:bg-status-warning-border focus:ring-status-warning'
 				};
 			case 'info':
 			default:
 				return {
-					container: 'bg-blue-50 border-blue-300 text-blue-900',
-					icon: 'text-blue-500',
-					button: 'hover:bg-blue-100 focus:ring-blue-600'
+					container: 'bg-status-info-bg border-status-info-border text-status-info-text',
+					icon: 'text-status-info',
+					button: 'hover:bg-status-info-border focus:ring-status-info'
 				};
 		}
 	}

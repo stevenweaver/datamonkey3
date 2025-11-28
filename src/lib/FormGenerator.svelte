@@ -81,13 +81,13 @@
 
 			{#each methodConfig.options as option (option.name)}
 				<div class="mb-4">
-					<label class="mb-1 block text-gray-700">{option.description}</label>
+					<label class="mb-1 block text-text-slate">{option.description}</label>
 					{#if option.takes_value}
 						{#if option.type === 'string'}
 							<select
 								bind:value={formData[option.name]}
 								on:change={(event) => handleInputChange(event, option.name)}
-								class="w-full rounded border border-gray-300 p-2"
+								class="w-full rounded border border-border-subtle p-2"
 							>
 								{#each option.choices ? option.choices : [{ value: option.default, description: option.default }] as choice}
 									<option value={choice.value}>{choice.description}</option>
@@ -100,14 +100,14 @@
 								min={option.minimum || 0}
 								max={option.maximum || undefined}
 								on:input={(event) => handleInputChange(event, option.name)}
-								class="w-full rounded border border-gray-300 p-2"
+								class="w-full rounded border border-border-subtle p-2"
 								placeholder={option.default}
 							/>
 						{:else if option.type === 'file' && option.name !== 'alignment'}
 							<input
 								type="file"
 								on:change={(event) => handleInputChange(event, option.name)}
-								class="w-full rounded border border-gray-300 p-2"
+								class="w-full rounded border border-border-subtle p-2"
 							/>
 						{/if}
 					{/if}
@@ -116,7 +116,7 @@
 
 			<div class="mb-4">
 				<button
-					class="w-full rounded bg-blue-500 px-4 py-2 font-semibold text-white transition hover:bg-blue-600"
+					class="w-full rounded-premium-sm bg-brand-royal px-4 py-2 font-semibold text-white transition duration-premium hover:bg-brand-deep"
 					on:click={handleRunClick}
 				>
 					Run Analysis

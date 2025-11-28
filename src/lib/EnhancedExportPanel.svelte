@@ -264,12 +264,12 @@
 	});
 </script>
 
-<div class="enhanced-export-panel mb-4 rounded-lg border border-gray-200 bg-white shadow-md">
-	<div class="flex items-center justify-between border-b border-gray-200 p-4">
+<div class="enhanced-export-panel mb-4 rounded-lg border border-border-subtle bg-white shadow-md">
+	<div class="flex items-center justify-between border-b border-border-subtle p-4">
 		<h3 class="text-lg font-semibold">Export & Share</h3>
 		<button
 			on:click={toggleExportOptions}
-			class="rounded-full p-1 text-gray-500 hover:bg-gray-100"
+			class="rounded-full p-1 text-text-silver hover:bg-surface-sunken"
 			aria-label={showExportOptions ? 'Hide export options' : 'Show export options'}
 		>
 			{#if showExportOptions}
@@ -314,14 +314,14 @@
 								class={`flex flex-col items-center justify-center rounded-lg border p-3 transition
                   ${
 										exportFormat === format.id
-											? 'border-blue-500 bg-blue-50 text-blue-700'
-											: 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+											? 'border-brand-royal bg-brand-ghost text-brand-deep'
+											: 'border-border-subtle bg-white text-text-slate hover:bg-surface-raised'
 									}`}
 								on:click={() => (exportFormat = format.id)}
 							>
 								<span class="mb-1 text-lg">{format.icon}</span>
 								<span class="font-semibold">{format.label}</span>
-								<span class="mt-1 text-center text-xs text-gray-500">{format.description}</span>
+								<span class="mt-1 text-center text-xs text-text-silver">{format.description}</span>
 							</button>
 						{/each}
 					</div>
@@ -331,14 +331,14 @@
 				<div>
 					<label class="mb-2 block font-medium">Export Options</label>
 
-					<div class="rounded-lg border border-gray-300 p-3">
+					<div class="rounded-lg border border-border-subtle p-3">
 						<!-- Filename input -->
 						<div class="mb-3">
 							<label class="mb-1 block text-sm font-medium">Filename</label>
 							<input
 								type="text"
 								bind:value={exportFilename}
-								class="w-full rounded border border-gray-300 p-2 text-sm"
+								class="w-full rounded border border-border-subtle p-2 text-sm"
 							/>
 						</div>
 
@@ -348,7 +348,7 @@
 								<input
 									type="checkbox"
 									bind:checked={includeMetadata}
-									class="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600"
+									class="mr-2 h-4 w-4 rounded border-border-subtle text-brand-royal"
 								/>
 								<span class="text-sm">Include metadata (timestamps, analysis info)</span>
 							</label>
@@ -356,7 +356,7 @@
 
 						<!-- Preview toggle -->
 						<div>
-							<button on:click={togglePreview} class="text-sm text-blue-600 hover:text-blue-800">
+							<button on:click={togglePreview} class="text-sm text-brand-royal hover:text-brand-deep">
 								{showPreview ? 'Hide Preview' : 'Show Preview'}
 							</button>
 						</div>
@@ -368,10 +368,10 @@
 			{#if showPreview}
 				<div class="mb-4">
 					<h4 class="mb-2 font-medium">Preview</h4>
-					<div class="max-h-60 overflow-auto rounded border border-gray-300 bg-gray-50 p-3">
+					<div class="max-h-60 overflow-auto rounded border border-border-subtle bg-surface-raised p-3">
 						<pre class="text-xs">{previewContent}</pre>
 					</div>
-					<p class="mt-1 text-xs text-gray-500">Preview shows up to 2000 characters</p>
+					<p class="mt-1 text-xs text-text-silver">Preview shows up to 2000 characters</p>
 				</div>
 			{/if}
 
@@ -379,7 +379,7 @@
 			<div class="export-actions flex flex-wrap gap-2">
 				<button
 					on:click={exportAnalysisResults}
-					class="flex items-center rounded bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+					class="flex items-center rounded bg-brand-royal px-4 py-2 font-semibold text-white hover:bg-brand-deep focus:outline-none focus:ring-2 focus:ring-brand-royal focus:ring-offset-2"
 					disabled={!analysis}
 				>
 					<svg
@@ -402,8 +402,8 @@
 					class={`flex items-center rounded px-4 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 
             ${
 							shareLinkCopied
-								? 'bg-green-100 text-green-800 focus:ring-green-500'
-								: 'bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-gray-500'
+								? 'bg-status-success-bg text-status-success-text focus:ring-status-success'
+								: 'bg-surface-sunken text-text-rich hover:bg-surface-sunken focus:ring-text-silver'
 						}`}
 					disabled={!analysisId}
 				>
@@ -424,11 +424,11 @@
 				<LogDownloader {analysisId} />
 
 				{#if exportStatus}
-					<span class="ml-2 self-center text-sm font-medium text-green-600">{exportStatus}</span>
+					<span class="ml-2 self-center text-sm font-medium text-status-success">{exportStatus}</span>
 				{/if}
 			</div>
 
-			<div class="mt-4 rounded-md bg-blue-50 p-3 text-sm text-blue-800">
+			<div class="mt-4 rounded-md bg-brand-ghost p-3 text-sm text-brand-deep">
 				<p class="flex items-start">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"

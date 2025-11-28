@@ -390,11 +390,53 @@
 				<span class="text-premium-body">Loading files...</span>
 			</div>
 		{:else if filteredFiles.length === 0}
-			<p class="p-premium-md text-center text-premium-body text-text-slate">
-				{filterText
-					? 'No matching files found.'
-					: 'No files saved yet. Upload a file to get started.'}
-			</p>
+			<div class="flex flex-col items-center justify-center p-premium-xl text-center">
+				{#if filterText}
+					<!-- No search results state -->
+					<div class="mb-premium-md rounded-full bg-brand-whisper p-premium-md">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-8 w-8 text-brand-muted"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+							/>
+						</svg>
+					</div>
+					<p class="text-premium-body font-medium text-text-rich">No matching files</p>
+					<p class="mt-premium-xs text-premium-meta text-text-silver">
+						Try adjusting your search term
+					</p>
+				{:else}
+					<!-- Empty state with illustration -->
+					<div class="mb-premium-md rounded-full bg-brand-ghost p-premium-lg">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-10 w-10 text-brand-muted"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+							/>
+						</svg>
+					</div>
+					<p class="text-premium-body font-semibold text-text-rich">No saved files yet</p>
+					<p class="mt-premium-xs max-w-xs text-premium-meta text-text-silver">
+						Upload a sequence file or try a sample file above to begin your analysis
+					</p>
+				{/if}
+			</div>
 		{:else}
 			{#each filteredFiles as file (file.id)}
 				<FileCard

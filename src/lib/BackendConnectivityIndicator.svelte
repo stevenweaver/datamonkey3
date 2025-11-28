@@ -24,9 +24,9 @@
 			: 'disconnected';
 
 	$: statusColor = {
-		connecting: 'bg-yellow-400',
-		connected: 'bg-green-500',
-		disconnected: 'bg-red-500'
+		connecting: 'bg-status-warning',
+		connected: 'bg-status-success',
+		disconnected: 'bg-status-error'
 	}[status];
 
 	$: tooltipText = {
@@ -40,7 +40,7 @@
 
 <div class="relative inline-flex items-center">
 	<div
-		class="group relative flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm"
+		class="group relative flex h-6 w-6 items-center justify-center rounded-full border border-border-subtle bg-surface-base shadow-sm"
 		title={tooltipText}
 	>
 		<!-- Status dot -->
@@ -50,17 +50,17 @@
 
 		<!-- Tooltip -->
 		<div
-			class="pointer-events-none absolute right-0 top-full mt-2 hidden w-max max-w-xs rounded-md bg-gray-900 px-3 py-2 text-sm text-white shadow-lg group-hover:block"
+			class="pointer-events-none absolute right-0 top-full mt-2 hidden w-max max-w-xs rounded-md bg-surface-overlay px-3 py-2 text-sm text-white shadow-lg group-hover:block"
 		>
 			{tooltipText}
 			{#if $backendConnectivity.lastChecked}
-				<div class="mt-1 text-xs text-gray-300">
+				<div class="mt-1 text-xs text-text-silver">
 					Last checked: {$backendConnectivity.lastChecked.toLocaleTimeString()}
 				</div>
 			{/if}
 			<!-- Tooltip arrow -->
 			<div
-				class="absolute bottom-full right-6 h-2 w-2 rotate-45 bg-gray-900"
+				class="absolute bottom-full right-6 h-2 w-2 rotate-45 bg-surface-overlay"
 				style="margin-bottom: -4px;"
 			></div>
 		</div>
