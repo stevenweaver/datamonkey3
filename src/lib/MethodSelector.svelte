@@ -1320,8 +1320,15 @@
 
 	.execution-mode-options {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 12px;
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+
+	@media (min-width: 640px) {
+		.execution-mode-options {
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
+		}
 	}
 
 	.execution-mode-option {
@@ -1398,20 +1405,36 @@
 
 	.options-container {
 		display: flex;
-		gap: 24px;
+		flex-direction: column;
+		gap: 16px;
 		border-top: 1px solid #f7fafc;
 		padding-top: 20px;
+	}
+
+	@media (min-width: 640px) {
+		.options-container {
+			flex-direction: row;
+			gap: 24px;
+		}
 	}
 
 	.essential-options,
 	.advanced-options {
 		flex: 1;
+		min-width: 0;
 	}
 
 	.options-divider {
+		display: none;
 		width: 1px;
 		background: #e2e8f0;
 		margin: -8px 0;
+	}
+
+	@media (min-width: 640px) {
+		.options-divider {
+			display: block;
+		}
 	}
 
 	.options-header {

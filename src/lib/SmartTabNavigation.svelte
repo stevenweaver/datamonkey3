@@ -40,12 +40,12 @@
 	}
 </script>
 
-<div class="mb-premium-xl">
-	<div class="rounded-premium bg-brand-ghost p-premium-xs">
+<div class="mb-4 sm:mb-premium-xl">
+	<div class="rounded-premium bg-brand-ghost p-1 sm:p-premium-xs">
 		<div class="flex border-b border-border-platinum">
 			<!-- Data Tab - Always Enabled -->
 			<button
-				class="relative px-premium-xl py-premium-lg text-premium-brand font-semibold transition-all duration-premium"
+				class="relative min-h-[48px] flex-1 px-2 py-3 text-xs font-semibold transition-all duration-premium sm:flex-none sm:px-premium-xl sm:py-premium-lg sm:text-premium-brand"
 				class:text-brand-royal={activeTab === 'data'}
 				class:text-text-rich={activeTab !== 'data'}
 				class:hover:text-brand-royal={activeTab !== 'data'}
@@ -53,9 +53,9 @@
 				on:click={() => handleTabClick('data')}
 				title="Manage sequence data"
 			>
-				<span class="flex items-center">
+				<span class="flex flex-col items-center gap-1 sm:flex-row sm:gap-2">
 					<div
-						class="mr-2 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border"
+						class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border"
 						class:bg-brand-royal={activeTab === 'data'}
 						class:text-white={activeTab === 'data'}
 						class:border-brand-royal={activeTab === 'data'}
@@ -63,9 +63,9 @@
 						class:text-text-rich={activeTab !== 'data'}
 						class:border-text-slate={activeTab !== 'data'}
 					>
-						<span class="text-sm font-bold">1</span>
+						<span class="text-xs font-bold sm:text-sm">1</span>
 					</div>
-					Data
+					<span class="text-[10px] sm:text-sm">Data</span>
 				</span>
 				{#if activeTab === 'data'}
 					<div class="absolute bottom-0 left-0 right-0 h-[3px] bg-accent-copper"></div>
@@ -74,7 +74,7 @@
 
 			<!-- Analyze Tab - Disabled until data is available -->
 			<button
-				class="relative px-premium-xl py-premium-lg text-premium-brand font-semibold transition-all duration-premium"
+				class="relative min-h-[48px] flex-1 px-2 py-3 text-xs font-semibold transition-all duration-premium sm:flex-none sm:px-premium-xl sm:py-premium-lg sm:text-premium-brand"
 				class:text-brand-royal={activeTab === 'analyze' && !isAnalyzeDisabled}
 				class:text-text-rich={activeTab !== 'analyze' && !isAnalyzeDisabled}
 				class:text-text-silver={isAnalyzeDisabled}
@@ -86,9 +86,9 @@
 				title={isAnalyzeDisabled ? 'Upload data first' : 'Run analysis on selected data'}
 				aria-disabled={isAnalyzeDisabled}
 			>
-				<span class="flex items-center">
+				<span class="flex flex-col items-center gap-1 sm:flex-row sm:gap-2">
 					<div
-						class="mr-2 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border"
+						class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border"
 						class:bg-brand-royal={activeTab === 'analyze' && !isAnalyzeDisabled}
 						class:text-white={activeTab === 'analyze' && !isAnalyzeDisabled}
 						class:border-brand-royal={activeTab === 'analyze' && !isAnalyzeDisabled}
@@ -99,15 +99,19 @@
 						class:text-text-silver={isAnalyzeDisabled}
 						class:border-gray-200={isAnalyzeDisabled}
 					>
-						<span class="text-sm font-bold">2</span>
+						<span class="text-xs font-bold sm:text-sm">2</span>
 					</div>
-					Analyze
+					<span class="text-[10px] sm:text-sm">Analyze</span>
 				</span>
 				{#if showRunningIndicator && !isAnalyzeDisabled}
 					<span
-						class="ml-2 inline-flex animate-pulse-premium items-center rounded-premium-xl bg-brand-royal px-2.5 py-0.5 text-premium-caption font-semibold tracking-premium-badge text-white"
+						class="absolute right-1 top-1 flex h-2 w-2 sm:relative sm:right-auto sm:top-auto sm:ml-2 sm:h-auto sm:w-auto sm:px-2.5 sm:py-0.5"
 					>
-						Running
+						<span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-royal opacity-75 sm:hidden"></span>
+						<span class="relative inline-flex h-2 w-2 rounded-full bg-brand-royal sm:hidden"></span>
+						<span class="hidden animate-pulse-premium items-center rounded-premium-xl bg-brand-royal text-premium-caption font-semibold tracking-premium-badge text-white sm:inline-flex">
+							Running
+						</span>
 					</span>
 				{/if}
 				{#if activeTab === 'analyze' && !isAnalyzeDisabled}
@@ -117,7 +121,7 @@
 
 			<!-- Results Tab - Disabled until analyses exist -->
 			<button
-				class="relative px-premium-xl py-premium-lg text-premium-brand font-semibold transition-all duration-premium"
+				class="relative min-h-[48px] flex-1 px-2 py-3 text-xs font-semibold transition-all duration-premium sm:flex-none sm:px-premium-xl sm:py-premium-lg sm:text-premium-brand"
 				class:text-brand-royal={activeTab === 'results' && !isResultsDisabled}
 				class:text-text-rich={activeTab !== 'results' && !isResultsDisabled}
 				class:text-text-silver={isResultsDisabled}
@@ -129,9 +133,9 @@
 				title={isResultsDisabled ? 'Run analysis first' : 'View analysis results'}
 				aria-disabled={isResultsDisabled}
 			>
-				<span class="flex items-center">
+				<span class="flex flex-col items-center gap-1 sm:flex-row sm:gap-2">
 					<div
-						class="mr-2 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border"
+						class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border"
 						class:bg-brand-royal={activeTab === 'results' && !isResultsDisabled}
 						class:text-white={activeTab === 'results' && !isResultsDisabled}
 						class:border-brand-royal={activeTab === 'results' && !isResultsDisabled}
@@ -142,9 +146,9 @@
 						class:text-text-silver={isResultsDisabled}
 						class:border-gray-200={isResultsDisabled}
 					>
-						<span class="text-sm font-bold">3</span>
+						<span class="text-xs font-bold sm:text-sm">3</span>
 					</div>
-					Results
+					<span class="text-[10px] sm:text-sm">Results</span>
 				</span>
 				{#if activeTab === 'results' && !isResultsDisabled}
 					<div class="absolute bottom-0 left-0 right-0 h-[3px] bg-accent-copper"></div>

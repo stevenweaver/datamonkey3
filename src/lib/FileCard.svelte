@@ -208,21 +208,21 @@
 </script>
 
 <div
-	class="file-card mb-premium-sm overflow-hidden rounded-premium border bg-white shadow-premium transition-all duration-premium hover:shadow-premium-hover"
+	class="file-card mb-2 overflow-hidden rounded-lg border bg-white shadow-sm transition-all duration-premium hover:shadow-premium active:scale-[0.99] sm:mb-premium-sm sm:rounded-premium sm:shadow-premium"
 	class:border-brand-royal={isActive}
 	class:ring-1={isActive}
 	class:ring-brand-muted={isActive}
 >
-	<div class="cursor-pointer p-premium-md" on:click={selectFile}>
-		<div class="flex items-center justify-between">
-			<div class="flex items-center">
+	<div class="cursor-pointer p-3 sm:p-premium-md" on:click={selectFile}>
+		<div class="flex items-center justify-between gap-2">
+			<div class="flex min-w-0 flex-1 items-center">
 				<!-- File icon based on type -->
 				<div
-					class="mr-premium-md flex h-10 w-10 items-center justify-center rounded-premium-sm {fileTypeInfo.color}"
+					class="mr-2 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg sm:mr-premium-md sm:h-10 sm:w-10 sm:rounded-premium-sm {fileTypeInfo.color}"
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
-						class="h-6 w-6"
+						class="h-5 w-5 sm:h-6 sm:w-6"
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke="currentColor"
@@ -237,17 +237,17 @@
 				</div>
 
 				<!-- File info -->
-				<div class="flex-grow overflow-hidden">
-					<div class="flex items-center">
-						<h3 class="truncate text-premium-body font-medium text-text-rich">
+				<div class="min-w-0 flex-1">
+					<div class="flex items-center gap-1.5 sm:gap-premium-sm">
+						<h3 class="truncate text-sm font-medium text-text-rich sm:text-premium-body">
 							{file.filename || 'Unnamed File'}
 						</h3>
 						<span
-							class="ml-premium-sm rounded-premium-xl bg-brand-whisper px-premium-sm py-0.5 text-premium-caption text-text-slate"
+							class="hidden flex-shrink-0 rounded-full bg-brand-whisper px-1.5 py-0.5 text-[10px] text-text-slate xs:inline sm:rounded-premium-xl sm:px-premium-sm sm:text-premium-caption"
 							>{fileTypeLabel}</span
 						>
 					</div>
-					<div class="flex items-center text-premium-caption text-text-silver">
+					<div class="flex items-center text-[11px] text-text-silver sm:text-premium-caption">
 						<span>{formatFileSize(file.size)}</span>
 						<span class="mx-1">•</span>
 						<span title={formatDate(file.createdAt)}>{timeAgo}</span>
@@ -256,16 +256,17 @@
 			</div>
 
 			<!-- Actions -->
-			<div class="ml-premium-sm flex items-center">
+			<div class="flex flex-shrink-0 items-center gap-0.5 sm:gap-1">
 				<button
 					on:click={toggleDetails}
-					class="ml-1 rounded-premium-sm p-1 text-text-slate transition-all duration-premium hover:bg-brand-whisper hover:text-brand-royal"
+					class="flex h-9 w-9 items-center justify-center rounded-lg text-text-slate transition-all duration-premium hover:bg-brand-whisper hover:text-brand-royal focus:outline-none focus:ring-2 focus:ring-brand-royal focus:ring-offset-1 sm:h-11 sm:w-11 sm:rounded-premium-sm"
 					title={showDetails ? 'Hide details' : 'Show details'}
+					aria-label={showDetails ? 'Hide details' : 'Show details'}
 				>
 					{#if showDetails}
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
-							class="h-5 w-5"
+							class="h-4 w-4 sm:h-5 sm:w-5"
 							viewBox="0 0 20 20"
 							fill="currentColor"
 						>
@@ -278,7 +279,7 @@
 					{:else}
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
-							class="h-5 w-5"
+							class="h-4 w-4 sm:h-5 sm:w-5"
 							viewBox="0 0 20 20"
 							fill="currentColor"
 						>
@@ -293,13 +294,13 @@
 
 				<button
 					on:click={deleteFile}
-					class="ml-1 rounded-premium-sm p-1 text-text-slate transition-all duration-premium hover:bg-brand-whisper hover:text-accent-warm"
+					class="flex h-9 w-9 items-center justify-center rounded-lg text-text-slate transition-all duration-premium hover:bg-status-error-bg hover:text-status-error focus:outline-none focus:ring-2 focus:ring-status-error focus:ring-offset-1 sm:h-11 sm:w-11 sm:rounded-premium-sm"
 					title="Delete file"
 					aria-label="Delete file"
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
-						class="h-5 w-5"
+						class="h-4 w-4 sm:h-5 sm:w-5"
 						viewBox="0 0 20 20"
 						fill="currentColor"
 					>
@@ -356,11 +357,11 @@
 				<div class="mt-premium-md flex justify-end">
 					<button
 						on:click={selectFile}
-						class="flex items-center rounded-premium-sm bg-brand-gradient px-premium-sm py-premium-xs text-premium-caption font-medium text-white shadow-sm transition-all duration-premium hover:bg-brand-deep"
+						class="flex min-h-[44px] items-center rounded-premium-sm bg-brand-gradient px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-premium hover:bg-brand-deep focus:outline-none focus:ring-2 focus:ring-brand-royal focus:ring-offset-2"
 					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
-							class="mr-1 h-3 w-3"
+							class="mr-2 h-4 w-4"
 							viewBox="0 0 20 20"
 							fill="currentColor"
 						>

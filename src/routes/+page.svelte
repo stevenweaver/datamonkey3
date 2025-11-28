@@ -830,16 +830,16 @@
 
 <svelte:window on:switchTab={handleSwitchTab} />
 
-<div class="container mx-auto min-h-screen bg-brand-ghost p-premium-xl">
+<div class="container mx-auto min-h-screen bg-brand-ghost">
 	{#if loading}
-		<div class="flex h-screen flex-col items-center justify-center">
+		<div class="flex h-screen flex-col items-center justify-center px-4">
 			<div class="loader mb-premium-md"></div>
-			<p class="text-premium-header font-semibold text-brand-royal">Loading HyPhy...</p>
+			<p class="text-lg font-semibold text-brand-royal sm:text-premium-header">Loading HyPhy...</p>
 		</div>
 	{:else}
-		<div class="pb-premium-xl">
+		<div class="pb-6 sm:pb-premium-xl">
 			<h1
-				class="mb-premium-xl text-premium-headline font-bold tracking-premium-tight text-text-rich"
+				class="mb-4 text-xl font-bold tracking-premium-tight text-text-rich sm:mb-premium-xl sm:text-premium-headline"
 			>
 				Sequence Analysis Platform
 			</h1>
