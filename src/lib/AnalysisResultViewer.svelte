@@ -190,7 +190,7 @@
 			<p>Loading analysis results...</p>
 		</div>
 	{:else if error}
-		<div class="error-container p-4 text-red-500">
+		<div class="error-container p-4 text-status-error">
 			<h3 class="font-bold">Error</h3>
 			<p>{error}</p>
 		</div>
@@ -199,20 +199,20 @@
 			<!-- Enhanced Export panel with options -->
 			<EnhancedExportPanel {analysisId} />
 
-			<div class="bg-gray-100 p-4">
+			<div class="bg-surface-sunken p-4">
 				<div class="flex items-center justify-between">
-					<h2 class="text-xl font-bold">{analysis.method.toUpperCase()} Analysis</h2>
+					<h2 class="text-xl font-bold text-text-rich">{analysis.method.toUpperCase()} Analysis</h2>
 				</div>
-				<div class="text-sm text-gray-600">
+				<div class="text-sm text-text-slate">
 					<p>File: {file.filename}</p>
 					<p>
 						Status:
 						<span
 							class="font-semibold capitalize {analysis.status === 'completed'
-								? 'text-green-600'
+								? 'text-status-success'
 								: analysis.status === 'pending'
-									? 'text-yellow-600'
-									: 'text-gray-600'}"
+									? 'text-status-warning'
+									: 'text-text-slate'}"
 						>
 							{analysis.status === 'completed' ? 'Completed' : analysis.status}
 						</span>
@@ -221,7 +221,7 @@
 						Execution:
 						<span class="font-medium">
 							{#if analysis.metadata?.executionMode === 'backend'}
-								<span class="inline-flex items-center text-blue-600">
+								<span class="inline-flex items-center text-status-info">
 									<svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
 										<path
 											d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
@@ -230,7 +230,7 @@
 									Server
 								</span>
 							{:else if analysis.metadata?.executionMode === 'wasm'}
-								<span class="inline-flex items-center text-purple-600">
+								<span class="inline-flex items-center text-brand-royal">
 									<svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
 										<path
 											fill-rule="evenodd"
@@ -241,7 +241,7 @@
 									Local (WebAssembly)
 								</span>
 							{:else}
-								<span class="text-gray-500">Unknown</span>
+								<span class="text-text-silver">Unknown</span>
 							{/if}
 						</span>
 					</p>
@@ -263,10 +263,10 @@
 								</h3>
 								<!-- Debug logging for aBSREL data structure -->
 								{#if analysis.method.toLowerCase() === 'absrel'}
-									<div class="mb-4 text-xs text-gray-500">
+									<div class="mb-4 text-xs text-text-silver">
 										<details>
 											<summary>Debug: aBSREL Data Structure</summary>
-											<pre class="max-h-40 overflow-auto bg-gray-50 p-2 text-xs">{JSON.stringify(
+											<pre class="max-h-40 overflow-auto bg-surface-raised p-2 text-xs">{JSON.stringify(
 													resultData,
 													null,
 													2
@@ -295,7 +295,7 @@
 								<h3 class="mb-2 text-lg font-bold">Partition Information</h3>
 								<div class="partition-info">
 									{#each Object.entries(resultData.FILE_PARTITION_INFO) as [key, partition]}
-										<div class="mb-2 border-l-4 border-blue-500 pl-2">
+										<div class="mb-2 border-l-4 border-brand-royal pl-2">
 											<p><strong>Partition {key}:</strong></p>
 											<p><strong>Sites:</strong> {partition.sites || 0}</p>
 											<p><strong>Sequences:</strong> {partition.sequences || 0}</p>
@@ -323,7 +323,7 @@
 								<h3 class="mb-2 text-lg font-bold">Model Fits</h3>
 								<div class="overflow-x-auto">
 									<table class="w-full table-auto">
-										<thead class="bg-gray-200">
+										<thead class="bg-surface-sunken">
 											<tr>
 												<th class="p-2 text-left">Model</th>
 												<th class="p-2 text-left">Log Likelihood</th>
@@ -351,7 +351,7 @@
 								<h3 class="my-2 text-lg font-bold">Site Results</h3>
 								<div class="max-h-96 overflow-auto">
 									<table class="w-full table-auto">
-										<thead class="sticky top-0 bg-gray-200">
+										<thead class="sticky top-0 bg-surface-sunken">
 											<tr>
 												<th class="p-2 text-left">Site</th>
 												<th class="p-2 text-left">p-value</th>
@@ -362,7 +362,7 @@
 										</thead>
 										<tbody>
 											{#each resultData.tested.sites as site}
-												<tr class="border-b" class:bg-yellow-100={site.p <= 0.05}>
+												<tr class="border-b" class:bg-status-warning-bg={site.p <= 0.05}>
 													<td class="p-2">{site.site_index || site.site || 'N/A'}</td>
 													<td class="p-2">{site.p ? site.p.toExponential(2) : 'N/A'}</td>
 													<td class="p-2">{site.alpha ? site.alpha.toFixed(2) : 'N/A'}</td>
@@ -370,12 +370,12 @@
 													<td class="p-2">
 														{#if site.p <= 0.05}
 															{#if site.beta > site.alpha}
-																<span class="font-bold text-red-500">Positive</span>
+																<span class="font-bold text-status-error">Positive</span>
 															{:else}
-																<span class="font-bold text-blue-500">Negative</span>
+																<span class="font-bold text-brand-royal">Negative</span>
 															{/if}
 														{:else}
-															<span class="text-gray-500">Neutral</span>
+															<span class="text-text-silver">Neutral</span>
 														{/if}
 													</td>
 												</tr>
@@ -386,16 +386,16 @@
 							{/if}
 
 							{#if !resultData.tested && !resultData.fits}
-								<pre class="bg-gray-100 p-2 text-sm">{JSON.stringify(resultData, null, 2)}</pre>
+								<pre class="bg-surface-sunken p-2 text-sm">{JSON.stringify(resultData, null, 2)}</pre>
 							{/if}
 
 							<!-- HyPhy-eye integration with localStorage sharing -->
 							{#if isMethodSupported(analysis.method)}
-								<div class="mb-4 mt-4 rounded-lg bg-blue-50 p-4 text-center shadow-sm">
-									<p class="mb-2 text-blue-800">View results with automatic data sharing:</p>
+								<div class="mb-4 mt-4 rounded-lg bg-status-info-bg p-4 text-center shadow-sm">
+									<p class="mb-2 text-status-info-text">View results with automatic data sharing:</p>
 									<button
 										on:click={() => shareWithHyphyEye(resultData, analysis.method)}
-										class="inline-block rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
+										class="inline-block rounded-md bg-brand-royal px-4 py-2 text-white transition-colors hover:bg-brand-deep"
 									>
 										View in HyPhy-eye
 										<svg
@@ -413,12 +413,12 @@
 											/>
 										</svg>
 									</button>
-									<p class="mt-2 text-sm text-blue-600">
+									<p class="mt-2 text-sm text-brand-royal">
 										Analysis results will be automatically shared via localStorage.
 									</p>
 								</div>
 							{:else}
-								<div class="mb-4 mt-4 rounded-lg bg-gray-100 p-4 text-center shadow-sm">
+								<div class="mb-4 mt-4 rounded-lg bg-surface-sunken p-4 text-center shadow-sm">
 									<p class="mb-2">Open results in a new tab:</p>
 									<a
 										href="{FINAL_HYPHY_EYE_URL}/pages/{analysis.method
@@ -426,7 +426,7 @@
 											.replace('-', '')}"
 										target="_blank"
 										rel="noopener noreferrer"
-										class="inline-block rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
+										class="inline-block rounded-md bg-brand-royal px-4 py-2 text-white transition-colors hover:bg-brand-deep"
 									>
 										Open {analysis.method.toUpperCase()} Results in hyphy-eye
 										<svg
@@ -444,7 +444,7 @@
 											/>
 										</svg>
 									</a>
-									<p class="mt-2 text-sm text-gray-600">
+									<p class="mt-2 text-sm text-text-slate">
 										Note: You will need to upload your result JSON to hyphy-eye manually.
 									</p>
 								</div>
@@ -454,7 +454,7 @@
 						<!-- Generic JSON display for other methods -->
 						<div class="json-display">
 							<h3 class="mb-2 text-lg font-bold">Analysis Results</h3>
-							<pre class="max-h-96 overflow-auto bg-gray-100 p-2 text-sm">{JSON.stringify(
+							<pre class="max-h-96 overflow-auto bg-surface-sunken p-2 text-sm">{JSON.stringify(
 									resultData,
 									null,
 									2
@@ -466,28 +466,28 @@
 					<AnalysisProgress {analysisId} />
 				{:else if analysis.status === 'completed' && !resultData}
 					<!-- Analysis is marked complete but results are missing (likely due to state bug) -->
-					<div class="rounded-lg bg-yellow-50 p-4">
-						<p class="mb-2 text-yellow-800">
+					<div class="rounded-lg bg-status-warning-bg p-4">
+						<p class="mb-2 text-status-warning-text">
 							<strong>Analysis appears complete but results are not loading.</strong>
 						</p>
-						<p class="mb-3 text-sm text-yellow-700">
+						<p class="mb-3 text-sm text-status-warning-text">
 							This may be due to a state synchronization issue. The analysis completed successfully
 							but the results weren't properly saved.
 						</p>
 						<button
 							on:click={() => loadAnalysis(analysisId)}
-							class="rounded bg-yellow-600 px-3 py-1 text-sm text-white hover:bg-yellow-700"
+							class="rounded bg-status-warning px-3 py-1 text-sm text-white hover:bg-accent-copper"
 						>
 							Retry Loading Results
 						</button>
 					</div>
 				{:else}
-					<p class="text-gray-600">No results available</p>
+					<p class="text-text-slate">No results available</p>
 				{/if}
 			</div>
 		</div>
 	{:else}
-		<p class="p-4 text-gray-500">Select an analysis to view results</p>
+		<p class="p-4 text-text-silver">Select an analysis to view results</p>
 	{/if}
 </div>
 

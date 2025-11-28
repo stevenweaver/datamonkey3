@@ -58,28 +58,28 @@
 	<div class="mb-4 flex items-center">
 		<button
 			on:click={backToMain}
-			class="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+			class="rounded-premium-sm bg-brand-royal px-3 py-1 text-white transition-colors duration-premium hover:bg-brand-deep"
 		>
 			← Back to Main Page
 		</button>
 
-		<h1 class="ml-4 text-2xl font-bold">Analysis Details</h1>
+		<h1 class="ml-4 text-2xl font-bold text-text-rich">Analysis Details</h1>
 	</div>
 
 	{#if loading}
 		<div class="flex flex-col items-center justify-center p-12">
 			<div class="loader mb-4"></div>
-			<p>Loading analysis data...</p>
+			<p class="text-text-slate">Loading analysis data...</p>
 		</div>
 	{:else if error}
-		<div class="rounded-lg bg-red-100 p-4 text-red-700">
+		<div class="rounded-premium bg-status-error-bg border border-status-error-border p-4 text-status-error-text">
 			<h3 class="font-bold">Error</h3>
 			<p>{error}</p>
 		</div>
 	{:else}
 		<div class="analysis-container">
 			{#if analysis && file}
-				<div class="mb-4 rounded-lg bg-gray-100 p-4">
+				<div class="mb-4 rounded-premium bg-surface-sunken p-4">
 					<h2 class="mb-2 text-xl font-bold">{analysis.method.toUpperCase()} Analysis</h2>
 					<p class="mb-1"><strong>File:</strong> {file.filename}</p>
 					<p class="mb-1">
@@ -99,8 +99,8 @@
 
 <style>
 	.loader {
-		border: 16px solid #f3f3f3;
-		border-top: 16px solid #3498db;
+		border: 16px solid theme('colors.border.platinum');
+		border-top: 16px solid theme('colors.brand.royal');
 		border-radius: 50%;
 		width: 60px;
 		height: 60px;

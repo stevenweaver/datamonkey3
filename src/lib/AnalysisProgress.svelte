@@ -166,14 +166,14 @@
 	function getStatusColorClass(status) {
 		switch (status) {
 			case 'completed':
-				return 'text-green-600';
+				return 'text-status-success';
 			case 'error':
-				return 'text-red-600';
+				return 'text-status-error';
 			case 'running':
 			case 'processing':
-				return 'text-blue-600';
+				return 'text-brand-royal';
 			default:
-				return 'text-gray-700';
+				return 'text-text-slate';
 		}
 	}
 
@@ -293,7 +293,7 @@
 
 {#if progressToShow.id && (progressToShow.status !== 'completed' || showCompleted)}
 	<div
-		class="analysis-progress mt-6 overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm"
+		class="analysis-progress mt-6 overflow-hidden rounded-lg border border-border-platinum bg-surface-base shadow-sm"
 	>
 		<!-- Essential information - always visible -->
 		<div class="p-5">
@@ -305,7 +305,7 @@
 					</span>
 				</div>
 
-				<div class="flex items-center text-sm text-gray-600">
+				<div class="flex items-center text-sm text-text-slate">
 					<span>
 						{formatTime(elapsed)}
 					</span>
@@ -316,27 +316,27 @@
 			<div class="my-4 flex items-center">
 				{#if progressToShow.status === 'completed'}
 					<!-- Completed progress bar -->
-					<div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-gray-100">
-						<div class="absolute left-0 top-0 h-full w-full rounded-full bg-green-500"></div>
+					<div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-surface-sunken">
+						<div class="absolute left-0 top-0 h-full w-full rounded-full bg-status-success"></div>
 					</div>
-					<span class="w-12 text-right text-sm font-medium text-green-600">Done</span>
+					<span class="w-12 text-right text-sm font-medium text-status-success">Done</span>
 				{:else if progressToShow.status === 'error'}
 					<!-- Error progress bar -->
-					<div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-gray-100">
-						<div class="absolute left-0 top-0 h-full w-1/5 rounded-full bg-red-500"></div>
+					<div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-surface-sunken">
+						<div class="absolute left-0 top-0 h-full w-1/5 rounded-full bg-status-error"></div>
 					</div>
-					<span class="w-12 text-right text-sm font-medium text-red-600">Error</span>
+					<span class="w-12 text-right text-sm font-medium text-status-error">Error</span>
 				{:else}
 					<!-- Running progress animation - indeterminate to avoid dishonest percentages -->
-					<div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-gray-100">
+					<div class="relative mr-3 h-2 flex-grow overflow-hidden rounded-full bg-surface-sunken">
 						<div
-							class="progress-pulse absolute left-0 top-0 h-full w-1/3 rounded-full bg-blue-500"
+							class="progress-pulse absolute left-0 top-0 h-full w-1/3 rounded-full bg-brand-royal"
 						></div>
 					</div>
 					<span
-						class="flex w-12 items-center justify-end text-right text-sm font-medium text-blue-600"
+						class="flex w-12 items-center justify-end text-right text-sm font-medium text-brand-royal"
 					>
-						<span class="pulse-animation mr-1 h-2 w-2 rounded-full bg-blue-500"></span>
+						<span class="pulse-animation mr-1 h-2 w-2 rounded-full bg-brand-royal"></span>
 					</span>
 				{/if}
 			</div>
@@ -345,16 +345,16 @@
 			<div class="mb-3 mt-2">
 				<!-- Job identifier details -->
 				{#if jobInfo}
-					<div class="mb-2 flex items-center text-xs text-gray-500">
+					<div class="mb-2 flex items-center text-xs text-text-silver">
 						<span class="font-mono">{jobInfo.id.substring(0, 8)}</span>
 
 						<!-- Execution mode indicator -->
 						{#if progressToShow.metadata?.executionMode === 'backend'}
-							<span class="mx-1 rounded bg-blue-100 px-1.5 py-0.5 font-medium text-blue-700"
+							<span class="mx-1 rounded bg-status-info-bg px-1.5 py-0.5 font-medium text-status-info-text"
 								>Server</span
 							>
 						{:else if progressToShow.metadata?.executionMode === 'wasm'}
-							<span class="mx-1 rounded bg-green-100 px-1.5 py-0.5 font-medium text-green-700"
+							<span class="mx-1 rounded bg-status-success-bg px-1.5 py-0.5 font-medium text-status-success-text"
 								>Local</span
 							>
 						{/if}
@@ -373,7 +373,7 @@
 				<!-- Latest output with Markdown formatting -->
 				{#if progressToShow.message}
 					{@const parsedMessage = parseLogMessage(progressToShow.message)}
-					<div class="message-preview text-sm text-gray-600">
+					<div class="message-preview text-sm text-text-slate">
 						{#if parsedMessage.isMarkdown}
 							<div class="markdown-content">
 								{@html parsedMessage.html}
@@ -387,10 +387,10 @@
 		</div>
 
 		<!-- Toggle button for additional information -->
-		<div class="flex border-t border-gray-100 bg-gray-50 text-sm">
+		<div class="flex border-t border-border-platinum bg-surface-raised text-sm">
 			<button
-				class="flex-1 py-2 text-center transition-colors hover:bg-gray-100"
-				class:text-blue-600={showLogs}
+				class="flex-1 py-2 text-center transition-colors hover:bg-surface-sunken"
+				class:text-brand-royal={showLogs}
 				class:font-medium={showLogs}
 				on:click={() => (showLogs = !showLogs)}
 			>
@@ -402,12 +402,12 @@
 		{#if showLogs}
 			<div
 				transition:slide={{ duration: 200, easing: quintOut }}
-				class="border-t border-gray-100 bg-gray-50 p-4"
+				class="border-t border-border-platinum bg-surface-raised p-4"
 			>
-				<div class="rounded border border-gray-200 bg-white p-2">
+				<div class="rounded border border-border-subtle bg-surface-base p-2">
 					{#each displayedLogs as log}
 						{@const parsedLog = parseLogMessage(log.message)}
-						<div class="mb-4 border-b border-gray-100 pb-3 last:mb-0 last:border-0 last:pb-0">
+						<div class="mb-4 border-b border-border-platinum pb-3 last:mb-0 last:border-0 last:pb-0">
 							<div class={`${getStatusColorClass(log.status)} markdown-content`}>
 								{@html parsedLog.html}
 							</div>
@@ -415,7 +415,7 @@
 					{/each}
 
 					{#if displayedLogs.length === 0}
-						<p class="text-center text-gray-500">Waiting for backend status updates...</p>
+						<p class="text-center text-text-silver">Waiting for backend status updates...</p>
 					{/if}
 				</div>
 			</div>

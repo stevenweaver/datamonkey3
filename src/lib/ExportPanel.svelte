@@ -124,12 +124,12 @@
 	});
 </script>
 
-<div class="export-panel mb-4 rounded-lg border border-gray-200 bg-white shadow-sm">
-	<div class="flex items-center justify-between border-b border-gray-200 p-3">
+<div class="export-panel mb-4 rounded-lg border border-border-subtle bg-white shadow-sm">
+	<div class="flex items-center justify-between border-b border-border-subtle p-3">
 		<h3 class="text-lg font-semibold">Export Options</h3>
 		<button
 			on:click={toggleExportOptions}
-			class="rounded-full p-1 text-gray-500 hover:bg-gray-100"
+			class="rounded-full p-1 text-text-silver hover:bg-surface-sunken"
 			aria-label={showExportOptions ? 'Hide export options' : 'Show export options'}
 		>
 			{#if showExportOptions}
@@ -177,7 +177,7 @@
 								class="mr-1"
 							/>
 							<span class="mr-1 font-medium">{format.label}</span>
-							<span class="text-xs text-gray-500">({format.description})</span>
+							<span class="text-xs text-text-silver">({format.description})</span>
 						</label>
 					{/each}
 				</div>
@@ -186,7 +186,7 @@
 			<div class="export-actions flex flex-wrap gap-2">
 				<button
 					on:click={exportAnalysisResults}
-					class="flex items-center rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+					class="flex items-center rounded bg-brand-royal px-3 py-1 text-white hover:bg-brand-deep"
 					disabled={!analysis}
 				>
 					<svg
@@ -206,7 +206,7 @@
 
 				<button
 					on:click={copyShareLink}
-					class="flex items-center rounded bg-green-500 px-3 py-1 text-white hover:bg-green-600"
+					class="flex items-center rounded bg-status-success px-3 py-1 text-white hover:bg-status-success-text"
 					disabled={!analysisId}
 				>
 					<svg
@@ -223,11 +223,11 @@
 				</button>
 
 				{#if exportStatus}
-					<span class="ml-2 self-center text-sm text-green-600">{exportStatus}</span>
+					<span class="ml-2 self-center text-sm text-status-success">{exportStatus}</span>
 				{/if}
 			</div>
 
-			<div class="mt-3 text-xs text-gray-500">
+			<div class="mt-3 text-xs text-text-silver">
 				<p>Exports include all analysis data, parameters, and results.</p>
 			</div>
 		</div>
