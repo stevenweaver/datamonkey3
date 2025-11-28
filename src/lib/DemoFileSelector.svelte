@@ -73,11 +73,11 @@
 
 <div class="demo-selector">
 	<!-- Section header with subtle styling -->
-	<div class="mb-premium-md flex items-center gap-premium-sm">
+	<div class="mb-3 flex items-center gap-2 sm:mb-premium-md sm:gap-premium-sm">
 		<div
-			class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-whisper text-brand-royal"
+			class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brand-whisper text-brand-royal sm:h-8 sm:w-8"
 		>
-			<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+			<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="currentColor">
 				<path
 					fill-rule="evenodd"
 					d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z"
@@ -85,19 +85,19 @@
 				/>
 			</svg>
 		</div>
-		<div>
-			<span class="text-premium-body font-semibold text-text-rich">Try a sample file</span>
-			<span class="ml-premium-sm text-premium-meta text-text-silver"
+		<div class="min-w-0">
+			<span class="text-sm font-semibold text-text-rich sm:text-premium-body">Try a sample file</span>
+			<span class="hidden text-premium-meta text-text-silver sm:inline sm:ml-premium-sm"
 				>— quick start with example data</span
 			>
 		</div>
 	</div>
 
 	<!-- Sample file cards with enhanced design -->
-	<div class="grid grid-cols-1 gap-premium-md sm:grid-cols-2 lg:grid-cols-4">
+	<div class="grid grid-cols-2 gap-2 sm:gap-premium-md lg:grid-cols-4">
 		{#each demoFiles as demoFile, index}
 			<button
-				class="sample-card group relative flex flex-col rounded-premium border-2 p-premium-md text-left transition-all duration-premium
+				class="sample-card group relative flex min-h-[120px] flex-col rounded-lg border-2 p-3 text-left transition-all duration-premium active:scale-[0.98] sm:min-h-0 sm:rounded-premium sm:p-premium-md
                {hoveredFile === demoFile.name
 					? 'scale-[1.02] border-brand-royal bg-white shadow-premium-hover'
 					: 'border-border-platinum bg-white hover:border-brand-muted hover:shadow-premium'}"
@@ -107,9 +107,9 @@
 				on:mouseleave={() => (hoveredFile = null)}
 			>
 				<!-- File type indicator -->
-				<div class="mb-premium-sm flex items-start justify-between">
+				<div class="mb-2 flex items-start justify-between sm:mb-premium-sm">
 					<div
-						class="flex h-10 w-10 items-center justify-center rounded-premium-sm transition-colors duration-premium
+						class="flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-premium sm:h-10 sm:w-10 sm:rounded-premium-sm
                       {hoveredFile === demoFile.name
 							? 'bg-brand-royal text-white'
 							: 'bg-brand-ghost text-brand-royal group-hover:bg-brand-whisper'}"
@@ -117,7 +117,7 @@
 						{#if demoFile.icon === 'dna'}
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
-								class="h-5 w-5"
+								class="h-4 w-4 sm:h-5 sm:w-5"
 								viewBox="0 0 24 24"
 								fill="none"
 								stroke="currentColor"
@@ -134,7 +134,7 @@
 						{:else}
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
-								class="h-5 w-5"
+								class="h-4 w-4 sm:h-5 sm:w-5"
 								viewBox="0 0 20 20"
 								fill="currentColor"
 							>
@@ -149,7 +149,7 @@
 
 					<!-- Size indicator badge -->
 					<span
-						class="rounded-full px-premium-sm py-0.5 text-premium-caption font-medium uppercase tracking-wide
+						class="rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:px-premium-sm sm:text-premium-caption
                        {demoFile.size === 'small'
 							? 'bg-green-100 text-green-700'
 							: demoFile.size === 'medium'
@@ -162,25 +162,25 @@
 
 				<!-- File info -->
 				<div class="flex-1">
-					<h4 class="mb-premium-xs truncate font-mono text-premium-body font-semibold text-text-rich">
+					<h4 class="mb-0.5 truncate font-mono text-xs font-semibold text-text-rich sm:mb-premium-xs sm:text-premium-body">
 						{demoFile.name}
 					</h4>
-					<p class="mb-premium-xs text-premium-meta text-text-slate">
+					<p class="text-[10px] text-text-slate sm:mb-premium-xs sm:text-premium-meta">
 						{demoFile.description}
 					</p>
-					<p class="text-premium-caption text-text-silver">
+					<p class="hidden text-premium-caption text-text-silver sm:block">
 						{demoFile.detail}
 					</p>
 				</div>
 
-				<!-- Hover action indicator -->
+				<!-- Action indicator - always visible on mobile -->
 				<div
-					class="mt-premium-sm flex items-center justify-between border-t border-border-platinum pt-premium-sm opacity-0 transition-opacity duration-premium group-hover:opacity-100"
+					class="mt-2 flex items-center justify-between border-t border-border-platinum pt-2 opacity-100 transition-opacity duration-premium sm:mt-premium-sm sm:pt-premium-sm sm:opacity-0 sm:group-hover:opacity-100"
 				>
-					<span class="text-premium-caption font-medium text-brand-royal">Load file</span>
+					<span class="text-[10px] font-medium text-brand-royal sm:text-premium-caption">Load file</span>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
-						class="h-4 w-4 transform text-brand-royal transition-transform duration-premium group-hover:translate-x-1"
+						class="h-3 w-3 transform text-brand-royal transition-transform duration-premium group-hover:translate-x-1 sm:h-4 sm:w-4"
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke="currentColor"

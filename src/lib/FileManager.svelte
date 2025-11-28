@@ -225,16 +225,16 @@
 </script>
 
 <div class="file-manager">
-	<div class="mb-premium-md">
-		<div class="mb-premium-sm flex items-center justify-between">
-			<h2 class="text-premium-header font-semibold text-text-rich">Saved Files</h2>
+	<div class="mb-3 sm:mb-premium-md">
+		<div class="mb-2 flex items-center justify-between sm:mb-premium-sm">
+			<h2 class="text-base font-semibold text-text-rich sm:text-premium-header">Saved Files</h2>
 
 			<!-- Clear All Files button -->
 			{#if $persistentFileStore.files.length > 0}
 				<button
 					on:click={clearAllFiles}
 					disabled={isClearingFiles}
-					class="flex items-center rounded-premium-sm bg-accent-warm px-premium-sm py-premium-xs text-premium-meta font-medium text-white transition-all duration-premium hover:bg-accent-copper disabled:cursor-not-allowed disabled:opacity-50"
+					class="flex min-h-[40px] items-center rounded-lg bg-accent-warm px-2.5 py-1.5 text-xs font-medium text-white transition-all duration-premium hover:bg-accent-copper focus:outline-none focus:ring-2 focus:ring-accent-warm focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-[44px] sm:rounded-premium-sm sm:px-3 sm:py-2 sm:text-sm"
 					title={isClearingFiles ? 'Clearing files...' : 'Delete all files and their analyses'}
 				>
 					{#if isClearingFiles}
@@ -277,18 +277,18 @@
 			{/if}
 		</div>
 
-		<div class="mb-premium-sm flex flex-wrap items-center gap-premium-sm">
+		<div class="mb-3 flex flex-col gap-2 sm:mb-premium-sm sm:flex-row sm:items-center">
 			<!-- Search input -->
 			<div class="relative flex-grow">
 				<input
 					type="text"
 					placeholder="Search files..."
 					bind:value={filterText}
-					class="w-full rounded-premium-sm border border-border-platinum py-premium-xs pl-8 pr-2 text-premium-meta"
+					class="min-h-[44px] w-full rounded-lg border border-border-platinum py-2 pl-10 pr-3 text-sm focus:border-brand-royal focus:outline-none focus:ring-2 focus:ring-brand-royal sm:rounded-premium-sm"
 				/>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
-					class="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-text-silver"
+					class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-text-silver"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
@@ -304,10 +304,10 @@
 
 			<!-- Sort options -->
 			<div
-				class="flex overflow-hidden rounded-premium-sm border border-border-platinum text-premium-meta"
+				class="flex flex-shrink-0 overflow-hidden rounded-lg border border-border-platinum text-xs sm:rounded-premium-sm sm:text-sm"
 			>
 				<button
-					class="px-premium-sm py-premium-xs transition-all duration-premium"
+					class="min-h-[40px] flex-1 px-2 py-2 transition-all duration-premium focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-royal sm:min-h-[44px] sm:flex-none sm:px-3"
 					class:bg-brand-royal={sortBy === 'name'}
 					class:text-white={sortBy === 'name'}
 					class:text-text-slate={sortBy !== 'name'}
@@ -318,7 +318,7 @@
 					Name {sortBy === 'name' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 				</button>
 				<button
-					class="border-l border-border-platinum px-premium-sm py-premium-xs transition-all duration-premium"
+					class="min-h-[40px] flex-1 border-l border-border-platinum px-2 py-2 transition-all duration-premium focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-royal sm:min-h-[44px] sm:flex-none sm:px-3"
 					class:bg-brand-royal={sortBy === 'size'}
 					class:text-white={sortBy === 'size'}
 					class:text-text-slate={sortBy !== 'size'}
@@ -329,7 +329,7 @@
 					Size {sortBy === 'size' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 				</button>
 				<button
-					class="border-l border-border-platinum px-premium-sm py-premium-xs transition-all duration-premium"
+					class="min-h-[40px] flex-1 border-l border-border-platinum px-2 py-2 transition-all duration-premium focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-royal sm:min-h-[44px] sm:flex-none sm:px-3"
 					class:bg-brand-royal={sortBy === 'date'}
 					class:text-white={sortBy === 'date'}
 					class:text-text-slate={sortBy !== 'date'}
