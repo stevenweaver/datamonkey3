@@ -1,7 +1,16 @@
 <script>
 	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import { analysisStore, activeAnalyses } from '../stores/analyses';
 	import { goto } from '$app/navigation';
+
+	// Load analyses on mount to ensure indicator has correct data
+	// This is necessary because the layout mounts before the page
+	onMount(async () => {
+		if (browser) {
+			await analysisStore.loadAnalyses();
+		}
+	});
 
 	// Function to navigate to the Results tab when clicked
 	function navigateToResults() {
