@@ -9,32 +9,38 @@
 	}
 
 	// Get today's date at midnight for filtering completed analyses
-	const todayStart = new Date();
-	todayStart.setHours(0, 0, 0, 0);
+	// Using a function so it can be recalculated if needed
+	function getTodayStart() {
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		return today;
+	}
 
-	// Get counts from ALL analyses in the store, not just activeAnalysesList
-	// Also check activeAnalysesList for any running analyses not yet persisted
+	// Use Set-based deduplication to correctly count analyses that may appear in both arrays
+	// This prevents double-counting and ensures accurate status tracking
 	$: runningCount = (() => {
-		// Count from main analyses array
-		const mainRunning = $analysisStore.analyses.filter(
-			(a) =>
-				a.status !== 'completed' &&
-				a.status !== 'error' &&
-				a.status !== 'cancelled' &&
-				a.method !== 'datareader'
-		).length;
+		const runningIds = new Set();
 
-		// Also check activeAnalysesList for any additional running analyses
-		const activeRunning = $activeAnalyses.filter(
-			(a) => a.status !== 'completed' && a.status !== 'error' && a.method !== 'datareader'
-		).length;
+		// Add running analyses from main analyses array
+		$analysisStore.analyses
+			.filter(
+				(a) =>
+					!['completed', 'error', 'cancelled'].includes(a.status) &&
+					a.method !== 'datareader'
+			)
+			.forEach((a) => runningIds.add(a.id));
 
-		// Return the maximum to avoid missing any
-		return Math.max(mainRunning, activeRunning);
+		// Add running analyses from active analyses array (may overlap with main)
+		$activeAnalyses
+			.filter((a) => !['completed', 'error'].includes(a.status) && a.method !== 'datareader')
+			.forEach((a) => runningIds.add(a.id));
+
+		return runningIds.size;
 	})();
 
 	$: completedCount = (() => {
-		// Count from main analyses array (more reliable for completed)
+		const todayStart = getTodayStart();
+		// Count completed analyses from today only
 		return $analysisStore.analyses.filter(
 			(a) =>
 				a.status === 'completed' &&
@@ -45,16 +51,19 @@
 	})();
 
 	$: failedCount = (() => {
-		// Count from both sources
-		const mainFailed = $analysisStore.analyses.filter(
-			(a) => a.status === 'error' && a.method !== 'datareader'
-		).length;
+		const failedIds = new Set();
 
-		const activeFailed = $activeAnalyses.filter(
-			(a) => a.status === 'error' && a.method !== 'datareader'
-		).length;
+		// Add failed analyses from main analyses array
+		$analysisStore.analyses
+			.filter((a) => a.status === 'error' && a.method !== 'datareader')
+			.forEach((a) => failedIds.add(a.id));
 
-		return Math.max(mainFailed, activeFailed);
+		// Add failed analyses from active analyses array (may overlap with main)
+		$activeAnalyses
+			.filter((a) => a.status === 'error' && a.method !== 'datareader')
+			.forEach((a) => failedIds.add(a.id));
+
+		return failedIds.size;
 	})();
 
 	// Only show indicator if there are any analyses to display
