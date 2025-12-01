@@ -24,6 +24,14 @@ function createAnalysisStore() {
 
 			try {
 				const analyses = await analysisStorage.getAllAnalyses();
+
+				// Log status summary
+				const statusCounts = analyses.reduce((acc, a) => {
+					acc[a.status] = (acc[a.status] || 0) + 1;
+					return acc;
+				}, {});
+				console.log(`📊 [AnalysisStore] LOAD: ${analyses.length} analyses from IndexedDB`, statusCounts);
+
 				update((state) => ({ ...state, analyses, isLoading: false }));
 			} catch (error) {
 				console.error('Error loading analyses:', error);
@@ -247,6 +255,8 @@ function createAnalysisStore() {
 			let method = methodName;
 			let file = metadata.fileName || '';
 
+			console.log(`📊 [AnalysisStore] START: ${analysisId.slice(0, 8)}... method=${methodName}`);
+
 			update((state) => {
 				// Look up analysis details if not provided
 				if (!method || !file) {
@@ -279,6 +289,8 @@ function createAnalysisStore() {
 				// First remove any existing analysis with the same ID
 				const activeAnalyses = (state.activeAnalyses || []).filter((a) => a.id !== analysisId);
 				activeAnalyses.push(progressObj);
+
+				console.log(`📊 [AnalysisStore] activeAnalyses count: ${activeAnalyses.length}`);
 
 				return {
 					...state,
@@ -321,6 +333,8 @@ function createAnalysisStore() {
 		_updateAnalysisProgressByIdInternal(analysisId, status, progress, message, state) {
 			if (!analysisId) return state;
 
+			console.log(`📊 [AnalysisStore] UPDATE: ${analysisId.slice(0, 8)}... status=${status} progress=${progress}%`);
+
 			// Create log entry
 			const logEntry = { time: new Date().toISOString(), message, status };
 
@@ -345,8 +359,19 @@ function createAnalysisStore() {
 				};
 			});
 
+			// Also sync status to the main analyses array to keep them in sync
+			const analyses = (state.analyses || []).map((a) => {
+				if (a.id !== analysisId) return a;
+				return {
+					...a,
+					status,
+					updatedAt: new Date().getTime()
+				};
+			});
+
 			return {
 				...state,
+				analyses,
 				activeAnalyses
 			};
 		},
@@ -473,12 +498,147 @@ function createAnalysisStore() {
 			}
 		},
 
+		// Complete analysis progress by specific ID (atomic, avoids race conditions)
+		async completeAnalysisProgressById(
+			analysisId,
+			success = true,
+			message = success ? 'Analysis completed.' : 'Analysis failed.'
+		) {
+			if (!analysisId) return;
+
+			const status = success ? 'completed' : 'error';
+
+			console.log(`📊 [AnalysisStore] COMPLETE: ${analysisId.slice(0, 8)}... success=${success} status=${status}`);
+
+			// Get the active analysis data before updating
+			let activeAnalysisData = null;
+			update((state) => {
+				activeAnalysisData = state.activeAnalyses.find((a) => a.id === analysisId);
+				return state; // No changes yet
+			});
+
+			// Update both activeAnalyses and analyses arrays atomically
+			update((state) => {
+				const activeAnalyses = (state.activeAnalyses || []).map((a) => {
+					if (a.id !== analysisId) return a;
+
+					const logs = [...(a.logs || [])];
+					logs.push({ time: new Date().toISOString(), message, status });
+
+					return {
+						...a,
+						status,
+						progress: success ? 100 : a.progress,
+						message,
+						logs,
+						completedAt: success ? new Date().toISOString() : undefined
+					};
+				});
+
+				// Also sync to main analyses array
+				const analyses = (state.analyses || []).map((a) => {
+					if (a.id !== analysisId) return a;
+					return {
+						...a,
+						status,
+						completedAt: success ? new Date().getTime() : undefined,
+						updatedAt: new Date().getTime()
+					};
+				});
+
+				return {
+					...state,
+					analyses,
+					activeAnalyses
+				};
+			});
+
+			// Persist to IndexedDB and server
+			const currentLogs = activeAnalysisData?.logs || [];
+			const currentResult = activeAnalysisData?.result || null;
+			const currentMetadata = activeAnalysisData?.metadata || {};
+
+			// Update IndexedDB
+			try {
+				const analysis = await analysisStorage.getAnalysis(analysisId);
+				if (analysis) {
+					const finalResult = currentResult || analysis.result;
+
+					await analysisStorage.saveAnalysis({
+						...analysis,
+						status,
+						logs: currentLogs,
+						result: finalResult,
+						metadata: currentMetadata,
+						completedAt: success ? new Date().getTime() : undefined
+					});
+
+					// Sync result back to store
+					update((state) => ({
+						...state,
+						analyses: state.analyses.map((a) =>
+							a.id === analysisId
+								? {
+										...a,
+										status,
+										logs: currentLogs,
+										result: finalResult,
+										metadata: currentMetadata,
+										completedAt: success ? new Date().getTime() : undefined
+									}
+								: a
+						)
+					}));
+				}
+			} catch (error) {
+				console.error('Error updating analysis in IndexedDB:', error);
+			}
+
+			// Update server via API (only in browser environment)
+			try {
+				if (
+					browser &&
+					typeof window !== 'undefined' &&
+					window.location &&
+					!import.meta.env?.VITEST
+				) {
+					fetch(`/api/analyses/${analysisId}`, {
+						method: 'PATCH',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							status,
+							logs: currentLogs,
+							result: currentResult,
+							metadata: currentMetadata,
+							completedAt: success ? new Date().getTime() : undefined
+						})
+					})
+						.then((response) => response.json())
+						.then((data) => {
+							console.log('Server analysis status updated:', data);
+						})
+						.catch((error) => {
+							console.error('Error updating analysis status on server:', error);
+						});
+				}
+			} catch (error) {
+				console.error('Error updating analysis on server:', error);
+			}
+		},
+
 		// Remove analysis from active list (for when user dismisses a completed analysis)
 		removeFromActiveAnalyses(analysisId) {
-			update((state) => ({
-				...state,
-				activeAnalyses: (state.activeAnalyses || []).filter((a) => a.id !== analysisId)
-			}));
+			console.log(`📊 [AnalysisStore] REMOVE from active: ${analysisId.slice(0, 8)}...`);
+			update((state) => {
+				const newActiveAnalyses = (state.activeAnalyses || []).filter((a) => a.id !== analysisId);
+				console.log(`📊 [AnalysisStore] activeAnalyses count: ${newActiveAnalyses.length}`);
+				return {
+					...state,
+					activeAnalyses: newActiveAnalyses
+				};
+			});
 		},
 
 		// Clear all analyses
