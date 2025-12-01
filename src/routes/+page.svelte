@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import { aioliStore } from '../stores/aioli';
 	import {
@@ -8,7 +8,7 @@
 		persistentFileStore,
 		currentFile
 	} from '../stores/fileInfo';
-	import { analysisStore, currentAnalysis, activeAnalysisProgress } from '../stores/analyses';
+	import { analysisStore, currentAnalysis, activeAnalysisProgress, activeAnalyses } from '../stores/analyses';
 	import { treeStore, addTree, updateTaggedTree } from '../stores/tree';
 	import Aioli from '@biowasm/aioli';
 	import TreeSelector from '../lib/TreeSelector.svelte';
@@ -470,6 +470,9 @@
 		// Load any previously saved files from browser storage
 		if (browser) {
 			try {
+				// Clean up any WASM analyses that were interrupted by a previous page refresh
+				await analysisStore.cleanupInterruptedAnalyses();
+
 				await persistentFileStore.loadFiles();
 				await analysisStore.loadAnalyses();
 
@@ -826,6 +829,40 @@
 			}
 		}
 	}
+
+	// Handle page unload warning for running WASM analyses
+	function handleBeforeUnload(event) {
+		// Check if there are any running WASM analyses
+		let hasRunningWasmAnalyses = false;
+		const unsubscribe = activeAnalyses.subscribe((active) => {
+			hasRunningWasmAnalyses = active.some(
+				(a) =>
+					a.metadata?.executionMode === 'wasm' &&
+					!['completed', 'error', 'cancelled', 'interrupted'].includes(a.status)
+			);
+		});
+		unsubscribe();
+
+		if (hasRunningWasmAnalyses) {
+			// Standard way to trigger browser's leave confirmation dialog
+			event.preventDefault();
+			// Modern browsers require returnValue to be set
+			event.returnValue = 'You have running analyses that will be interrupted if you leave.';
+			return event.returnValue;
+		}
+	}
+
+	// Set up beforeunload handler
+	if (browser) {
+		window.addEventListener('beforeunload', handleBeforeUnload);
+	}
+
+	// Clean up beforeunload handler on component destroy
+	onDestroy(() => {
+		if (browser) {
+			window.removeEventListener('beforeunload', handleBeforeUnload);
+		}
+	});
 </script>
 
 <svelte:window on:switchTab={handleSwitchTab} />

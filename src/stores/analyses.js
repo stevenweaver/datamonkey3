@@ -668,6 +668,73 @@ function createAnalysisStore() {
 				}));
 				throw error;
 			}
+		},
+
+		// Clean up analyses that were interrupted by page refresh
+		// This marks WASM analyses that were in running/pending state as 'interrupted'
+		async cleanupInterruptedAnalyses() {
+			if (!browser) return;
+
+			console.log('📊 [AnalysisStore] Checking for interrupted WASM analyses...');
+
+			// First load analyses from IndexedDB to check for stale running analyses
+			let analyses = [];
+			try {
+				analyses = await analysisStorage.getAllAnalyses();
+			} catch (error) {
+				console.error('Error loading analyses for cleanup:', error);
+				return;
+			}
+
+			// Find WASM analyses that were running/pending (these were interrupted)
+			const interruptedAnalyses = analyses.filter(
+				(a) =>
+					a.metadata?.executionMode === 'wasm' &&
+					['pending', 'initializing', 'running', 'processing', 'saving'].includes(a.status)
+			);
+
+			if (interruptedAnalyses.length === 0) {
+				console.log('📊 [AnalysisStore] No interrupted analyses found');
+				return;
+			}
+
+			console.log(`📊 [AnalysisStore] Found ${interruptedAnalyses.length} interrupted WASM analyses`);
+
+			// Update each interrupted analysis
+			const updatedAnalyses = analyses.map((analysis) => {
+				if (
+					analysis.metadata?.executionMode === 'wasm' &&
+					['pending', 'initializing', 'running', 'processing', 'saving'].includes(analysis.status)
+				) {
+					return {
+						...analysis,
+						status: 'interrupted',
+						interruptedAt: new Date().getTime(),
+						error: 'Analysis was interrupted by page refresh',
+						updatedAt: new Date().getTime()
+					};
+				}
+				return analysis;
+			});
+
+			// Persist updated analyses to IndexedDB
+			for (const analysis of updatedAnalyses) {
+				if (analysis.status === 'interrupted') {
+					try {
+						await analysisStorage.saveAnalysis(analysis);
+						console.log(`📊 [AnalysisStore] Marked analysis ${analysis.id.slice(0, 8)}... as interrupted`);
+					} catch (error) {
+						console.error(`Error saving interrupted analysis ${analysis.id}:`, error);
+					}
+				}
+			}
+
+			// Update store state
+			update((state) => ({
+				...state,
+				analyses: updatedAnalyses,
+				activeAnalyses: [] // Clear any stale active analyses
+			}));
 		}
 	};
 }

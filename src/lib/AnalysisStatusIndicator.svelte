@@ -30,18 +30,18 @@
 	$: runningCount = (() => {
 		const runningIds = new Set();
 
-		// Add running analyses from main analyses array
+		// Add running analyses from main analyses array (exclude interrupted)
 		$analysisStore.analyses
 			.filter(
 				(a) =>
-					!['completed', 'error', 'cancelled'].includes(a.status) &&
+					!['completed', 'error', 'cancelled', 'interrupted'].includes(a.status) &&
 					a.method !== 'datareader'
 			)
 			.forEach((a) => runningIds.add(a.id));
 
 		// Add running analyses from active analyses array (may overlap with main)
 		$activeAnalyses
-			.filter((a) => !['completed', 'error'].includes(a.status) && a.method !== 'datareader')
+			.filter((a) => !['completed', 'error', 'interrupted'].includes(a.status) && a.method !== 'datareader')
 			.forEach((a) => runningIds.add(a.id));
 
 		return runningIds.size;
@@ -75,12 +75,17 @@
 		return failedIds.size;
 	})();
 
+	// Count interrupted analyses (WASM analyses that were terminated by page refresh)
+	$: interruptedCount = $analysisStore.analyses.filter(
+		(a) => a.status === 'interrupted' && a.method !== 'datareader'
+	).length;
+
 	// Only show indicator if there are any analyses to display
-	$: showIndicator = runningCount > 0 || completedCount > 0 || failedCount > 0;
+	$: showIndicator = runningCount > 0 || completedCount > 0 || failedCount > 0 || interruptedCount > 0;
 
 	// Debug logging when counts change
-	$: if (runningCount > 0 || completedCount > 0 || failedCount > 0) {
-		console.log(`📊 [StatusIndicator] running=${runningCount} completed=${completedCount} failed=${failedCount} (analyses=${$analysisStore.analyses.length}, active=${$activeAnalyses.length})`);
+	$: if (runningCount > 0 || completedCount > 0 || failedCount > 0 || interruptedCount > 0) {
+		console.log(`📊 [StatusIndicator] running=${runningCount} completed=${completedCount} failed=${failedCount} interrupted=${interruptedCount} (analyses=${$analysisStore.analyses.length}, active=${$activeAnalyses.length})`);
 	}
 </script>
 
@@ -119,6 +124,18 @@
 				<span class="inline-flex items-center justify-center text-sm">
 					<span class="mr-1 text-red-500">⚠</span>
 					<span class="font-medium text-red-600">{failedCount}</span>
+				</span>
+			</div>
+		{/if}
+
+		{#if interruptedCount > 0}
+			<div class="flex items-center">
+				{#if runningCount > 0 || completedCount > 0 || failedCount > 0}
+					<span class="mx-1.5 text-gray-300">•</span>
+				{/if}
+				<span class="inline-flex items-center justify-center text-sm">
+					<span class="mr-1 text-orange-500">⏸</span>
+					<span class="font-medium text-orange-600">{interruptedCount}</span>
 				</span>
 			</div>
 		{/if}

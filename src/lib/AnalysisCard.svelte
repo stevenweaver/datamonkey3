@@ -164,6 +164,11 @@
 	function deleteAnalysis() {
 		dispatch('delete', { analysisId: analysis.id });
 	}
+
+	// Handle re-run action (for interrupted analyses)
+	function rerunAnalysis() {
+		dispatch('rerun', { analysisId: analysis.id, method: analysis.method, fileId: analysis.fileId });
+	}
 </script>
 
 <div
@@ -202,12 +207,12 @@
 					class:text-yellow-800={analysis.status === 'running' || analysis.status === 'pending'}
 					class:bg-red-100={analysis.status === 'error'}
 					class:text-red-800={analysis.status === 'error'}
-					class:bg-orange-100={analysis.status === 'cancelled'}
-					class:text-orange-800={analysis.status === 'cancelled'}
-					class:bg-gray-100={!['completed', 'running', 'pending', 'error', 'cancelled'].includes(
+					class:bg-orange-100={analysis.status === 'cancelled' || analysis.status === 'interrupted'}
+					class:text-orange-800={analysis.status === 'cancelled' || analysis.status === 'interrupted'}
+					class:bg-gray-100={!['completed', 'running', 'pending', 'error', 'cancelled', 'interrupted'].includes(
 						analysis.status
 					)}
-					class:text-gray-800={!['completed', 'running', 'pending', 'error', 'cancelled'].includes(
+					class:text-gray-800={!['completed', 'running', 'pending', 'error', 'cancelled', 'interrupted'].includes(
 						analysis.status
 					)}
 				>
@@ -245,13 +250,28 @@
 								clip-rule="evenodd"
 							/>
 						</svg>
+					{:else if analysis.status === 'interrupted'}
+						<svg
+							class="-ml-0.5 mr-1.5 h-3 w-3"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
+								clip-rule="evenodd"
+							/>
+						</svg>
 					{/if}
 					<span class="capitalize"
 						>{analysis.status === 'completed'
 							? 'Completed'
 							: analysis.status === 'cancelled'
 								? 'Cancelled'
-								: analysis.status || 'unknown'}</span
+								: analysis.status === 'interrupted'
+									? 'Interrupted'
+									: analysis.status || 'unknown'}</span
 					>
 				</div>
 			</div>
@@ -389,8 +409,31 @@
 				</button>
 			{/if}
 
-			<!-- Delete button - for completed/error/cancelled analyses -->
-			{#if ['completed', 'error', 'cancelled'].includes(analysis.status)}
+			<!-- Re-run button - for interrupted analyses -->
+			{#if analysis.status === 'interrupted'}
+				<button
+					on:click|stopPropagation={rerunAnalysis}
+					class="inline-flex items-center rounded bg-orange-100 px-2.5 py-1.5 text-xs font-medium text-orange-700 transition-colors hover:bg-orange-200"
+					title="Re-run this interrupted analysis"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="mr-1 h-3 w-3"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+					Re-run
+				</button>
+			{/if}
+
+			<!-- Delete button - for completed/error/cancelled/interrupted analyses -->
+			{#if ['completed', 'error', 'cancelled', 'interrupted'].includes(analysis.status)}
 				<button
 					on:click|stopPropagation={deleteAnalysis}
 					class="inline-flex items-center rounded bg-red-100 px-2.5 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-200"
