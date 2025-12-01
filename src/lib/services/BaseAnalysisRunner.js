@@ -105,7 +105,15 @@ export class BaseAnalysisRunner {
 			await analysisStore.updateAnalysis(analysisId, updateData);
 		}
 
-		analysisStore.completeAnalysisProgress(success, message || defaultMessage);
+		// Use the ID-specific method to avoid race conditions and ensure correct analysis is updated
+		if (analysisId) {
+			await analysisStore.completeAnalysisProgressById(analysisId, success, message || defaultMessage);
+			// Remove from active analyses after completion
+			analysisStore.removeFromActiveAnalyses(analysisId);
+		} else {
+			// Fallback to legacy method only if no ID available
+			analysisStore.completeAnalysisProgress(success, message || defaultMessage);
+		}
 	}
 
 	/**
