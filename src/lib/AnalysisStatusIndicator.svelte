@@ -77,6 +77,11 @@
 
 	// Only show indicator if there are any analyses to display
 	$: showIndicator = runningCount > 0 || completedCount > 0 || failedCount > 0;
+
+	// Debug logging when counts change
+	$: if (runningCount > 0 || completedCount > 0 || failedCount > 0) {
+		console.log(`📊 [StatusIndicator] running=${runningCount} completed=${completedCount} failed=${failedCount} (analyses=${$analysisStore.analyses.length}, active=${$activeAnalyses.length})`);
+	}
 </script>
 
 {#if showIndicator}

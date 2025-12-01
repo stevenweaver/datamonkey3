@@ -24,6 +24,14 @@ function createAnalysisStore() {
 
 			try {
 				const analyses = await analysisStorage.getAllAnalyses();
+
+				// Log status summary
+				const statusCounts = analyses.reduce((acc, a) => {
+					acc[a.status] = (acc[a.status] || 0) + 1;
+					return acc;
+				}, {});
+				console.log(`📊 [AnalysisStore] LOAD: ${analyses.length} analyses from IndexedDB`, statusCounts);
+
 				update((state) => ({ ...state, analyses, isLoading: false }));
 			} catch (error) {
 				console.error('Error loading analyses:', error);
@@ -247,6 +255,8 @@ function createAnalysisStore() {
 			let method = methodName;
 			let file = metadata.fileName || '';
 
+			console.log(`📊 [AnalysisStore] START: ${analysisId.slice(0, 8)}... method=${methodName}`);
+
 			update((state) => {
 				// Look up analysis details if not provided
 				if (!method || !file) {
@@ -279,6 +289,8 @@ function createAnalysisStore() {
 				// First remove any existing analysis with the same ID
 				const activeAnalyses = (state.activeAnalyses || []).filter((a) => a.id !== analysisId);
 				activeAnalyses.push(progressObj);
+
+				console.log(`📊 [AnalysisStore] activeAnalyses count: ${activeAnalyses.length}`);
 
 				return {
 					...state,
@@ -320,6 +332,8 @@ function createAnalysisStore() {
 		// Internal helper for updating analysis progress by ID
 		_updateAnalysisProgressByIdInternal(analysisId, status, progress, message, state) {
 			if (!analysisId) return state;
+
+			console.log(`📊 [AnalysisStore] UPDATE: ${analysisId.slice(0, 8)}... status=${status} progress=${progress}%`);
 
 			// Create log entry
 			const logEntry = { time: new Date().toISOString(), message, status };
@@ -494,6 +508,8 @@ function createAnalysisStore() {
 
 			const status = success ? 'completed' : 'error';
 
+			console.log(`📊 [AnalysisStore] COMPLETE: ${analysisId.slice(0, 8)}... success=${success} status=${status}`);
+
 			// Get the active analysis data before updating
 			let activeAnalysisData = null;
 			update((state) => {
@@ -614,10 +630,15 @@ function createAnalysisStore() {
 
 		// Remove analysis from active list (for when user dismisses a completed analysis)
 		removeFromActiveAnalyses(analysisId) {
-			update((state) => ({
-				...state,
-				activeAnalyses: (state.activeAnalyses || []).filter((a) => a.id !== analysisId)
-			}));
+			console.log(`📊 [AnalysisStore] REMOVE from active: ${analysisId.slice(0, 8)}...`);
+			update((state) => {
+				const newActiveAnalyses = (state.activeAnalyses || []).filter((a) => a.id !== analysisId);
+				console.log(`📊 [AnalysisStore] activeAnalyses count: ${newActiveAnalyses.length}`);
+				return {
+					...state,
+					activeAnalyses: newActiveAnalyses
+				};
+			});
 		},
 
 		// Clear all analyses
