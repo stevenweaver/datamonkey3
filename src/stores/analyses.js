@@ -245,7 +245,7 @@ function createAnalysisStore() {
 		},
 
 		// Start tracking analysis progress
-		startAnalysisProgress(
+		async startAnalysisProgress(
 			analysisId,
 			message = 'Initializing analysis...',
 			methodName = '',
@@ -255,7 +255,7 @@ function createAnalysisStore() {
 			let method = methodName;
 			let file = metadata.fileName || '';
 
-			console.log(`📊 [AnalysisStore] START: ${analysisId.slice(0, 8)}... method=${methodName}`);
+			console.log(`📊 [AnalysisStore] START: ${analysisId.slice(0, 8)}... method=${methodName} executionMode=${metadata.executionMode || 'unknown'}`);
 
 			update((state) => {
 				// Look up analysis details if not provided
@@ -297,6 +297,36 @@ function createAnalysisStore() {
 					activeAnalyses
 				};
 			});
+
+			// Persist executionMode to IndexedDB so we can identify WASM analyses after page refresh
+			// This is critical for cleanupInterruptedAnalyses to work correctly
+			if (browser && metadata.executionMode) {
+				try {
+					const analysis = await analysisStorage.getAnalysis(analysisId);
+					if (analysis) {
+						const updatedAnalysis = {
+							...analysis,
+							metadata: {
+								...analysis.metadata,
+								executionMode: metadata.executionMode
+							},
+							updatedAt: Date.now()
+						};
+						await analysisStorage.saveAnalysis(updatedAnalysis);
+						console.log(`📊 [AnalysisStore] Persisted executionMode=${metadata.executionMode} for ${analysisId.slice(0, 8)}...`);
+
+						// Also update the in-memory analyses array
+						update((state) => ({
+							...state,
+							analyses: state.analyses.map((a) =>
+								a.id === analysisId ? updatedAnalysis : a
+							)
+						}));
+					}
+				} catch (error) {
+					console.error('Error persisting executionMode:', error);
+				}
+			}
 		},
 
 		// Update analysis progress (legacy method - uses first active analysis)
