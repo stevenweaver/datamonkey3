@@ -216,8 +216,8 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			// Build arguments preview for tracking
 			const argsPreview = this.buildArgumentsPreview(method, config, treeData, analysisParams);
 
-			// Start analysis tracking using base class method
-			this.startAnalysisTracking(analysisId, method, 'backend', null, argsPreview);
+			// Start analysis tracking using base class method (includes jobId for reconnection)
+			this.startAnalysisTracking(analysisId, method, 'backend', null, argsPreview, jobId);
 
 			// Submit to backend
 			// Map method names to backend socket event names
@@ -258,6 +258,84 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			await this.completeAnalysis(analysisId, false, null, `Submission failed: ${error.message}`);
 			this.activeAnalyses.delete(jobId);
 			throw error;
+		}
+	}
+
+	/**
+	 * Attempt to reconnect to orphaned backend jobs after page refresh
+	 * Uses the new job:status and {method}:resubscribe Socket.IO events
+	 * @param {Array} analysesToReconnect - Analyses from attemptBackendReconnection()
+	 */
+	async reconnectToJobs(analysesToReconnect) {
+		if (!this.socket?.connected) {
+			console.warn('🔌 Socket not connected, cannot reconnect to jobs');
+			return;
+		}
+
+		console.log(`🔄 Attempting to reconnect to ${analysesToReconnect.length} backend jobs`);
+
+		for (const analysis of analysesToReconnect) {
+			const jobId = analysis.metadata?.jobId;
+			const method = analysis.method?.toLowerCase();
+
+			if (!jobId) {
+				console.warn(`⚠️ Analysis ${analysis.id} has no jobId, skipping`);
+				continue;
+			}
+
+			console.log(`🔄 Querying status for job ${jobId} (analysis ${analysis.id.slice(0, 8)}...)`);
+
+			// Query current job status from backend
+			this.socket.emit('job:status', { jobId }, async (response) => {
+				try {
+					if (response.status === 'completed') {
+						// Job finished while we were away - retrieve results!
+						console.log(`✅ Job ${jobId} completed, retrieving results`);
+						await this.completeAnalysis(analysis.id, true, response.results);
+					} else if (response.status === 'running') {
+						// Job still running - resubscribe to events
+						console.log(`🔄 Job ${jobId} still running, resubscribing`);
+						this.activeAnalyses.set(jobId, analysis.id);
+
+						// Resubscribe to job events
+						const methodNameMap = {
+							'contrast-fel': 'cfel',
+							'multi-hit': 'multihit'
+						};
+						const backendMethodName = methodNameMap[method] || method;
+						this.socket.emit(`${backendMethodName}:resubscribe`, { id: jobId });
+
+						// Update status back to running
+						await analysisStore.updateAnalysis(analysis.id, {
+							status: 'running',
+							updatedAt: Date.now()
+						});
+					} else if (response.status === 'not_found') {
+						// Job expired or doesn't exist on server
+						console.log(`❌ Job ${jobId} not found on server`);
+						await analysisStore.updateAnalysis(analysis.id, {
+							status: 'connection_lost',
+							error: 'Job no longer exists on server. It may have completed or expired.',
+							updatedAt: Date.now()
+						});
+					} else {
+						// Unknown status
+						console.warn(`⚠️ Unknown status '${response.status}' for job ${jobId}`);
+						await analysisStore.updateAnalysis(analysis.id, {
+							status: 'connection_lost',
+							error: `Unexpected job status: ${response.status}`,
+							updatedAt: Date.now()
+						});
+					}
+				} catch (error) {
+					console.error(`Error handling reconnection for job ${jobId}:`, error);
+					await analysisStore.updateAnalysis(analysis.id, {
+						status: 'connection_lost',
+						error: `Reconnection failed: ${error.message}`,
+						updatedAt: Date.now()
+					});
+				}
+			});
 		}
 	}
 

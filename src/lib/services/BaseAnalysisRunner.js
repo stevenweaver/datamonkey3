@@ -34,8 +34,14 @@ export class BaseAnalysisRunner {
 
 	/**
 	 * Start analysis progress tracking with common metadata
+	 * @param {string} analysisId - The analysis ID
+	 * @param {string} method - The analysis method (e.g., 'FEL', 'SLAC')
+	 * @param {string} executionMode - 'backend' or 'wasm'
+	 * @param {string|null} message - Optional custom message
+	 * @param {object|null} args - Optional arguments preview
+	 * @param {string|null} jobId - Optional backend job ID (for reconnection support)
 	 */
-	startAnalysisTracking(analysisId, method, executionMode, message = null, args = null) {
+	startAnalysisTracking(analysisId, method, executionMode, message = null, args = null, jobId = null) {
 		const defaultMessage = message || `Starting ${method} analysis...`;
 
 		const metadata = {
@@ -46,6 +52,11 @@ export class BaseAnalysisRunner {
 		// Add arguments to metadata if provided
 		if (args) {
 			metadata.arguments = args;
+		}
+
+		// Add jobId for backend analyses (enables reconnection after page refresh)
+		if (jobId) {
+			metadata.jobId = jobId;
 		}
 
 		analysisStore.startAnalysisProgress(analysisId, defaultMessage, method, metadata);

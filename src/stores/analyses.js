@@ -765,6 +765,76 @@ function createAnalysisStore() {
 				analyses: updatedAnalyses,
 				activeAnalyses: [] // Clear any stale active analyses
 			}));
+		},
+
+		// Attempt to reconnect to backend analyses that were running during page refresh
+		// Returns list of analyses that need reconnection so BackendAnalysisRunner can query their status
+		async attemptBackendReconnection() {
+			if (!browser) return [];
+
+			console.log('📊 [AnalysisStore] Checking for backend analyses to reconnect...');
+
+			// Load analyses from IndexedDB
+			let analyses = [];
+			try {
+				analyses = await analysisStorage.getAllAnalyses();
+			} catch (error) {
+				console.error('Error loading analyses for reconnection:', error);
+				return [];
+			}
+
+			// Find backend analyses that were running/pending AND have a jobId
+			const backendToReconnect = analyses.filter(
+				(a) =>
+					a.metadata?.executionMode === 'backend' &&
+					['pending', 'initializing', 'running', 'processing'].includes(a.status) &&
+					a.metadata?.jobId // Must have a jobId to reconnect
+			);
+
+			if (backendToReconnect.length === 0) {
+				console.log('📊 [AnalysisStore] No backend analyses to reconnect');
+				return [];
+			}
+
+			console.log(`📊 [AnalysisStore] Found ${backendToReconnect.length} backend analyses to reconnect`);
+
+			// Mark them as 'reconnecting' in both IndexedDB and store
+			const updatedAnalyses = analyses.map((analysis) => {
+				if (
+					analysis.metadata?.executionMode === 'backend' &&
+					['pending', 'initializing', 'running', 'processing'].includes(analysis.status) &&
+					analysis.metadata?.jobId
+				) {
+					return {
+						...analysis,
+						status: 'reconnecting',
+						reconnectAttemptedAt: Date.now(),
+						updatedAt: Date.now()
+					};
+				}
+				return analysis;
+			});
+
+			// Persist to IndexedDB
+			for (const analysis of updatedAnalyses) {
+				if (analysis.status === 'reconnecting') {
+					try {
+						await analysisStorage.saveAnalysis(analysis);
+						console.log(`📊 [AnalysisStore] Marked analysis ${analysis.id.slice(0, 8)}... as reconnecting`);
+					} catch (error) {
+						console.error(`Error saving reconnecting analysis ${analysis.id}:`, error);
+					}
+				}
+			}
+
+			// Update store state
+			update((state) => ({
+				...state,
+				analyses: updatedAnalyses
+			}));
+
+			// Return the original analysis data (with jobId) for BackendAnalysisRunner to use
+			return backendToReconnect;
 		}
 	};
 }
