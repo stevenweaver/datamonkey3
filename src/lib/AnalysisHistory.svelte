@@ -125,6 +125,23 @@
 		}
 	}
 
+	// Handle re-run action (for interrupted analyses)
+	function handleRerun(event) {
+		const { method, fileId } = event.detail;
+		// Dispatch event to switch to Analyze tab with the method pre-selected
+		dispatchEvent(
+			new CustomEvent('switchTab', {
+				detail: {
+					tabName: 'analyze',
+					method,
+					fileId,
+					rerun: true
+				},
+				bubbles: true
+			})
+		);
+	}
+
 	// Load analyses on mount
 	onMount(async () => {
 		if (browser) {
@@ -200,6 +217,7 @@
 									on:export={handleExport}
 									on:cancel={handleCancel}
 									on:delete={handleDelete}
+									on:rerun={handleRerun}
 								/>
 							{/each}
 						</div>
@@ -218,6 +236,7 @@
 							on:export={handleExport}
 							on:cancel={handleCancel}
 							on:delete={handleDelete}
+							on:rerun={handleRerun}
 						/>
 					{/each}
 				</div>
