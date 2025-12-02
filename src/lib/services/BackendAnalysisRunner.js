@@ -267,9 +267,23 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 	 * @param {Array} analysesToReconnect - Analyses from attemptBackendReconnection()
 	 */
 	async reconnectToJobs(analysesToReconnect) {
+		// Ensure socket is connected before attempting reconnection
 		if (!this.socket?.connected) {
-			console.warn('🔌 Socket not connected, cannot reconnect to jobs');
-			return;
+			console.log('🔌 Socket not connected, establishing connection for reconnection...');
+			try {
+				await this.connect();
+			} catch (error) {
+				console.error('❌ Failed to connect for job reconnection:', error);
+				// Mark all analyses as connection_lost since we can't reach the server
+				for (const analysis of analysesToReconnect) {
+					await analysisStore.updateAnalysis(analysis.id, {
+						status: 'connection_lost',
+						error: 'Could not connect to server to check job status.',
+						updatedAt: Date.now()
+					});
+				}
+				return;
+			}
 		}
 
 		console.log(`🔄 Attempting to reconnect to ${analysesToReconnect.length} backend jobs`);
