@@ -6,6 +6,7 @@
 import io from 'socket.io-client';
 import { DATAMONKEY_SERVER_URL } from '../config/env.ts';
 import { BaseAnalysisRunner } from './BaseAnalysisRunner.js';
+import { analysisStore } from '../../stores/analyses.js';
 
 /**
  * Strip embedded trees from alignment data
@@ -310,9 +311,9 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 						// Job finished while we were away - retrieve results!
 						console.log(`✅ Job ${jobId} completed, retrieving results`);
 						await this.completeAnalysis(analysis.id, true, response.results);
-					} else if (response.status === 'running') {
-						// Job still running - resubscribe to events
-						console.log(`🔄 Job ${jobId} still running, resubscribing`);
+					} else if (response.status === 'running' || response.status === 'queued') {
+						// Job still running or queued - resubscribe to events
+						console.log(`🔄 Job ${jobId} ${response.status}, resubscribing`);
 						this.activeAnalyses.set(jobId, analysis.id);
 
 						// Resubscribe to job events
