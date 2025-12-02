@@ -827,6 +827,19 @@
 			if (event.detail.analysisId) {
 				selectAnalysis(event.detail.analysisId);
 			}
+
+			// Handle re-run: set the method and file for the Analyze tab
+			if (event.detail.rerun && event.detail.tabName === 'analyze') {
+				// Set the method if provided
+				if (event.detail.method) {
+					selectedMethod = event.detail.method.toUpperCase();
+				}
+
+				// Set the current file if provided
+				if (event.detail.fileId) {
+					persistentFileStore.setCurrentFile(event.detail.fileId);
+				}
+			}
 		}
 	}
 
