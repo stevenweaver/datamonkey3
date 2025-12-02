@@ -234,13 +234,17 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			console.log(`📤 Submitting ${method} analysis to backend:`, eventName, {
 				alignmentLength: cleanedFastaData.length,
 				treeLength: treeData.length,
+				jobId,
 				jobParams: analysisParams
 			});
 
 			const submitData = {
 				alignment: cleanedFastaData,
 				tree: treeData,
-				job: analysisParams
+				job: {
+					id: jobId, // Include jobId for reconnection support (backend 2.8.0+)
+					...analysisParams
+				}
 			};
 
 			this.socket.emit(eventName, submitData);
