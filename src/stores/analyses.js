@@ -298,8 +298,8 @@ function createAnalysisStore() {
 				};
 			});
 
-			// Persist executionMode to IndexedDB so we can identify WASM analyses after page refresh
-			// This is critical for cleanupInterruptedAnalyses to work correctly
+			// Persist metadata to IndexedDB (executionMode, jobId, etc.)
+			// This is critical for cleanupInterruptedAnalyses and backend reconnection to work
 			if (browser && metadata.executionMode) {
 				try {
 					const analysis = await analysisStorage.getAnalysis(analysisId);
@@ -308,12 +308,12 @@ function createAnalysisStore() {
 							...analysis,
 							metadata: {
 								...analysis.metadata,
-								executionMode: metadata.executionMode
+								...metadata // Persist ALL metadata including jobId for backend reconnection
 							},
 							updatedAt: Date.now()
 						};
 						await analysisStorage.saveAnalysis(updatedAnalysis);
-						console.log(`📊 [AnalysisStore] Persisted executionMode=${metadata.executionMode} for ${analysisId.slice(0, 8)}...`);
+						console.log(`📊 [AnalysisStore] Persisted metadata (executionMode=${metadata.executionMode}, jobId=${metadata.jobId || 'n/a'}) for ${analysisId.slice(0, 8)}...`);
 
 						// Also update the in-memory analyses array
 						update((state) => ({
