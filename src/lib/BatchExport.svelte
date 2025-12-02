@@ -291,7 +291,7 @@
 	}
 </script>
 
-<div class="batch-export rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+<div class="batch-export rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
 	<h3 class="mb-3 text-lg font-bold">Batch Export</h3>
 
 	<!-- Filter controls -->
@@ -339,7 +339,7 @@
 						class="mr-1"
 					/>
 					<span class="mr-1 text-sm font-medium">{format.label}</span>
-					<span class="text-xs text-gray-500">({format.description})</span>
+					<span class="text-xs text-text-silver">({format.description})</span>
 				</label>
 			{/each}
 		</div>
@@ -355,14 +355,14 @@
 			</label>
 		</div>
 
-		<div class="max-h-64 overflow-y-auto rounded border border-gray-200">
+		<div class="max-h-64 overflow-y-auto rounded border border-border-subtle">
 			{#if filteredAnalyses.length === 0}
-				<p class="p-3 text-center text-sm text-gray-500">
+				<p class="p-3 text-center text-sm text-text-silver">
 					No analyses available for the selected filters
 				</p>
 			{:else}
 				<table class="w-full table-auto text-sm">
-					<thead class="sticky top-0 bg-gray-100">
+					<thead class="sticky top-0 bg-surface-sunken">
 						<tr>
 							<th class="w-10 p-2"></th>
 							<th class="w-20 p-2 text-left">Method</th>
@@ -373,7 +373,7 @@
 					</thead>
 					<tbody>
 						{#each filteredAnalyses as analysis (analysis.id)}
-							<tr class="cursor-pointer border-t border-gray-200 hover:bg-gray-50">
+							<tr class="cursor-pointer border-t border-border-subtle hover:bg-surface-raised">
 								<td class="p-2 text-center">
 									<input
 										type="checkbox"
@@ -384,18 +384,18 @@
 								</td>
 								<td class="p-2 font-medium">{analysis.method.toUpperCase()}</td>
 								<td class="truncate p-2">{getFileName(analysis.fileId)}</td>
-								<td class="p-2 text-gray-600">{formatDate(analysis.createdAt)}</td>
+								<td class="p-2 text-text-slate">{formatDate(analysis.createdAt)}</td>
 								<td class="p-2">
 									{#if analysis.method === 'datareader'}
 										<button
 											on:click|stopPropagation={() => exportCorrectedFasta(analysis.id)}
-											class="rounded bg-green-500 px-2 py-1 text-xs text-white hover:bg-green-600"
+											class="rounded bg-status-success px-2 py-1 text-xs text-white hover:bg-status-success-text"
 											title="Export FASTA sequences from this analysis"
 										>
 											Export FASTA
 										</button>
 									{:else}
-										<span class="text-xs text-gray-400">N/A</span>
+										<span class="text-xs text-text-silver">N/A</span>
 									{/if}
 								</td>
 							</tr>
@@ -405,7 +405,7 @@
 			{/if}
 		</div>
 
-		<p class="mt-1 text-right text-sm text-gray-600">
+		<p class="mt-1 text-right text-sm text-text-slate">
 			{selectedAnalyses.size} analyses selected
 		</p>
 	</div>
@@ -415,7 +415,7 @@
 		<button
 			on:click={exportSelectedAnalyses}
 			disabled={selectedAnalyses.size === 0 || isExporting}
-			class="flex items-center rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600 disabled:bg-gray-300 disabled:text-gray-500"
+			class="flex items-center rounded bg-brand-royal px-3 py-1 text-white hover:bg-brand-deep disabled:bg-surface-sunken disabled:text-text-silver"
 		>
 			{#if isExporting}
 				<svg

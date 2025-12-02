@@ -4,30 +4,49 @@
 
 	const dispatch = createEventDispatcher();
 
-	// Sample files available for demo
+	// Sample files available for demo with enhanced metadata
 	const demoFiles = [
 		{
 			name: 'CD2-slim.fna',
-			description: 'CD2 gene alignment (10 sequences)',
-			path: '/test-data/CD2-slim.fna'
+			description: 'CD2 gene alignment',
+			detail: '10 sequences • FASTA format',
+			path: '/test-data/CD2-slim.fna',
+			icon: 'dna',
+			size: 'small'
 		},
-		{ name: 'small.nex', description: 'Small NEXUS alignment', path: '/test-data/small.nex' },
-		{ name: 'medium.nex', description: 'Medium NEXUS alignment', path: '/test-data/medium.nex' },
-		{ name: 'large.nex', description: 'Large NEXUS alignment', path: '/test-data/large.nex' }
+		{
+			name: 'small.nex',
+			description: 'Small alignment',
+			detail: 'NEXUS format • Quick test',
+			path: '/test-data/small.nex',
+			icon: 'file',
+			size: 'small'
+		},
+		{
+			name: 'medium.nex',
+			description: 'Medium alignment',
+			detail: 'NEXUS format • Standard',
+			path: '/test-data/medium.nex',
+			icon: 'file',
+			size: 'medium'
+		},
+		{
+			name: 'large.nex',
+			description: 'Large alignment',
+			detail: 'NEXUS format • Extended',
+			path: '/test-data/large.nex',
+			icon: 'file',
+			size: 'large'
+		}
 	];
+
+	let hoveredFile = null;
 
 	// Handle loading a demo file using the File System API
 	async function loadDemoFile(filePath, fileName) {
 		try {
-			// For security reasons, browser JS can't directly access file system
-			// In a real app, these would be served from the server's public directory
-			// For this demo, we'll simply read the files from our test-data directory
-
 			// Read file from test-data directory using fetch
 			const demoFilePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
-
-			// In a development environment, we need to fetch from the right path
-			// In Vite, public files are served from the root, so we adjust the path
 			const response = await fetch(demoFilePath);
 
 			if (!response.ok) {
@@ -52,50 +71,146 @@
 	}
 </script>
 
-<div class="demo-selector mb-4 mt-2">
-	<div class="mb-2 flex items-center">
-		<div class="mr-2 text-blue-500">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="h-5 w-5"
-				viewBox="0 0 20 20"
-				fill="currentColor"
-			>
+<div class="demo-selector">
+	<!-- Section header with subtle styling -->
+	<div class="mb-3 flex items-center gap-2 sm:mb-premium-md sm:gap-premium-sm">
+		<div
+			class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brand-whisper text-brand-royal sm:h-8 sm:w-8"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="currentColor">
 				<path
 					fill-rule="evenodd"
-					d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+					d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z"
 					clip-rule="evenodd"
 				/>
 			</svg>
 		</div>
-		<span class="text-sm font-medium text-gray-700">Try a sample file:</span>
+		<div class="min-w-0">
+			<span class="text-sm font-semibold text-text-rich sm:text-premium-body">Try a sample file</span>
+			<span class="hidden text-premium-meta text-text-silver sm:inline sm:ml-premium-sm"
+				>— quick start with example data</span
+			>
+		</div>
 	</div>
 
-	<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-		{#each demoFiles as demoFile}
+	<!-- Sample file cards with enhanced design -->
+	<div class="grid grid-cols-2 gap-2 sm:gap-premium-md lg:grid-cols-4">
+		{#each demoFiles as demoFile, index}
 			<button
-				class="flex items-center rounded-md border border-gray-200 p-2 transition-colors hover:border-blue-300 hover:bg-blue-50"
+				class="sample-card group relative flex min-h-[120px] flex-col rounded-lg border-2 p-3 text-left transition-all duration-premium active:scale-[0.98] sm:min-h-0 sm:rounded-premium sm:p-premium-md
+               {hoveredFile === demoFile.name
+					? 'scale-[1.02] border-brand-royal bg-white shadow-premium-hover'
+					: 'border-border-platinum bg-white hover:border-brand-muted hover:shadow-premium'}"
+				style="animation-delay: {index * 50}ms"
 				on:click={() => loadDemoFile(demoFile.path, demoFile.name)}
+				on:mouseenter={() => (hoveredFile = demoFile.name)}
+				on:mouseleave={() => (hoveredFile = null)}
 			>
-				<div class="mr-2 text-blue-500">
+				<!-- File type indicator -->
+				<div class="mb-2 flex items-start justify-between sm:mb-premium-sm">
+					<div
+						class="flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-premium sm:h-10 sm:w-10 sm:rounded-premium-sm
+                      {hoveredFile === demoFile.name
+							? 'bg-brand-royal text-white'
+							: 'bg-brand-ghost text-brand-royal group-hover:bg-brand-whisper'}"
+					>
+						{#if demoFile.icon === 'dna'}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-4 w-4 sm:h-5 sm:w-5"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<path d="M2 15c6.667-6 13.333 0 20-6" />
+								<path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993" />
+								<path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993" />
+								<path d="M17 6l-2.5-2.5" />
+								<path d="M14 8l-3-3" />
+								<path d="M7 18l2.5 2.5" />
+								<path d="M10 16l3 3" />
+							</svg>
+						{:else}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-4 w-4 sm:h-5 sm:w-5"
+								viewBox="0 0 20 20"
+								fill="currentColor"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+									clip-rule="evenodd"
+								/>
+							</svg>
+						{/if}
+					</div>
+
+					<!-- Size indicator badge -->
+					<span
+						class="rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:px-premium-sm sm:text-premium-caption
+                       {demoFile.size === 'small'
+							? 'bg-green-100 text-green-700'
+							: demoFile.size === 'medium'
+								? 'bg-brand-whisper text-brand-royal'
+								: 'bg-accent-cream text-accent-copper'}"
+					>
+						{demoFile.size}
+					</span>
+				</div>
+
+				<!-- File info -->
+				<div class="flex-1">
+					<h4 class="mb-0.5 truncate font-mono text-xs font-semibold text-text-rich sm:mb-premium-xs sm:text-premium-body">
+						{demoFile.name}
+					</h4>
+					<p class="text-[10px] text-text-slate sm:mb-premium-xs sm:text-premium-meta">
+						{demoFile.description}
+					</p>
+					<p class="hidden text-premium-caption text-text-silver sm:block">
+						{demoFile.detail}
+					</p>
+				</div>
+
+				<!-- Action indicator - always visible on mobile -->
+				<div
+					class="mt-2 flex items-center justify-between border-t border-border-platinum pt-2 opacity-100 transition-opacity duration-premium sm:mt-premium-sm sm:pt-premium-sm sm:opacity-0 sm:group-hover:opacity-100"
+				>
+					<span class="text-[10px] font-medium text-brand-royal sm:text-premium-caption">Load file</span>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
-						class="h-5 w-5"
-						viewBox="0 0 20 20"
-						fill="currentColor"
+						class="h-3 w-3 transform text-brand-royal transition-transform duration-premium group-hover:translate-x-1 sm:h-4 sm:w-4"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
 					>
 						<path
-							fill-rule="evenodd"
-							d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-							clip-rule="evenodd"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M14 5l7 7m0 0l-7 7m7-7H3"
 						/>
 					</svg>
-				</div>
-				<div class="text-left">
-					<div class="text-sm font-medium">{demoFile.name}</div>
-					<div class="text-xs text-gray-500">{demoFile.description}</div>
 				</div>
 			</button>
 		{/each}
 	</div>
 </div>
+
+<style>
+	.sample-card {
+		animation: fade-in-up 0.4s ease-out backwards;
+	}
+
+	@keyframes fade-in-up {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+</style>

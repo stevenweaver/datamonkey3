@@ -24,6 +24,14 @@ function createAnalysisStore() {
 
 			try {
 				const analyses = await analysisStorage.getAllAnalyses();
+
+				// Log status summary
+				const statusCounts = analyses.reduce((acc, a) => {
+					acc[a.status] = (acc[a.status] || 0) + 1;
+					return acc;
+				}, {});
+				console.log(`📊 [AnalysisStore] LOAD: ${analyses.length} analyses from IndexedDB`, statusCounts);
+
 				update((state) => ({ ...state, analyses, isLoading: false }));
 			} catch (error) {
 				console.error('Error loading analyses:', error);
@@ -237,7 +245,7 @@ function createAnalysisStore() {
 		},
 
 		// Start tracking analysis progress
-		startAnalysisProgress(
+		async startAnalysisProgress(
 			analysisId,
 			message = 'Initializing analysis...',
 			methodName = '',
@@ -246,6 +254,8 @@ function createAnalysisStore() {
 			// Find the analysis in the store to get method and file information if not provided
 			let method = methodName;
 			let file = metadata.fileName || '';
+
+			console.log(`📊 [AnalysisStore] START: ${analysisId.slice(0, 8)}... method=${methodName} executionMode=${metadata.executionMode || 'unknown'}`);
 
 			update((state) => {
 				// Look up analysis details if not provided
@@ -280,11 +290,43 @@ function createAnalysisStore() {
 				const activeAnalyses = (state.activeAnalyses || []).filter((a) => a.id !== analysisId);
 				activeAnalyses.push(progressObj);
 
+				console.log(`📊 [AnalysisStore] activeAnalyses count: ${activeAnalyses.length}`);
+
 				return {
 					...state,
 					activeAnalyses
 				};
 			});
+
+			// Persist executionMode to IndexedDB so we can identify WASM analyses after page refresh
+			// This is critical for cleanupInterruptedAnalyses to work correctly
+			if (browser && metadata.executionMode) {
+				try {
+					const analysis = await analysisStorage.getAnalysis(analysisId);
+					if (analysis) {
+						const updatedAnalysis = {
+							...analysis,
+							metadata: {
+								...analysis.metadata,
+								executionMode: metadata.executionMode
+							},
+							updatedAt: Date.now()
+						};
+						await analysisStorage.saveAnalysis(updatedAnalysis);
+						console.log(`📊 [AnalysisStore] Persisted executionMode=${metadata.executionMode} for ${analysisId.slice(0, 8)}...`);
+
+						// Also update the in-memory analyses array
+						update((state) => ({
+							...state,
+							analyses: state.analyses.map((a) =>
+								a.id === analysisId ? updatedAnalysis : a
+							)
+						}));
+					}
+				} catch (error) {
+					console.error('Error persisting executionMode:', error);
+				}
+			}
 		},
 
 		// Update analysis progress (legacy method - uses first active analysis)
@@ -321,6 +363,8 @@ function createAnalysisStore() {
 		_updateAnalysisProgressByIdInternal(analysisId, status, progress, message, state) {
 			if (!analysisId) return state;
 
+			console.log(`📊 [AnalysisStore] UPDATE: ${analysisId.slice(0, 8)}... status=${status} progress=${progress}%`);
+
 			// Create log entry
 			const logEntry = { time: new Date().toISOString(), message, status };
 
@@ -345,8 +389,19 @@ function createAnalysisStore() {
 				};
 			});
 
+			// Also sync status to the main analyses array to keep them in sync
+			const analyses = (state.analyses || []).map((a) => {
+				if (a.id !== analysisId) return a;
+				return {
+					...a,
+					status,
+					updatedAt: new Date().getTime()
+				};
+			});
+
 			return {
 				...state,
+				analyses,
 				activeAnalyses
 			};
 		},
@@ -473,12 +528,147 @@ function createAnalysisStore() {
 			}
 		},
 
+		// Complete analysis progress by specific ID (atomic, avoids race conditions)
+		async completeAnalysisProgressById(
+			analysisId,
+			success = true,
+			message = success ? 'Analysis completed.' : 'Analysis failed.'
+		) {
+			if (!analysisId) return;
+
+			const status = success ? 'completed' : 'error';
+
+			console.log(`📊 [AnalysisStore] COMPLETE: ${analysisId.slice(0, 8)}... success=${success} status=${status}`);
+
+			// Get the active analysis data before updating
+			let activeAnalysisData = null;
+			update((state) => {
+				activeAnalysisData = state.activeAnalyses.find((a) => a.id === analysisId);
+				return state; // No changes yet
+			});
+
+			// Update both activeAnalyses and analyses arrays atomically
+			update((state) => {
+				const activeAnalyses = (state.activeAnalyses || []).map((a) => {
+					if (a.id !== analysisId) return a;
+
+					const logs = [...(a.logs || [])];
+					logs.push({ time: new Date().toISOString(), message, status });
+
+					return {
+						...a,
+						status,
+						progress: success ? 100 : a.progress,
+						message,
+						logs,
+						completedAt: success ? new Date().toISOString() : undefined
+					};
+				});
+
+				// Also sync to main analyses array
+				const analyses = (state.analyses || []).map((a) => {
+					if (a.id !== analysisId) return a;
+					return {
+						...a,
+						status,
+						completedAt: success ? new Date().getTime() : undefined,
+						updatedAt: new Date().getTime()
+					};
+				});
+
+				return {
+					...state,
+					analyses,
+					activeAnalyses
+				};
+			});
+
+			// Persist to IndexedDB and server
+			const currentLogs = activeAnalysisData?.logs || [];
+			const currentResult = activeAnalysisData?.result || null;
+			const currentMetadata = activeAnalysisData?.metadata || {};
+
+			// Update IndexedDB
+			try {
+				const analysis = await analysisStorage.getAnalysis(analysisId);
+				if (analysis) {
+					const finalResult = currentResult || analysis.result;
+
+					await analysisStorage.saveAnalysis({
+						...analysis,
+						status,
+						logs: currentLogs,
+						result: finalResult,
+						metadata: currentMetadata,
+						completedAt: success ? new Date().getTime() : undefined
+					});
+
+					// Sync result back to store
+					update((state) => ({
+						...state,
+						analyses: state.analyses.map((a) =>
+							a.id === analysisId
+								? {
+										...a,
+										status,
+										logs: currentLogs,
+										result: finalResult,
+										metadata: currentMetadata,
+										completedAt: success ? new Date().getTime() : undefined
+									}
+								: a
+						)
+					}));
+				}
+			} catch (error) {
+				console.error('Error updating analysis in IndexedDB:', error);
+			}
+
+			// Update server via API (only in browser environment)
+			try {
+				if (
+					browser &&
+					typeof window !== 'undefined' &&
+					window.location &&
+					!import.meta.env?.VITEST
+				) {
+					fetch(`/api/analyses/${analysisId}`, {
+						method: 'PATCH',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							status,
+							logs: currentLogs,
+							result: currentResult,
+							metadata: currentMetadata,
+							completedAt: success ? new Date().getTime() : undefined
+						})
+					})
+						.then((response) => response.json())
+						.then((data) => {
+							console.log('Server analysis status updated:', data);
+						})
+						.catch((error) => {
+							console.error('Error updating analysis status on server:', error);
+						});
+				}
+			} catch (error) {
+				console.error('Error updating analysis on server:', error);
+			}
+		},
+
 		// Remove analysis from active list (for when user dismisses a completed analysis)
 		removeFromActiveAnalyses(analysisId) {
-			update((state) => ({
-				...state,
-				activeAnalyses: (state.activeAnalyses || []).filter((a) => a.id !== analysisId)
-			}));
+			console.log(`📊 [AnalysisStore] REMOVE from active: ${analysisId.slice(0, 8)}...`);
+			update((state) => {
+				const newActiveAnalyses = (state.activeAnalyses || []).filter((a) => a.id !== analysisId);
+				console.log(`📊 [AnalysisStore] activeAnalyses count: ${newActiveAnalyses.length}`);
+				return {
+					...state,
+					activeAnalyses: newActiveAnalyses
+				};
+			});
 		},
 
 		// Clear all analyses
@@ -508,6 +698,73 @@ function createAnalysisStore() {
 				}));
 				throw error;
 			}
+		},
+
+		// Clean up analyses that were interrupted by page refresh
+		// This marks WASM analyses that were in running/pending state as 'interrupted'
+		async cleanupInterruptedAnalyses() {
+			if (!browser) return;
+
+			console.log('📊 [AnalysisStore] Checking for interrupted WASM analyses...');
+
+			// First load analyses from IndexedDB to check for stale running analyses
+			let analyses = [];
+			try {
+				analyses = await analysisStorage.getAllAnalyses();
+			} catch (error) {
+				console.error('Error loading analyses for cleanup:', error);
+				return;
+			}
+
+			// Find WASM analyses that were running/pending (these were interrupted)
+			const interruptedAnalyses = analyses.filter(
+				(a) =>
+					a.metadata?.executionMode === 'wasm' &&
+					['pending', 'initializing', 'running', 'processing', 'saving'].includes(a.status)
+			);
+
+			if (interruptedAnalyses.length === 0) {
+				console.log('📊 [AnalysisStore] No interrupted analyses found');
+				return;
+			}
+
+			console.log(`📊 [AnalysisStore] Found ${interruptedAnalyses.length} interrupted WASM analyses`);
+
+			// Update each interrupted analysis
+			const updatedAnalyses = analyses.map((analysis) => {
+				if (
+					analysis.metadata?.executionMode === 'wasm' &&
+					['pending', 'initializing', 'running', 'processing', 'saving'].includes(analysis.status)
+				) {
+					return {
+						...analysis,
+						status: 'interrupted',
+						interruptedAt: new Date().getTime(),
+						error: 'Analysis was interrupted by page refresh',
+						updatedAt: new Date().getTime()
+					};
+				}
+				return analysis;
+			});
+
+			// Persist updated analyses to IndexedDB
+			for (const analysis of updatedAnalyses) {
+				if (analysis.status === 'interrupted') {
+					try {
+						await analysisStorage.saveAnalysis(analysis);
+						console.log(`📊 [AnalysisStore] Marked analysis ${analysis.id.slice(0, 8)}... as interrupted`);
+					} catch (error) {
+						console.error(`Error saving interrupted analysis ${analysis.id}:`, error);
+					}
+				}
+			}
+
+			// Update store state
+			update((state) => ({
+				...state,
+				analyses: updatedAnalyses,
+				activeAnalyses: [] // Clear any stale active analyses
+			}));
 		}
 	};
 }

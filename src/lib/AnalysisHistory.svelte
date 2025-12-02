@@ -125,6 +125,23 @@
 		}
 	}
 
+	// Handle re-run action (for interrupted analyses)
+	function handleRerun(event) {
+		const { method, fileId } = event.detail;
+		// Dispatch event to switch to Analyze tab with the method pre-selected
+		dispatchEvent(
+			new CustomEvent('switchTab', {
+				detail: {
+					tabName: 'analyze',
+					method,
+					fileId,
+					rerun: true
+				},
+				bubbles: true
+			})
+		);
+	}
+
 	// Load analyses on mount
 	onMount(async () => {
 		if (browser) {
@@ -157,14 +174,14 @@
 			<span>Loading analyses...</span>
 		</div>
 	{:else if $analysisStore.error}
-		<div class="rounded border border-red-300 bg-red-50 p-3 text-red-800">
+		<div class="rounded border border-status-error-border bg-status-error-bg p-3 text-status-error-text">
 			<p>Error: {$analysisStore.error}</p>
 		</div>
 	{:else if sortedAnalyses.length === 0}
-		<div class="rounded border border-gray-200 bg-gray-50 p-4 text-center text-gray-500">
+		<div class="rounded border border-border-subtle bg-surface-raised p-4 text-center text-text-silver">
 			<div class="flex flex-col items-center">
 				<svg
-					class="mb-3 h-12 w-12 text-gray-400"
+					class="mb-3 h-12 w-12 text-text-silver"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -188,7 +205,7 @@
 				<!-- Group by file when not filtering -->
 				{#each Object.entries(analysesGroupedByFile) as [fileId, analyses]}
 					<div class="mb-4">
-						<h3 class="mb-2 bg-gray-100 p-2 text-sm font-semibold">{getFileName(fileId)}</h3>
+						<h3 class="mb-2 bg-surface-sunken p-2 text-sm font-semibold text-text-rich">{getFileName(fileId)}</h3>
 						<div class="analysis-cards">
 							{#each analyses as analysis (analysis.id)}
 								<AnalysisCard
@@ -200,6 +217,7 @@
 									on:export={handleExport}
 									on:cancel={handleCancel}
 									on:delete={handleDelete}
+									on:rerun={handleRerun}
 								/>
 							{/each}
 						</div>
@@ -218,6 +236,7 @@
 							on:export={handleExport}
 							on:cancel={handleCancel}
 							on:delete={handleDelete}
+							on:rerun={handleRerun}
 						/>
 					{/each}
 				</div>

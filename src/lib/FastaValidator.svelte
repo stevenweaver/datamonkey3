@@ -31,8 +31,8 @@
 	// Get error severity class
 	function getSeverityClass(isError) {
 		return isError
-			? 'bg-red-100 border-red-400 text-red-700'
-			: 'bg-yellow-100 border-yellow-400 text-yellow-700';
+			? 'bg-status-error-bg border-status-error-border text-status-error-text'
+			: 'bg-status-warning-bg border-status-warning-border text-status-warning-text';
 	}
 
 	// Format error code
@@ -168,7 +168,7 @@
 	<h3 class="mb-3 text-lg font-bold">FASTA Validation</h3>
 
 	{#if !file}
-		<p class="text-gray-500">No file selected for validation</p>
+		<p class="text-text-silver">No file selected for validation</p>
 	{:else if isValidating}
 		<div class="flex items-center">
 			<div class="loader mr-3"></div>
@@ -230,13 +230,13 @@
 
 			<div
 				class="mb-3 rounded p-2"
-				class:bg-green-100={validationResults.valid}
-				class:bg-red-100={!validationResults.valid}
+				class:bg-status-success-bg={validationResults.valid}
+				class:bg-status-error-bg={!validationResults.valid}
 			>
 				<p
 					class="font-medium"
-					class:text-green-700={validationResults.valid}
-					class:text-red-700={!validationResults.valid}
+					class:text-status-success-text={validationResults.valid}
+					class:text-status-error-text={!validationResults.valid}
 				>
 					{validationResults.valid ? 'Valid FASTA file' : 'Invalid FASTA file'}
 				</p>
@@ -322,7 +322,7 @@
 				{#if !repairedData}
 					<button
 						on:click={repairFastaData}
-						class="flex items-center rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+						class="flex items-center rounded bg-brand-royal px-3 py-1 text-white hover:bg-brand-deep"
 					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
@@ -339,7 +339,7 @@
 						Repair FASTA File
 					</button>
 				{:else}
-					<div class="mb-3 rounded bg-green-100 p-2 text-green-700">
+					<div class="mb-3 rounded bg-status-success-bg p-2 text-status-success-text">
 						<p class="font-medium">File Repaired Successfully</p>
 						<p class="text-sm">
 							{#if repairedData.valid}
@@ -358,7 +358,7 @@
 									<li>{repair.details}</li>
 								{/each}
 								{#if repairedData.repairs.length > 5}
-									<li class="text-gray-500">
+									<li class="text-text-silver">
 										...and {repairedData.repairs.length - 5} more repairs
 									</li>
 								{/if}
@@ -371,10 +371,10 @@
 							<h5 class="mb-1 font-medium">Remaining Issues:</h5>
 							<ul class="ml-4 list-disc text-sm">
 								{#each repairedData.remainingErrors as error}
-									<li class="text-red-600">{error.type.message}</li>
+									<li class="text-status-error">{error.type.message}</li>
 								{/each}
 								{#each repairedData.remainingWarnings as warning}
-									<li class="text-yellow-600">{warning.type.message}</li>
+									<li class="text-status-warning">{warning.type.message}</li>
 								{/each}
 							</ul>
 						</div>
@@ -383,7 +383,7 @@
 					<div class="flex flex-wrap gap-2">
 						<button
 							on:click={exportRepaired}
-							class="flex items-center rounded bg-green-500 px-3 py-1 text-white hover:bg-green-600"
+							class="flex items-center rounded bg-status-success px-3 py-1 text-white hover:bg-status-success-text"
 						>
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
@@ -402,7 +402,7 @@
 
 						<button
 							on:click={useRepaired}
-							class="flex items-center rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+							class="flex items-center rounded bg-brand-royal px-3 py-1 text-white hover:bg-brand-deep"
 							disabled={!repairedData.valid}
 						>
 							<svg

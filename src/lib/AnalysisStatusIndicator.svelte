@@ -1,7 +1,16 @@
 <script>
 	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import { analysisStore, activeAnalyses } from '../stores/analyses';
 	import { goto } from '$app/navigation';
+
+	// Load analyses on mount to ensure indicator has correct data
+	// This is necessary because the layout mounts before the page
+	onMount(async () => {
+		if (browser) {
+			await analysisStore.loadAnalyses();
+		}
+	});
 
 	// Function to navigate to the Results tab when clicked
 	function navigateToResults() {
@@ -9,32 +18,38 @@
 	}
 
 	// Get today's date at midnight for filtering completed analyses
-	const todayStart = new Date();
-	todayStart.setHours(0, 0, 0, 0);
+	// Using a function so it can be recalculated if needed
+	function getTodayStart() {
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		return today;
+	}
 
-	// Get counts from ALL analyses in the store, not just activeAnalysesList
-	// Also check activeAnalysesList for any running analyses not yet persisted
+	// Use Set-based deduplication to correctly count analyses that may appear in both arrays
+	// This prevents double-counting and ensures accurate status tracking
 	$: runningCount = (() => {
-		// Count from main analyses array
-		const mainRunning = $analysisStore.analyses.filter(
-			(a) =>
-				a.status !== 'completed' &&
-				a.status !== 'error' &&
-				a.status !== 'cancelled' &&
-				a.method !== 'datareader'
-		).length;
+		const runningIds = new Set();
 
-		// Also check activeAnalysesList for any additional running analyses
-		const activeRunning = $activeAnalyses.filter(
-			(a) => a.status !== 'completed' && a.status !== 'error' && a.method !== 'datareader'
-		).length;
+		// Add running analyses from main analyses array (exclude interrupted)
+		$analysisStore.analyses
+			.filter(
+				(a) =>
+					!['completed', 'error', 'cancelled', 'interrupted'].includes(a.status) &&
+					a.method !== 'datareader'
+			)
+			.forEach((a) => runningIds.add(a.id));
 
-		// Return the maximum to avoid missing any
-		return Math.max(mainRunning, activeRunning);
+		// Add running analyses from active analyses array (may overlap with main)
+		$activeAnalyses
+			.filter((a) => !['completed', 'error', 'interrupted'].includes(a.status) && a.method !== 'datareader')
+			.forEach((a) => runningIds.add(a.id));
+
+		return runningIds.size;
 	})();
 
 	$: completedCount = (() => {
-		// Count from main analyses array (more reliable for completed)
+		const todayStart = getTodayStart();
+		// Count completed analyses from today only
 		return $analysisStore.analyses.filter(
 			(a) =>
 				a.status === 'completed' &&
@@ -45,20 +60,33 @@
 	})();
 
 	$: failedCount = (() => {
-		// Count from both sources
-		const mainFailed = $analysisStore.analyses.filter(
-			(a) => a.status === 'error' && a.method !== 'datareader'
-		).length;
+		const failedIds = new Set();
 
-		const activeFailed = $activeAnalyses.filter(
-			(a) => a.status === 'error' && a.method !== 'datareader'
-		).length;
+		// Add failed analyses from main analyses array
+		$analysisStore.analyses
+			.filter((a) => a.status === 'error' && a.method !== 'datareader')
+			.forEach((a) => failedIds.add(a.id));
 
-		return Math.max(mainFailed, activeFailed);
+		// Add failed analyses from active analyses array (may overlap with main)
+		$activeAnalyses
+			.filter((a) => a.status === 'error' && a.method !== 'datareader')
+			.forEach((a) => failedIds.add(a.id));
+
+		return failedIds.size;
 	})();
 
+	// Count interrupted analyses (WASM analyses that were terminated by page refresh)
+	$: interruptedCount = $analysisStore.analyses.filter(
+		(a) => a.status === 'interrupted' && a.method !== 'datareader'
+	).length;
+
 	// Only show indicator if there are any analyses to display
-	$: showIndicator = runningCount > 0 || completedCount > 0 || failedCount > 0;
+	$: showIndicator = runningCount > 0 || completedCount > 0 || failedCount > 0 || interruptedCount > 0;
+
+	// Debug logging when counts change
+	$: if (runningCount > 0 || completedCount > 0 || failedCount > 0 || interruptedCount > 0) {
+		console.log(`📊 [StatusIndicator] running=${runningCount} completed=${completedCount} failed=${failedCount} interrupted=${interruptedCount} (analyses=${$analysisStore.analyses.length}, active=${$activeAnalyses.length})`);
+	}
 </script>
 
 {#if showIndicator}
@@ -96,6 +124,18 @@
 				<span class="inline-flex items-center justify-center text-sm">
 					<span class="mr-1 text-red-500">⚠</span>
 					<span class="font-medium text-red-600">{failedCount}</span>
+				</span>
+			</div>
+		{/if}
+
+		{#if interruptedCount > 0}
+			<div class="flex items-center">
+				{#if runningCount > 0 || completedCount > 0 || failedCount > 0}
+					<span class="mx-1.5 text-gray-300">•</span>
+				{/if}
+				<span class="inline-flex items-center justify-center text-sm">
+					<span class="mr-1 text-orange-500">⏸</span>
+					<span class="font-medium text-orange-600">{interruptedCount}</span>
 				</span>
 			</div>
 		{/if}

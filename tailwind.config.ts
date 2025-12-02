@@ -7,7 +7,23 @@ export default {
 	content: ['./src/**/*.{html,js,svelte,ts}'],
 
 	theme: {
+		screens: {
+			'xs': '475px',
+			'sm': '640px',
+			'md': '768px',
+			'lg': '1024px',
+			'xl': '1280px',
+			'2xl': '1536px',
+		},
 		extend: {
+			fontFamily: {
+				// Distinctive display font for headlines
+				display: ['"DM Serif Display"', 'Georgia', 'serif'],
+				// Clean sans-serif for body text
+				sans: ['"Source Sans 3"', 'system-ui', 'sans-serif'],
+				// Monospace for code/data
+				mono: ['"JetBrains Mono"', 'Consolas', 'monospace']
+			},
 			colors: {
 				// Purple Brand Family (Sophisticated)
 				brand: {
@@ -32,7 +48,42 @@ export default {
 					silver: '#94a3b8' // Secondary text, metadata
 				},
 				border: {
-					platinum: '#f1f5f9' // Borders, dividers
+					platinum: '#f1f5f9', // Borders, dividers
+					subtle: '#e2e8f0' // Slightly stronger borders
+				},
+				// Surface colors (backgrounds)
+				surface: {
+					base: '#ffffff', // Primary surface
+					raised: '#f8fafc', // Elevated elements
+					sunken: '#f1f5f9', // Recessed areas, inputs
+					overlay: '#1e293b' // Dark overlays, tooltips
+				},
+				// Semantic Status Colors
+				status: {
+					// Success (green family)
+					success: '#16a34a', // Primary success
+					'success-soft': '#22c55e', // Lighter success
+					'success-bg': '#f0fdf4', // Success background
+					'success-border': '#bbf7d0', // Success border
+					'success-text': '#166534', // Success text
+					// Error (red family)
+					error: '#dc2626', // Primary error
+					'error-soft': '#ef4444', // Lighter error
+					'error-bg': '#fef2f2', // Error background
+					'error-border': '#fecaca', // Error border
+					'error-text': '#991b1b', // Error text
+					// Warning (amber family)
+					warning: '#d97706', // Primary warning
+					'warning-soft': '#f59e0b', // Lighter warning
+					'warning-bg': '#fffbeb', // Warning background
+					'warning-border': '#fde68a', // Warning border
+					'warning-text': '#92400e', // Warning text
+					// Info (blue family - for non-brand informational)
+					info: '#2563eb', // Primary info
+					'info-soft': '#3b82f6', // Lighter info
+					'info-bg': '#eff6ff', // Info background
+					'info-border': '#bfdbfe', // Info border
+					'info-text': '#1e40af' // Info text
 				}
 			},
 			borderRadius: {
@@ -76,12 +127,32 @@ export default {
 				premium: 'cubic-bezier(0.4, 0, 0.2, 1)'
 			},
 			animation: {
-				'pulse-premium': 'pulse-premium 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+				'pulse-premium': 'pulse-premium 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'fade-in-up': 'fade-in-up 0.4s ease-out',
+				'slide-in-right': 'slide-in-right 0.3s ease-out',
+				'scale-in': 'scale-in 0.2s ease-out'
 			},
 			keyframes: {
 				'pulse-premium': {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.8' }
+				},
+				'fade-in': {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' }
+				},
+				'fade-in-up': {
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'slide-in-right': {
+					'0%': { opacity: '0', transform: 'translateX(-10px)' },
+					'100%': { opacity: '1', transform: 'translateX(0)' }
+				},
+				'scale-in': {
+					'0%': { opacity: '0', transform: 'scale(0.95)' },
+					'100%': { opacity: '1', transform: 'scale(1)' }
 				}
 			},
 			backgroundImage: {

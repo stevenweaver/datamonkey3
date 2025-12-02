@@ -217,6 +217,11 @@
   dependencies:
     mime "^3.0.0"
 
+"@cloudflare/workerd-darwin-64@1.20250214.0":
+  version "1.20250214.0"
+  resolved "https://registry.npmjs.org/@cloudflare/workerd-darwin-64/-/workerd-darwin-64-1.20250214.0.tgz"
+  integrity sha512-cDvvedWDc5zrgDnuXe2qYcz/TwBvzmweO55C7XpPuAWJ9Oqxv81PkdekYxD8mH989aQ/GI5YD0Fe6fDYlM+T3Q==
+
 "@cloudflare/workerd-darwin-arm64@1.20250214.0":
   version "1.20250214.0"
   resolved "https://registry.npmjs.org/@cloudflare/workerd-darwin-arm64/-/workerd-darwin-arm64-1.20250214.0.tgz"
@@ -405,10 +410,22 @@
   optionalDependencies:
     "@img/sharp-libvips-darwin-arm64" "1.0.4"
 
+"@img/sharp-darwin-x64@0.33.5":
+  version "0.33.5"
+  resolved "https://registry.npmjs.org/@img/sharp-darwin-x64/-/sharp-darwin-x64-0.33.5.tgz"
+  integrity sha512-fyHac4jIc1ANYGRDxtiqelIbdWkIuQaI84Mv45KvGRRxSAa7o7d1ZKAOBaYbnepLC1WqxfpimdeWfvqqSGwR2Q==
+  optionalDependencies:
+    "@img/sharp-libvips-darwin-x64" "1.0.4"
+
 "@img/sharp-libvips-darwin-arm64@1.0.4":
   version "1.0.4"
   resolved "https://registry.npmjs.org/@img/sharp-libvips-darwin-arm64/-/sharp-libvips-darwin-arm64-1.0.4.tgz"
   integrity sha512-XblONe153h0O2zuFfTAbQYAX2JhYmDHeWikp1LM9Hul9gVPjFY427k6dFEcOL72O01QxQsWi761svJ/ev9xEDg==
+
+"@img/sharp-libvips-darwin-x64@1.0.4":
+  version "1.0.4"
+  resolved "https://registry.npmjs.org/@img/sharp-libvips-darwin-x64/-/sharp-libvips-darwin-x64-1.0.4.tgz"
+  integrity sha512-xnGR8YuZYfJGmWPvmlunFaWJsb9T/AO2ykoP3Fz/0X5XV2aoYBPkX6xqCQvUTKKiLddarLaxpzNe+b1hjeWHAQ==
 
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
@@ -797,6 +814,11 @@
   version "4.32.1"
   resolved "https://registry.npmjs.org/@rollup/rollup-darwin-arm64/-/rollup-darwin-arm64-4.32.1.tgz"
   integrity sha512-zCpKHioQ9KgZToFp5Wvz6zaWbMzYQ2LJHQ+QixDKq52KKrF65ueu6Af4hLlLWHjX1Wf/0G5kSJM9PySW9IrvHA==
+
+"@rollup/rollup-darwin-x64@4.32.1":
+  version "4.32.1"
+  resolved "https://registry.npmjs.org/@rollup/rollup-darwin-x64/-/rollup-darwin-x64-4.32.1.tgz"
+  integrity sha512-sFvF+t2+TyUo/ZQqUcifrJIgznx58oFZbdHS9TvHq3xhPVL9nOp+yZ6LKrO9GWTP+6DbFtoyLDbjTpR62Mbr3Q==
 
 "@sentry-internal/browser-utils@9.40.0":
   version "9.40.0"
@@ -3434,10 +3456,10 @@ https-proxy-agent@^7.0.6:
     agent-base "^7.1.2"
     debug "4"
 
-hyphy-scope@^1.6.1:
-  version "1.6.1"
-  resolved "https://registry.npmjs.org/hyphy-scope/-/hyphy-scope-1.6.1.tgz"
-  integrity sha512-Fv3PWp8AH8m1TSOkQVhUiHt+D5hJB5CMsGPYxS0VKO5YWIqBW1PEGbB7GCoMzDfA++HpcVgq1UNJfylaKS33nA==
+hyphy-scope@^1.7.1:
+  version "1.7.1"
+  resolved "https://registry.npmjs.org/hyphy-scope/-/hyphy-scope-1.7.1.tgz"
+  integrity sha512-1ITI/7+lEq7oA3g948SpzbJ6zTKhNZdk7wcvydbc50dPzDxGwAaGDxeLP7kQs/ahsqHwTZPPhLlUjwFdWgD3rg==
   dependencies:
     "@observablehq/plot" "^0.6.11"
     circos "^2.1.0"
