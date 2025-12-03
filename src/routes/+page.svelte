@@ -9,6 +9,7 @@
 		currentFile
 	} from '../stores/fileInfo';
 	import { analysisStore, currentAnalysis, activeAnalysisProgress, activeAnalyses } from '../stores/analyses';
+	import { backendAnalysisRunner } from '../lib/services/BackendAnalysisRunner.js';
 	import { treeStore, addTree, updateTaggedTree } from '../stores/tree';
 	import Aioli from '@biowasm/aioli';
 	import TreeSelector from '../lib/TreeSelector.svelte';
@@ -476,6 +477,13 @@
 				await persistentFileStore.loadFiles();
 				await analysisStore.loadAnalyses();
 
+				// Attempt to reconnect to any backend jobs that were running before page refresh
+				const backendToReconnect = await analysisStore.attemptBackendReconnection();
+				if (backendToReconnect && backendToReconnect.length > 0) {
+					console.log(`🔄 Attempting to reconnect to ${backendToReconnect.length} backend job(s)`);
+					await backendAnalysisRunner.reconnectToJobs(backendToReconnect);
+				}
+
 				// If there are analyses, select the most recent one
 				if ($analysisStore.analyses.length > 0) {
 					const mostRecent = [...$analysisStore.analyses].sort(
@@ -843,15 +851,21 @@
 		}
 	}
 
-	// Handle page unload warning for running WASM analyses
+	// Handle page unload warning for running analyses
 	function handleBeforeUnload(event) {
-		// Check if there are any running WASM analyses
+		// Check if there are any running analyses (WASM or backend)
 		let hasRunningWasmAnalyses = false;
+		let hasRunningBackendAnalyses = false;
 		const unsubscribe = activeAnalyses.subscribe((active) => {
 			hasRunningWasmAnalyses = active.some(
 				(a) =>
 					a.metadata?.executionMode === 'wasm' &&
 					!['completed', 'error', 'cancelled', 'interrupted'].includes(a.status)
+			);
+			hasRunningBackendAnalyses = active.some(
+				(a) =>
+					a.metadata?.executionMode === 'backend' &&
+					!['completed', 'error', 'cancelled', 'interrupted', 'connection_lost'].includes(a.status)
 			);
 		});
 		unsubscribe();
@@ -861,6 +875,14 @@
 			event.preventDefault();
 			// Modern browsers require returnValue to be set
 			event.returnValue = 'You have running analyses that will be interrupted if you leave.';
+			return event.returnValue;
+		}
+
+		// For backend analyses, show a less severe warning (they can be reconnected)
+		if (hasRunningBackendAnalyses) {
+			event.preventDefault();
+			event.returnValue =
+				'You have backend analyses running. They will continue on the server, but you may need to wait for reconnection.';
 			return event.returnValue;
 		}
 	}
