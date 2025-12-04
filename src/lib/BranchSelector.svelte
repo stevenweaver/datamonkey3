@@ -1,40 +1,59 @@
 <!--
-	BranchSelector Component - Minimal Version for Testing
+	BranchSelector Component - Interactive phylogenetic tree branch selection
 -->
 
 <script>
-	import { onMount, createEventDispatcher } from 'svelte';
+	import { onMount, createEventDispatcher, tick } from 'svelte';
 	import * as phylotree from 'phylotree';
 	import * as d3 from 'd3';
 
 	const dispatch = createEventDispatcher();
 
-	// Props
+	// Props - Core
 	export let treeData = '';
 	export let height = 400;
 	export let width = 800;
+
+	// Props - Selection mode
 	export let mode = 'single-set'; // 'single-set' for FG/BG, 'multi-set' for contrast-fel
+	export let selectionMode = 'foreground'; // 'foreground' or 'background' - maps to mode for Storybook compatibility
 	export let initialSetNames = null; // Optional: custom names for sets (e.g., ['TEST', 'REFERENCE'] for RELAX)
+
+	// Props - Storybook compatibility
+	export let selectedBranches = []; // Initial selection (array of branch names or objects with .name/.id)
+	export let allowMultiSelect = true; // Allow multiple branch selection
+	export let disabled = false; // Disable all interactions
 
 	// Component state
 	let treeContainer;
 	let tree;
-	let selectedBranches = [];
+	let internalSelectedBranches = []; // Internal tracking of selection
+
+	// Unique container ID to avoid conflicts
+	let containerId = `tree-container-${Math.random().toString(36).substring(2, 9)}`;
 
 	// Multi-set selection state (for contrast-fel) - Initialize based on mode
 	let currentSetIndex = 0;
 	let setColors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00']; // d3 category colors
 
+	// Map selectionMode prop to internal mode (for Storybook compatibility)
+	$: effectiveMode =
+		mode !== 'single-set'
+			? mode
+			: selectionMode === 'multi-set'
+				? 'multi-set'
+				: 'single-set';
+
 	// Reactive: Update selection sets when mode changes
 	$: selectionSets =
-		mode === 'multi-set'
+		effectiveMode === 'multi-set'
 			? initialSetNames && initialSetNames.length > 0
 				? initialSetNames
 				: ['Set_1', 'Set_2']
 			: ['Foreground'];
 
 	// Reset current index when mode changes
-	$: if (mode) {
+	$: if (effectiveMode) {
 		currentSetIndex = 0;
 	}
 
@@ -47,6 +66,52 @@
 	// Watch for tree data changes
 	$: if (treeData && treeContainer) {
 		renderTree();
+	}
+
+	// Apply preselection when selectedBranches prop changes
+	$: if (tree && selectedBranches && selectedBranches.length > 0) {
+		applyPreselection(selectedBranches);
+	}
+
+	// Extract branch names from selection prop (handles both string[] and {name/id}[])
+	function getBranchName(branch) {
+		if (typeof branch === 'string') return branch;
+		return branch.name || branch.id || null;
+	}
+
+	// Apply initial selection to tree
+	function applyPreselection(branches) {
+		if (!tree || !tree.json) return;
+
+		const branchNames = branches.map(getBranchName).filter(Boolean);
+		if (branchNames.length === 0) return;
+
+		function traverse(node) {
+			if (branchNames.includes(node.name)) {
+				node.selected = true;
+			}
+			node.children?.forEach(traverse);
+		}
+
+		traverse(tree.json);
+		updateAllNodeStyles();
+		updateSelectedBranches();
+	}
+
+	// Update styles for all nodes (used after preselection)
+	function updateAllNodeStyles() {
+		const container = document.getElementById(containerId);
+		if (!container || !tree) return;
+
+		d3.select(container)
+			.selectAll('.branch path, .node circle')
+			.each(function (d) {
+				if (!d) return;
+				const node = d.target || d.source || d;
+				if (node.selected) {
+					d3.select(this).style('fill', 'red').style('stroke', 'red');
+				}
+			});
 	}
 
 	// Multi-set management functions
@@ -134,146 +199,143 @@
 
 	function renderTree() {
 		try {
-			console.log('=== BranchSelector Debug ===');
-			console.log('1. Tree data:', treeData);
-			console.log('2. Tree container element:', treeContainer);
-			console.log('3. Container exists in DOM:', document.querySelector('#tree-container-id'));
-
 			// Make sure we have a valid Newick string
 			if (!treeData || treeData.trim() === '') {
-				console.log('No tree data provided');
+				console.log('BranchSelector: No tree data provided');
 				return;
 			}
 
 			// Initialize tree from Newick string
 			tree = new phylotree.phylotree(treeData);
-			console.log('4. Tree initialized:', tree);
-			console.log('5. Tree JSON:', tree.json);
 
-			// Render the tree with minimal options
-			// NOTE: phylotree expects a CSS selector string, not a DOM element
+			// Render the tree
 			tree.render({
-				container: '#tree-container-id',
+				container: `#${containerId}`,
 				height: height,
 				width: width,
-				'show-menu': true,
+				'show-menu': false, // Disable built-in menu (requires jQuery/Bootstrap)
 				selectable: true
 			});
 
-			console.log('6. Tree rendered, display object:', tree.display);
-
-			// IMPORTANT: After render, we need to manually insert the SVG!
-			const container = document.querySelector('#tree-container-id');
+			// Insert the SVG into the container
+			const container = document.getElementById(containerId);
 			if (container && tree.display) {
-				container.innerHTML = ''; // Clear any existing content
+				container.innerHTML = '';
 				const svgElement = tree.display.show();
-				console.log('7. SVG element:', svgElement);
 				container.appendChild(svgElement);
-				console.log('8. SVG appended to container');
 
-				// Add click handlers for branch selection
-				setTimeout(() => {
-					console.log('🖱️ Setting up click handlers...');
+				// Fix SVG sizing with viewBox for proper scaling
+				const svg = container.querySelector('svg');
+				if (svg) {
+					// Wait for SVG to fully render before calculating bounds
+					requestAnimationFrame(() => {
+						try {
+							const bbox = svg.getBBox();
+							const padding = 20;
+							svg.setAttribute(
+								'viewBox',
+								`${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding * 2} ${bbox.height + padding * 2}`
+							);
+							svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+							// Make SVG fill container
+							svg.style.width = '100%';
+							svg.style.height = '100%';
+						} catch (e) {
+							// getBBox can fail if SVG not visible, ignore
+						}
+					});
+				}
 
-					// Handle ALL clicks on the tree (nodes, branches, etc.)
-					d3.select(container)
-						.selectAll('*')
-						.on('click', (event, d) => {
-							console.log('🖱️🔥 Element clicked:', event.target.tagName, event.target.className);
-							console.log('🖱️🔥 Data object:', d);
+				// Set up click handlers if not disabled
+				if (!disabled) {
+					setupClickHandlers(container);
+				}
+			}
+		} catch (e) {
+			console.error('BranchSelector: Error rendering tree:', e);
+			dispatch('error', { message: e.message, error: e });
+		}
+	}
 
-							// Skip if no data object
-							if (!d) {
-								console.log('🖱️🔥 No data object, skipping');
-								return;
-							}
+	// Set up click handlers for branch selection
+	function setupClickHandlers(container) {
+		// Target specific elements: branch paths and node circles
+		// This is more reliable than selecting all '*' elements
+		d3.select(container)
+			.selectAll('.branch path, .node circle, .node text')
+			.style('cursor', 'pointer')
+			.on('click', handleBranchClick);
 
-							event.preventDefault();
-							event.stopPropagation();
+		// Also handle clicks on the branch lines themselves
+		d3.select(container)
+			.selectAll('path.branch')
+			.style('cursor', 'pointer')
+			.on('click', handleBranchClick);
+	}
 
-							// Try to find the actual node object to mark as selected
-							let nodeToSelect = d;
+	// Handle branch/node click
+	function handleBranchClick(event, d) {
+		if (disabled) return;
+		if (!d) return;
 
-							// If this is a branch, try to get the target node
-							if (d.target) {
-								nodeToSelect = d.target;
-								console.log('🖱️🔥 This is a branch, using target node:', nodeToSelect);
-							}
+		event.preventDefault();
+		event.stopPropagation();
 
-							// If this is a source node from a branch
-							if (d.source && !d.target) {
-								nodeToSelect = d.source;
-								console.log('🖱️🔥 This is a source node, using source:', nodeToSelect);
-							}
+		// Find the node object
+		let nodeToSelect = d.target || d.source || d;
 
-							// Toggle selection based on mode
-							if (mode === 'multi-set') {
-								// Multi-set mode: toggle current set on the node
-								const currentSet = selectionSets[currentSetIndex];
-								if (nodeToSelect[currentSet]) {
-									delete nodeToSelect[currentSet];
-									console.log(
-										'🖱️🔥 Removed node from set:',
-										currentSet,
-										nodeToSelect.name || 'unnamed'
-									);
-								} else {
-									nodeToSelect[currentSet] = true;
-									console.log(
-										'🖱️🔥 Added node to set:',
-										currentSet,
-										nodeToSelect.name || 'unnamed'
-									);
-								}
+		// Handle single vs multi-select
+		if (!allowMultiSelect && effectiveMode === 'single-set') {
+			// Clear all other selections first
+			clearAllSelections();
+		}
 
-								// Update visual styling with set color
-								updateNodeStyling(nodeToSelect, event.target);
-							} else {
-								// Single-set mode: toggle foreground selection
-								if (nodeToSelect.selected) {
-									nodeToSelect.selected = false;
-									delete nodeToSelect.selected;
-									console.log('🖱️🔥 Deselected node:', nodeToSelect.name || 'unnamed');
-								} else {
-									nodeToSelect.selected = true;
-									console.log('🖱️🔥 Selected node:', nodeToSelect.name || 'unnamed');
-								}
-
-								// Update visual styling
-								const targetElement = d3.select(event.target);
-								if (nodeToSelect.selected) {
-									targetElement.style('fill', 'red').style('stroke', 'red');
-								} else {
-									targetElement.style('fill', '').style('stroke', '');
-								}
-							}
-
-							// Trigger update
-							console.log('🖱️🔥 Calling updateSelectedBranches...');
-							updateSelectedBranches();
-						});
-				}, 500);
+		// Toggle selection based on mode
+		if (effectiveMode === 'multi-set') {
+			const currentSet = selectionSets[currentSetIndex];
+			if (nodeToSelect[currentSet]) {
+				delete nodeToSelect[currentSet];
+			} else {
+				nodeToSelect[currentSet] = true;
+			}
+			updateNodeStyling(nodeToSelect, event.target);
+		} else {
+			// Single-set mode
+			if (nodeToSelect.selected) {
+				delete nodeToSelect.selected;
+			} else {
+				nodeToSelect.selected = true;
 			}
 
-			// Check what's in the container after insertion
-			setTimeout(() => {
-				const container = document.querySelector('#tree-container-id');
-				console.log('9. Container after insertion:', container);
-				console.log('10. Container children:', container?.children.length);
+			const targetElement = d3.select(event.target);
+			if (nodeToSelect.selected) {
+				targetElement.style('fill', 'red').style('stroke', 'red');
+			} else {
+				targetElement.style('fill', '').style('stroke', '');
+			}
+		}
 
-				const svg = container?.querySelector('svg');
-				console.log('11. SVG found:', svg);
-				console.log(
-					'12. SVG dimensions:',
-					svg ? `${svg.getAttribute('width')} x ${svg.getAttribute('height')}` : 'no svg'
-				);
+		updateSelectedBranches();
+	}
 
-				const nodes = document.querySelectorAll('#tree-container-id .node');
-				console.log('13. Found nodes:', nodes.length);
-			}, 500);
-		} catch (e) {
-			console.error('Error in renderTree:', e);
-			console.error('Stack:', e.stack);
+	// Clear all selections (for single-select mode)
+	function clearAllSelections() {
+		if (!tree || !tree.json) return;
+
+		function traverse(node) {
+			delete node.selected;
+			selectionSets.forEach((setName) => delete node[setName]);
+			node.children?.forEach(traverse);
+		}
+		traverse(tree.json);
+
+		// Reset all visual styles
+		const container = document.getElementById(containerId);
+		if (container) {
+			d3.select(container)
+				.selectAll('.branch path, .node circle')
+				.style('fill', '')
+				.style('stroke', '');
 		}
 	}
 
@@ -284,57 +346,43 @@
 		// Get all selected nodes manually by traversing tree
 		const current_selection = [];
 
-		// Function to traverse tree and find selected nodes
 		function findSelectedNodes(node) {
 			if (node.selected) {
 				current_selection.push(node);
 			}
-			if (node.children) {
-				node.children.forEach(findSelectedNodes);
+			// Also check for multi-set selections
+			if (effectiveMode === 'multi-set') {
+				selectionSets.forEach((setName) => {
+					if (node[setName] && !current_selection.includes(node)) {
+						current_selection.push(node);
+					}
+				});
 			}
+			node.children?.forEach(findSelectedNodes);
 		}
 
-		// Start traversal from tree root
-		if (tree.json && tree.json.children) {
-			tree.json.children.forEach(findSelectedNodes);
-		} else if (tree.json) {
+		if (tree.json) {
 			findSelectedNodes(tree.json);
 		}
 
-		console.log('🔄 Updating selected branches, current selection:', current_selection);
-
-		selectedBranches = current_selection.map((node) => {
+		internalSelectedBranches = current_selection.map((node) => {
 			return node.name || `node_${node.id || Math.random()}`;
 		});
-		console.log('🔄 Selected branches:', selectedBranches);
 
 		// Generate tagged Newick string
 		const taggedNewick = generateTaggedNewick();
-		console.log('🔄 Generated tagged Newick length:', taggedNewick?.length || 0);
-
-		// Dispatch selection change event for FEL integration
-		console.log('🔄🔥 BRANCHSELECTOR - About to dispatch selectionChange event:', {
-			selectedBranches,
-			taggedNewick: taggedNewick?.substring(0, 100) + '...',
-			count: current_selection.length,
-			fullTaggedNewickLength: taggedNewick?.length,
-			hasFullTaggedNewick: !!taggedNewick,
-			hasFGTags: (taggedNewick || '').includes('{FG}')
-		});
 
 		const eventData = {
-			selectedBranches,
+			selectedBranches: internalSelectedBranches,
 			taggedNewick,
 			count: current_selection.length,
-			...(mode === 'multi-set' && {
+			...(effectiveMode === 'multi-set' && {
 				selectionSets: selectionSets,
 				mode: 'multi-set'
 			})
 		};
 
-		console.log('🔄🔥 BRANCHSELECTOR - Full event data being dispatched:', eventData);
 		dispatch('selectionChange', eventData);
-		console.log('🔄🔥 BRANCHSELECTOR - Event dispatched successfully');
 	}
 
 	// Validation method similar to React version
@@ -342,17 +390,13 @@
 		if (!tree) return;
 
 		const taggedNewick = generateTaggedNewick();
-
-		// Get selected nodes count manually
-		const selectedCount = selectedBranches.length;
+		const selectedCount = internalSelectedBranches.length;
 
 		if (selectedCount > 0) {
-			console.log('✅ Valid selection, calling callback with tagged tree');
 			callback(taggedNewick);
 		} else {
-			console.warn('⚠️ No branch selections were made');
 			alert(
-				'No branch selections were made, please select one. Alternatively, you can choose to select all via the menu.'
+				'No branch selections were made. Please select at least one branch.'
 			);
 		}
 	}
@@ -362,48 +406,26 @@
 		validateAndSubmit(callback);
 	}
 
-	// Generate Newick string with FG tags for selected branches (matching React logic)
+	// Generate Newick string with FG tags for selected branches
 	function generateTaggedNewick() {
-		console.log('🏷️🔥 generateTaggedNewick called');
-		console.log('🏷️🔥 tree exists:', !!tree);
-		console.log('🏷️🔥 tree.getNewick exists:', !!(tree && tree.getNewick));
-		console.log('🏷️🔥 selectedBranches count:', selectedBranches.length);
-
 		if (!tree || !tree.getNewick) {
-			console.log('🏷️🔥 Falling back to original treeData:', treeData.substring(0, 100));
 			return treeData;
 		}
 
 		try {
-			console.log('🏷️🔥 About to call tree.getNewick with callback...');
-
-			// Use the same logic as the React version
 			const taggedNewick = tree.getNewick((node) => {
 				const tags = [];
 
-				if (mode === 'multi-set') {
-					// Multi-set mode: check all sets
-					console.log('🏷️🔥 Processing node (multi-set):', node.name || 'unnamed');
+				if (effectiveMode === 'multi-set') {
 					selectionSets.forEach((setName) => {
 						if (node[setName]) {
 							tags.push(setName);
-							console.log('🏷️🔥 Node belongs to set:', setName);
 						}
 					});
 				} else {
-					// Single-set mode: check for foreground selection
-					console.log(
-						'🏷️🔥 Processing node (single-set):',
-						node.name || 'unnamed',
-						'selected:',
-						!!node.selected
-					);
 					if (node.selected) {
-						tags.push('FG'); // Use uppercase FG tags
-						console.log('🏷️🔥 Node is selected, adding FG tag');
+						tags.push('FG');
 					}
-
-					// Future support for test/reference branches
 					if (node.test) {
 						tags.push('TEST');
 					}
@@ -412,61 +434,35 @@
 					}
 				}
 
-				// Return tags in curly braces if any exist
-				if (tags.length > 0) {
-					const tagResult = '{' + tags.join(',') + '}';
-					console.log('🏷️🔥 Returning tags for node:', tagResult);
-					return tagResult;
-				}
-				return '';
+				return tags.length > 0 ? '{' + tags.join(',') + '}' : '';
 			});
-
-			console.log('🏷️🔥 Tagged Newick generated length:', taggedNewick?.length || 0);
-			console.log('🏷️🔥 Tagged Newick preview:', taggedNewick?.substring(0, 200));
-			console.log('🏷️🔥 Contains {FG} tags:', (taggedNewick || '').includes('{FG}'));
 
 			return taggedNewick;
 		} catch (e) {
-			console.error('🏷️🔥 Error generating tagged newick:', e);
-			console.error('🏷️🔥 Error stack:', e.stack);
+			console.error('BranchSelector: Error generating tagged Newick:', e);
 			return treeData;
 		}
 	}
 </script>
 
-<!-- Include phylotree CSS -->
+<!-- Phylotree CSS - using version matching our npm package -->
 <svelte:head>
-	<!-- jQuery - required by phylotree for menu functionality -->
-	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-	<!-- D3.js - required by phylotree -->
-	<script src="https://d3js.org/d3.v6.js"></script>
-	<script
-		src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"
-	></script>
-	<!-- Bootstrap CSS for dropdown menu functionality -->
-	<link
-		rel="stylesheet"
-		href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
-	/>
-	<script
-		src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
-	></script>
-	<!-- phylotree CSS -->
-	<link rel="stylesheet" href="https://unpkg.com/phylotree@1.0.0-alpha.24/dist/phylotree.css" />
+	<link rel="stylesheet" href="https://unpkg.com/phylotree@2.1.7/dist/phylotree.css" />
 </svelte:head>
 
-<div class="minimal-branch-selector">
+<div class="branch-selector" class:disabled>
 	<h3>Branch Selection</h3>
 
-	{#if mode === 'multi-set'}
+	{#if effectiveMode === 'multi-set'}
 		<div class="set-management-controls">
 			<div class="set-selector-group">
-				<label for="set-selector">Current Set:</label>
+				<label for="{containerId}-set-selector">Current Set:</label>
 				<select
-					id="set-selector"
+					id="{containerId}-set-selector"
 					bind:value={currentSetIndex}
 					on:change={() => switchToSet(currentSetIndex)}
 					style="color: {setColors[currentSetIndex]}; font-weight: bold;"
+					{disabled}
 				>
 					{#each selectionSets as setName, index}
 						<option value={index} style="color: {setColors[index]}">
@@ -477,22 +473,23 @@
 			</div>
 
 			<div class="set-name-input">
-				<label for="set-name">Rename:</label>
+				<label for="{containerId}-set-name">Rename:</label>
 				<input
-					id="set-name"
+					id="{containerId}-set-name"
 					type="text"
 					value={selectionSets[currentSetIndex]}
 					on:input={(e) => renameCurrentSet(e.target.value)}
 					style="border-color: {setColors[currentSetIndex]}; color: {setColors[currentSetIndex]};"
+					{disabled}
 				/>
 			</div>
 
 			<div class="set-actions">
-				<button on:click={addNewSet} class="btn-add-set">+ New Set</button>
+				<button on:click={addNewSet} class="btn-add-set" {disabled}>+ New Set</button>
 				<button
 					on:click={deleteCurrentSet}
 					class="btn-delete-set"
-					disabled={selectionSets.length <= 1}
+					disabled={disabled || selectionSets.length <= 1}
 				>
 					Delete Set
 				</button>
@@ -515,27 +512,58 @@
 	{/if}
 
 	<div
-		id="tree-container-id"
+		id={containerId}
 		bind:this={treeContainer}
 		class="tree-container"
-		style="height: {height}px; width: {width}px; border: 1px solid #ccc;"
+		class:tree-disabled={disabled}
+		style="height: {height}px; width: {width}px;"
 	></div>
+
 	{#if !treeData}
-		<p>No tree data provided</p>
+		<p class="no-data-message">No tree data provided</p>
+	{/if}
+
+	{#if internalSelectedBranches.length > 0}
+		<p class="selection-count">{internalSelectedBranches.length} branch{internalSelectedBranches.length !== 1 ? 'es' : ''} selected</p>
 	{/if}
 </div>
 
 <style>
-	.minimal-branch-selector {
+	.branch-selector {
 		padding: 1rem;
 		border: 1px solid #e5e7eb;
 		border-radius: 8px;
 		background: white;
 	}
 
+	.branch-selector.disabled {
+		opacity: 0.6;
+		pointer-events: none;
+	}
+
 	.tree-container {
 		background: #f9fafb;
 		overflow: auto;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+	}
+
+	.tree-container.tree-disabled {
+		pointer-events: none;
+		opacity: 0.7;
+	}
+
+	.no-data-message {
+		color: #6b7280;
+		font-style: italic;
+		margin-top: 0.5rem;
+	}
+
+	.selection-count {
+		color: #059669;
+		font-weight: 500;
+		margin-top: 0.5rem;
+		font-size: 0.875rem;
 	}
 
 	/* Multi-set management controls */
