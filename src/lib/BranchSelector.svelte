@@ -81,37 +81,14 @@
 
 	// Apply initial selection to tree
 	function applyPreselection(branches) {
-		if (!tree || !tree.json) return;
+		if (!tree?.display) return;
 
 		const branchNames = branches.map(getBranchName).filter(Boolean);
 		if (branchNames.length === 0) return;
 
-		function traverse(node) {
-			if (branchNames.includes(node.name)) {
-				node.selected = true;
-			}
-			node.children?.forEach(traverse);
-		}
-
-		traverse(tree.json);
-		updateAllNodeStyles();
+		// Use phylotree's selectNodes API - handles styling automatically
+		tree.display.selectNodes(branchNames);
 		updateSelectedBranches();
-	}
-
-	// Update styles for all nodes (used after preselection)
-	function updateAllNodeStyles() {
-		const container = document.getElementById(containerId);
-		if (!container || !tree) return;
-
-		d3.select(container)
-			.selectAll('.branch path, .node circle')
-			.each(function (d) {
-				if (!d) return;
-				const node = d.target || d.source || d;
-				if (node.selected) {
-					d3.select(this).style('fill', 'red').style('stroke', 'red');
-				}
-			});
 	}
 
 	// Multi-set management functions
@@ -283,11 +260,17 @@
 
 		// Find the node object
 		let nodeToSelect = d.target || d.source || d;
+		const nodeName = nodeToSelect.data?.name || nodeToSelect.name;
+
+		if (!nodeName) {
+			console.warn('BranchSelector: Could not determine node name');
+			return;
+		}
 
 		// Handle single vs multi-select
 		if (!allowMultiSelect && effectiveMode === 'single-set') {
 			// Clear all other selections first
-			clearAllSelections();
+			tree.display.clearSelection();
 		}
 
 		// Toggle selection based on mode
@@ -299,43 +282,34 @@
 				nodeToSelect[currentSet] = true;
 			}
 			updateNodeStyling(nodeToSelect, event.target);
+			updateSelectedBranches();
 		} else {
-			// Single-set mode
+			// Single-set mode - use phylotree's Selection API
 			if (nodeToSelect.selected) {
-				delete nodeToSelect.selected;
+				tree.display.deselectNodes([nodeName]);
 			} else {
-				nodeToSelect.selected = true;
+				tree.display.selectNodes([nodeName]);
 			}
-
-			const targetElement = d3.select(event.target);
-			if (nodeToSelect.selected) {
-				targetElement.style('fill', 'red').style('stroke', 'red');
-			} else {
-				targetElement.style('fill', '').style('stroke', '');
-			}
+			// Note: selectNodes/deselectNodes internally call refresh() and update()
+			// so CSS classes are applied automatically
+			updateSelectedBranches();
 		}
-
-		updateSelectedBranches();
 	}
 
 	// Clear all selections (for single-select mode)
 	function clearAllSelections() {
-		if (!tree || !tree.json) return;
+		if (!tree?.display) return;
 
-		function traverse(node) {
-			delete node.selected;
-			selectionSets.forEach((setName) => delete node[setName]);
-			node.children?.forEach(traverse);
-		}
-		traverse(tree.json);
+		// Use phylotree's clearSelection API
+		tree.display.clearSelection();
 
-		// Reset all visual styles
-		const container = document.getElementById(containerId);
-		if (container) {
-			d3.select(container)
-				.selectAll('.branch path, .node circle')
-				.style('fill', '')
-				.style('stroke', '');
+		// Also clear multi-set properties if in multi-set mode
+		if (effectiveMode === 'multi-set' && tree.json) {
+			function traverse(node) {
+				selectionSets.forEach((setName) => delete node[setName]);
+				node.children?.forEach(traverse);
+			}
+			traverse(tree.json);
 		}
 	}
 
@@ -343,30 +317,28 @@
 	function updateSelectedBranches() {
 		if (!tree) return;
 
-		// Get all selected nodes manually by traversing tree
-		const current_selection = [];
+		let current_selection = [];
 
-		function findSelectedNodes(node) {
-			if (node.selected) {
-				current_selection.push(node);
-			}
-			// Also check for multi-set selections
-			if (effectiveMode === 'multi-set') {
+		if (effectiveMode === 'multi-set') {
+			// Multi-set mode: manually traverse to find nodes in any set
+			function findSelectedNodes(node) {
 				selectionSets.forEach((setName) => {
 					if (node[setName] && !current_selection.includes(node)) {
 						current_selection.push(node);
 					}
 				});
+				node.children?.forEach(findSelectedNodes);
 			}
-			node.children?.forEach(findSelectedNodes);
-		}
-
-		if (tree.json) {
-			findSelectedNodes(tree.json);
+			if (tree.json) {
+				findSelectedNodes(tree.json);
+			}
+		} else {
+			// Single-set mode: use phylotree's getSelection API
+			current_selection = tree.display?.getSelection() || [];
 		}
 
 		internalSelectedBranches = current_selection.map((node) => {
-			return node.name || `node_${node.id || Math.random()}`;
+			return node.data?.name || node.name || `node_${node.id || Math.random()}`;
 		});
 
 		// Generate tagged Newick string
