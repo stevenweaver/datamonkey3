@@ -1,6 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { aioliStore } from '../stores/aioli';
 	import {
 		alignmentFileStore,
@@ -49,6 +50,14 @@
 	let selectedMethod = 'FEL'; // Default selected method for configuration
 	let treeData = {};
 	let showBatchExport = false;
+
+	// Handle URL query parameter for tab navigation (e.g., /?tab=results)
+	$: {
+		const tabParam = $page.url.searchParams.get('tab');
+		if (tabParam && ['data', 'analyze', 'results'].includes(tabParam)) {
+			activeTab = tabParam;
+		}
+	}
 
 	// Consolidating methods and hyphyCommands with descriptions
 	const methodConfig = {
