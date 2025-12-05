@@ -1038,18 +1038,6 @@
 							</select>
 						</label>
 					</div>
-
-					<button
-						class="run-button"
-						on:click={runAnalysis}
-						disabled={!selectedMethod || !currentMethod?.info.supported}
-					>
-						{#if currentMethod?.info.supported}
-							Run Analysis
-						{:else}
-							Coming Soon
-						{/if}
-					</button>
 				</div>
 
 				<!-- Divider -->
@@ -1221,6 +1209,26 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- Run Analysis Button - Always at bottom -->
+	{#if selectedMethod}
+		<div class="run-analysis-container">
+			<button
+				class="run-button-large"
+				on:click={runAnalysis}
+				disabled={!selectedMethod || !currentMethod?.info.supported}
+			>
+				{#if currentMethod?.info.supported}
+					<svg class="run-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<polygon points="5 3 19 12 5 21 5 3"></polygon>
+					</svg>
+					Run {currentMethod?.info.name || ''} Analysis
+				{:else}
+					Coming Soon
+				{/if}
+			</button>
+		</div>
+	{/if}
 
 	<!-- Help hint (subtle) -->
 	{#if !selectedMethod}
@@ -1510,30 +1518,53 @@
 		cursor: pointer;
 	}
 
-	.run-button {
-		background: #2563eb;
+	/* Run Analysis Container - Always at bottom */
+	.run-analysis-container {
+		margin-top: 24px;
+		padding-top: 24px;
+		border-top: 1px solid #e2e8f0;
+	}
+
+	.run-button-large {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 		color: white;
-		padding: 8px 20px;
+		padding: 16px 32px;
 		border: none;
-		border-radius: 6px;
-		font-size: 14px;
-		font-weight: 500;
+		border-radius: 10px;
+		font-size: 18px;
+		font-weight: 600;
 		cursor: pointer;
-		transition: background 0.2s ease;
-		margin-top: 8px;
+		transition: all 0.2s ease;
+		box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
 	}
 
-	.run-button:hover:not(:disabled) {
-		background: #1d4ed8;
+	.run-button-large:hover:not(:disabled) {
+		background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+		box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+		transform: translateY(-1px);
 	}
 
-	.run-button:active:not(:disabled) {
+	.run-button-large:active:not(:disabled) {
 		transform: translateY(1px);
+		box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 	}
 
-	.run-button:disabled {
-		background: #cbd5e0;
+	.run-button-large:disabled {
+		background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
 		cursor: not-allowed;
+		box-shadow: none;
+	}
+
+	.run-icon {
+		width: 20px;
+		height: 20px;
+		fill: currentColor;
+		stroke: none;
 	}
 
 	.advanced-content {
