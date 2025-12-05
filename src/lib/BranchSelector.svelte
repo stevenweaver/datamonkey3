@@ -491,7 +491,7 @@
 
 <!-- Phylotree CSS - using version matching our npm package -->
 <svelte:head>
-	<link rel="stylesheet" href="https://unpkg.com/phylotree@2.2.0/dist/phylotree.css" />
+	<link rel="stylesheet" href="https://unpkg.com/phylotree@2.2.1/dist/phylotree.css" />
 </svelte:head>
 
 <div class="branch-selector" class:disabled>
