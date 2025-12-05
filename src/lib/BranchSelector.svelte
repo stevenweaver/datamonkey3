@@ -96,6 +96,17 @@
 		const newSetName = `Set_${selectionSets.length + 1}`;
 		selectionSets = [...selectionSets, newSetName];
 		currentSetIndex = selectionSets.length - 1;
+
+		// Reinitialize phylotree selection sets with the new set
+		if (tree?.display?.initializeSelectionSets) {
+			tree.display.initializeSelectionSets(
+				selectionSets.map((name, i) => ({
+					name,
+					color: setColors[i] || setColors[i % setColors.length]
+				}))
+			);
+			tree.display.setActiveSet(newSetName);
+		}
 	}
 
 	function deleteCurrentSet() {
@@ -110,6 +121,18 @@
 		}
 		selectionSets = selectionSets.filter((_, i) => i !== currentSetIndex);
 		currentSetIndex = Math.max(0, currentSetIndex - 1);
+
+		// Reinitialize phylotree selection sets after deletion
+		if (tree?.display?.initializeSelectionSets) {
+			tree.display.initializeSelectionSets(
+				selectionSets.map((name, i) => ({
+					name,
+					color: setColors[i] || setColors[i % setColors.length]
+				}))
+			);
+			tree.display.setActiveSet(selectionSets[currentSetIndex]);
+		}
+
 		updateSelectedBranches();
 	}
 
@@ -121,12 +144,28 @@
 		// Update all nodes with old set name to new name
 		if (tree && tree.json) {
 			traverseAndRenameSet(tree.json, oldName, newName);
-			updateSelectedBranches();
 		}
+
+		// Reinitialize phylotree selection sets with renamed set
+		if (tree?.display?.initializeSelectionSets) {
+			tree.display.initializeSelectionSets(
+				selectionSets.map((name, i) => ({
+					name,
+					color: setColors[i] || setColors[i % setColors.length]
+				}))
+			);
+			tree.display.setActiveSet(newName);
+		}
+
+		updateSelectedBranches();
 	}
 
 	function switchToSet(index) {
 		currentSetIndex = index;
+		// Use phylotree's setActiveSet API
+		if (tree?.display?.setActiveSet) {
+			tree.display.setActiveSet(selectionSets[index]);
+		}
 	}
 
 	function traverseAndRemoveSet(node, setName) {
@@ -148,31 +187,8 @@
 		}
 	}
 
-	// Update node styling based on set memberships
-	function updateNodeStyling(node, targetElement) {
-		const element = d3.select(targetElement);
-
-		// Find which sets this node belongs to
-		const nodeSets = [];
-		selectionSets.forEach((setName, index) => {
-			if (node[setName]) {
-				nodeSets.push(index);
-			}
-		});
-
-		if (nodeSets.length === 0) {
-			// No sets: reset to default
-			element.style('fill', '').style('stroke', '');
-		} else if (nodeSets.length === 1) {
-			// One set: use that set's color
-			const color = setColors[nodeSets[0]];
-			element.style('fill', color).style('stroke', color);
-		} else {
-			// Multiple sets: use special styling (e.g., striped or mixed)
-			const color = setColors[nodeSets[0]];
-			element.style('fill', color).style('stroke', color).classed('branch-multiple', true);
-		}
-	}
+	// Note: updateNodeStyling removed - phylotree handles styling automatically
+	// via CSS classes like .phylotree-set-branch-{setName}
 
 	function renderTree() {
 		try {
@@ -185,15 +201,33 @@
 			// Initialize tree from Newick string
 			tree = new phylotree.phylotree(treeData);
 
-			// Render the tree
-			tree.render({
+			// Render the tree with multi-set options if in multi-set mode
+			const renderOptions = {
 				container: `#${containerId}`,
 				height: height,
 				width: width,
-				'show-menu': true, // Enable context menu (now pure D3, no jQuery needed)
+				'show-menu': true,
 				selectable: true,
 				collapsible: true
-			});
+			};
+
+			// Add multi-set selection options
+			if (effectiveMode === 'multi-set') {
+				renderOptions['selection-mode'] = 'multi-set';
+				renderOptions['selection-sets'] = selectionSets.map((name, i) => ({
+					name,
+					color: setColors[i] || setColors[i % setColors.length]
+				}));
+			}
+
+			tree.render(renderOptions);
+
+			// Set up setChange event listener for multi-set mode
+			if (effectiveMode === 'multi-set' && tree.display?.on) {
+				tree.display.on('setChange', () => {
+					updateSelectedBranches();
+				});
+			}
 
 			// Insert the SVG into the container
 			const container = document.getElementById(containerId);
@@ -277,12 +311,12 @@
 		// Toggle selection based on mode
 		if (effectiveMode === 'multi-set') {
 			const currentSet = selectionSets[currentSetIndex];
-			if (nodeToSelect[currentSet]) {
-				delete nodeToSelect[currentSet];
-			} else {
-				nodeToSelect[currentSet] = true;
+			// Use phylotree's multi-set selection API
+			if (tree?.display?.isInSet && tree.display.isInSet(nodeToSelect, currentSet)) {
+				tree.display.removeFromSet(nodeToSelect, currentSet);
+			} else if (tree?.display?.addToSet) {
+				tree.display.addToSet(nodeToSelect, currentSet);
 			}
-			updateNodeStyling(nodeToSelect, event.target);
 			updateSelectedBranches();
 		} else {
 			// Single-set mode - use phylotree's Selection API
@@ -304,13 +338,25 @@
 		// Use phylotree's clearSelection API
 		tree.display.clearSelection();
 
-		// Also clear multi-set properties if in multi-set mode
-		if (effectiveMode === 'multi-set' && tree.json) {
-			function traverse(node) {
-				selectionSets.forEach((setName) => delete node[setName]);
-				node.children?.forEach(traverse);
+		// Also clear multi-set selections if in multi-set mode
+		if (effectiveMode === 'multi-set') {
+			// Use phylotree's removeFromSet API if available
+			if (tree.display.getSetMembers && tree.display.removeFromSet) {
+				selectionSets.forEach((setName) => {
+					const members = tree.display.getSetMembers(setName);
+					members.forEach((node) => {
+						tree.display.removeFromSet(node, setName);
+					});
+				});
+			} else if (tree.json) {
+				// Fallback: manually clear properties
+				function traverse(node) {
+					selectionSets.forEach((setName) => delete node[setName]);
+					delete node._selectionSet;
+					node.children?.forEach(traverse);
+				}
+				traverse(tree.json);
 			}
-			traverse(tree.json);
 		}
 	}
 
@@ -321,17 +367,29 @@
 		let current_selection = [];
 
 		if (effectiveMode === 'multi-set') {
-			// Multi-set mode: manually traverse to find nodes in any set
-			function findSelectedNodes(node) {
+			// Multi-set mode: use phylotree's getSetMembers API
+			if (tree.display?.getSetMembers) {
 				selectionSets.forEach((setName) => {
-					if (node[setName] && !current_selection.includes(node)) {
-						current_selection.push(node);
-					}
+					const members = tree.display.getSetMembers(setName);
+					members.forEach((node) => {
+						if (!current_selection.includes(node)) {
+							current_selection.push(node);
+						}
+					});
 				});
-				node.children?.forEach(findSelectedNodes);
-			}
-			if (tree.json) {
-				findSelectedNodes(tree.json);
+			} else {
+				// Fallback: manually traverse to find nodes in any set
+				function findSelectedNodes(node) {
+					if (node._selectionSet || selectionSets.some(s => node[s])) {
+						if (!current_selection.includes(node)) {
+							current_selection.push(node);
+						}
+					}
+					node.children?.forEach(findSelectedNodes);
+				}
+				if (tree.json) {
+					findSelectedNodes(tree.json);
+				}
 			}
 		} else {
 			// Single-set mode: use phylotree's getSelection API
@@ -386,15 +444,26 @@
 		}
 
 		try {
+			// Try phylotree's built-in getTaggedNewick if available
+			if (effectiveMode === 'multi-set' && tree.getTaggedNewick) {
+				return tree.getTaggedNewick({ multiSet: true });
+			}
+
 			const taggedNewick = tree.getNewick((node) => {
 				const tags = [];
 
 				if (effectiveMode === 'multi-set') {
-					selectionSets.forEach((setName) => {
-						if (node[setName]) {
-							tags.push(setName);
-						}
-					});
+					// Check phylotree's _selectionSet property first
+					if (node._selectionSet) {
+						tags.push(node._selectionSet);
+					} else {
+						// Fallback: check manual properties
+						selectionSets.forEach((setName) => {
+							if (node[setName]) {
+								tags.push(setName);
+							}
+						});
+					}
 				} else {
 					if (node.selected) {
 						tags.push('FG');
