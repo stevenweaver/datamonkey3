@@ -129,8 +129,19 @@
 	}
 
 	function renderPhylotreeViewer() {
+		// Ensure we have a valid container
+		if (!treeContainer) {
+			return;
+		}
+
+		// Ensure newick string ends with semicolon (required by phylotree parser)
+		let normalizedNewick = newickString.trim();
+		if (!normalizedNewick.endsWith(';')) {
+			normalizedNewick += ';';
+		}
+
 		// Initialize tree from Newick string
-		tree = new phylotree.phylotree(newickString);
+		tree = new phylotree.phylotree(normalizedNewick);
 
 		// Check for parsed tags in the tree
 		if (tree.parsed_tags && tree.parsed_tags.length) {
@@ -158,9 +169,12 @@
 			}
 		}
 
-		// Render the tree with colorizers
+		// Clear the container first
+		treeContainer.innerHTML = '';
+
+		// Render the tree with colorizers - use the specific container element
 		renderedTree = tree.render({
-			container: '.tree-container',
+			container: treeContainer,
 			height: height,
 			width: width,
 			'left-right-spacing': 'fit-to-size',
@@ -174,9 +188,8 @@
 			'edge-styler': edgeColorizer // Apply edge colorizer
 		});
 
-		// Clear the container and append the SVG element
+		// Append the SVG element
 		if (treeContainer) {
-			treeContainer.innerHTML = '';
 			treeContainer.appendChild(renderedTree.show());
 
 			// Add click handlers for the nodes
