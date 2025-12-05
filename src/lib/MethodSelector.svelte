@@ -1159,15 +1159,17 @@
 						{#key selectedMethod}
 							<BranchSelector
 								treeData={selectedTreeData}
-								height={400}
-								width={800}
+								height={500}
+								width={1000}
 								mode={selectedMethod?.toLowerCase() === 'contrast-fel' ||
 								selectedMethod?.toLowerCase() === 'relax'
 									? 'multi-set'
 									: 'single-set'}
 								initialSetNames={selectedMethod?.toLowerCase() === 'relax'
 									? ['TEST', 'REFERENCE']
-									: null}
+									: selectedMethod?.toLowerCase() === 'contrast-fel'
+										? ['Set_1', 'Set_2']
+										: null}
 								on:selectionChange={handleBranchSelectionChange}
 							/>
 						{/key}
@@ -1619,7 +1621,7 @@
 		border: 2px solid #cbd5e0;
 		border-radius: 8px;
 		background: white;
-		overflow: hidden;
+		overflow: visible;
 		margin-bottom: 16px;
 	}
 
