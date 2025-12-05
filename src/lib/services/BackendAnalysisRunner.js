@@ -487,10 +487,10 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 				// Contrast-FEL uses branch-set as an array for multiple sets
 				const branchSets = [];
 				if (config.branchSet1 || config['branch-set1']) {
-					branchSets.push(config.branchSet1 || config['branch-set1'] || 'Set_1');
+					branchSets.push(config.branchSet1 || config['branch-set1'] || 'Set1');
 				}
 				if (config.branchSet2 || config['branch-set2']) {
-					branchSets.push(config.branchSet2 || config['branch-set2'] || 'Set_2');
+					branchSets.push(config.branchSet2 || config['branch-set2'] || 'Set2');
 				}
 
 				return {
@@ -500,7 +500,7 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					permutations: config.permutations === 'Yes' ? 'Yes' : 'No',
 					pvalue: config.pvalue || config.pValueThreshold || 0.05,
 					qvalue: config.qvalue || config.qValueThreshold || 0.2,
-					'branch-set': branchSets.length > 0 ? branchSets : ['Set_1', 'Set_2'],
+					'branch-set': branchSets.length > 0 ? branchSets : ['Set1', 'Set2'],
 					output: config.output || ''
 				};
 

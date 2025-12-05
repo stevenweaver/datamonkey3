@@ -49,7 +49,7 @@
 		effectiveMode === 'multi-set'
 			? initialSetNames && initialSetNames.length > 0
 				? initialSetNames
-				: ['Set_1', 'Set_2']
+				: ['Set1', 'Set2']
 			: ['Foreground'];
 
 	// Reset current index when mode changes

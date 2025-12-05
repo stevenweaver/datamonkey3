@@ -1168,7 +1168,7 @@
 								initialSetNames={selectedMethod?.toLowerCase() === 'relax'
 									? ['TEST', 'REFERENCE']
 									: selectedMethod?.toLowerCase() === 'contrast-fel'
-										? ['Set_1', 'Set_2']
+										? ['Set1', 'Set2']
 										: null}
 								on:selectionChange={handleBranchSelectionChange}
 							/>
