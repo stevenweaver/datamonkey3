@@ -23,7 +23,6 @@
 
 	// Computed props
 	$: hasFileMetrics = !!fileMetricsJSON && Object.keys(fileMetricsJSON).length > 0;
-	$: warnings = hasFileMetrics && fileMetricsJSON.WARNINGS ? fileMetricsJSON.WARNINGS : [];
 </script>
 
 <div class="data-tab">
@@ -79,19 +78,8 @@
 			</div>
 		</div>
 
-		<!-- Sequence Warnings Section (if any) -->
-		{#if warnings && warnings.length > 0}
-			<div class="mb-premium-xl">
-				<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">
-					Sequence Warnings
-				</h2>
-				<div
-					class="rounded-premium border border-accent-cream bg-accent-pearl p-premium-lg shadow-premium"
-				>
-					<SequenceWarnings {warnings} />
-				</div>
-			</div>
-		{/if}
+		<!-- Sequence Warnings Section -->
+		<SequenceWarnings {fileMetricsJSON} />
 
 		<!-- Export functionality moved to Results tab for unified export experience -->
 	{:else}

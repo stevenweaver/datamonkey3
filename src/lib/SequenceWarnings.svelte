@@ -25,8 +25,7 @@
 				message: `Found ${data.FILE_INFO.duplicate_sequences} duplicate sequence${data.FILE_INFO.duplicate_sequences === 1 ? '' : 's'} in your alignment.`,
 				details:
 					'Duplicate sequences can affect the accuracy of selection analysis. Consider removing duplicates for more reliable results.',
-				action: 'View duplicates',
-				actionHandler: () => showDuplicateSequences()
+				action: null
 			});
 		}
 
@@ -89,12 +88,6 @@
 				action: null
 			});
 		}
-	}
-
-	// Show duplicate sequences (placeholder function)
-	function showDuplicateSequences() {
-		// In a real implementation, this would open a modal or highlight the duplicates
-		alert('This function would show the duplicate sequences. Implementation pending.');
 	}
 
 	// Get the color class based on warning type

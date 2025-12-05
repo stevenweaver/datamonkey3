@@ -10,6 +10,7 @@
 	export let branchTestMode = true;
 	export let selectedBranches = [];
 	export let viewerType = 'phylotree'; // Fixed to phylotree viewer
+	export let selectable = true; // Enable/disable branch selection
 
 	let treeContainer;
 	let tree;
@@ -165,7 +166,7 @@
 			'left-right-spacing': 'fit-to-size',
 			'top-bottom-spacing': 'fit-to-size',
 			'show-menu': true, // Enable menu functionality
-			selectable: true, // Enable node selection
+			selectable: selectable, // Enable/disable node selection
 			collapsible: true, // Enable collapse/expand
 			reroot: true, // Enable rerooting
 			hide: true, // Enable hiding nodes
