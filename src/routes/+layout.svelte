@@ -77,6 +77,16 @@
 							Home
 						</a>
 					</li>
+					<li>
+						<a
+							class="rounded-premium-sm px-3 py-2 text-premium-brand font-medium text-text-rich transition-colors duration-premium hover:bg-brand-whisper hover:text-brand-royal"
+							href="http://help.datamonkey.org"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							Help
+						</a>
+					</li>
 				</ul>
 
 				<!-- Analysis Status Indicator -->
@@ -97,6 +107,14 @@
 						onclick={closeMobileMenu}
 					>
 						Home
+					</a>
+					<a
+						class="block rounded-premium-sm px-3 py-3 text-base font-medium text-text-rich transition-colors duration-premium hover:bg-brand-whisper hover:text-brand-royal"
+						href="http://help.datamonkey.org"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Help
 					</a>
 				</div>
 				<div class="border-t border-border-platinum px-4 py-3">
