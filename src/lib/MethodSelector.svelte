@@ -657,7 +657,7 @@
 			branchesToTest: {
 				type: 'select',
 				label: 'Branch Selection Mode',
-				default: 'Custom',
+				default: 'Interactive',
 				options: ['Custom', 'Interactive'],
 				description: 'How to specify branch sets for comparison'
 			},
