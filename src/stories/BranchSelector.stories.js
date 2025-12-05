@@ -1,4 +1,5 @@
 import BranchSelector from '../lib/BranchSelector.svelte';
+import BranchSelectorWithExport from './BranchSelectorWithExport.svelte';
 
 export default {
 	title: 'Components/BranchSelector',
@@ -184,5 +185,41 @@ export const InteractiveDemo = {
 		...Default.args,
 		selectionMode: 'foreground',
 		height: 450
+	}
+};
+
+// Multi-set mode with visible Newick export
+const ExportTemplate = (args) => ({
+	Component: BranchSelectorWithExport,
+	props: args
+});
+
+export const MultiSetWithExport = ExportTemplate.bind({});
+MultiSetWithExport.args = {
+	...Default.args,
+	mode: 'multi-set',
+	height: 400
+};
+MultiSetWithExport.parameters = {
+	docs: {
+		description: {
+			story: 'Multi-set mode with a visible export panel showing the tagged Newick string. Use this to verify that set tags are properly applied to selected branches.'
+		}
+	}
+};
+
+// RELAX mode with export
+export const RelaxModeWithExport = ExportTemplate.bind({});
+RelaxModeWithExport.args = {
+	...Default.args,
+	mode: 'multi-set',
+	initialSetNames: ['TEST', 'REFERENCE'],
+	height: 400
+};
+RelaxModeWithExport.parameters = {
+	docs: {
+		description: {
+			story: 'RELAX analysis mode with TEST/REFERENCE sets and visible Newick export.'
+		}
 	}
 };
