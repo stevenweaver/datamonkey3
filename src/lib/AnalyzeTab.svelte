@@ -11,7 +11,6 @@
 	import MethodSelector from './MethodSelector.svelte';
 	import FileIndicator from './FileIndicator.svelte';
 	import TabNavigation from './TabNavigation.svelte';
-	import TreePrompt from './TreePrompt.svelte';
 	import TreeSourceSelector from './TreeSourceSelector.svelte';
 	import backendAnalysisRunner from './services/BackendAnalysisRunner.js';
 	import wasmAnalysisRunner from './services/WasmAnalysisRunner.js';
@@ -33,9 +32,6 @@
 
 	// Tree detection
 	$: hasTree = $treeStore && ($treeStore.nj || $treeStore.usertree);
-
-	// Tree inference state
-	let treeGenerated = false;
 
 	// Handle method selection changes from MethodSelector
 	function handleMethodChange(event) {
@@ -226,17 +222,6 @@
 		initializeBackendConnectivity();
 	});
 
-	// Handle tree generation prompt
-	function handleGenerateTreeClick() {
-		// Navigate to the Data tab
-		onChange('data');
-	}
-
-	// Handle tree generation completion
-	function handleTreeGenerated() {
-		treeGenerated = true;
-	}
-
 	// Handle tree source change from TreeSourceSelector
 	function handleTreeSourceChange(event) {
 		const { treeSource, hasUploadedTree, hasInferredTree, uploadedFile } = event.detail;
@@ -302,9 +287,6 @@
 <div class="analyze-tab">
 	<!-- File Indicator (visible when a file is selected) -->
 	<FileIndicator />
-
-	<!-- Tree Prompt (shown if no tree is available) -->
-	<TreePrompt onGenerateClick={handleGenerateTreeClick} />
 
 	<!-- Tree Source Selector -->
 	{#if $currentFile}
