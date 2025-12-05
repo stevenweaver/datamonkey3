@@ -9,7 +9,6 @@
 		initializeBackendConnectivity
 	} from '../stores/backendConnectivity.js';
 	import MethodSelector from './MethodSelector.svelte';
-	import AnalysisTimingEstimate from './AnalysisTimingEstimate.svelte';
 	import FileIndicator from './FileIndicator.svelte';
 	import TabNavigation from './TabNavigation.svelte';
 	import TreePrompt from './TreePrompt.svelte';
@@ -38,19 +37,12 @@
 	// Tree inference state
 	let treeGenerated = false;
 
-	// Track current method selection and options for timing estimates
-	let currentSelectedMethod = null;
-	let currentMethodOptions = {};
-	let currentGeneticCode = 'Universal';
-	let currentExecutionMode = 'local';
-
 	// Handle method selection changes from MethodSelector
 	function handleMethodChange(event) {
-		const { method, options, geneticCode, executionMode } = event.detail;
-		currentSelectedMethod = method;
-		currentMethodOptions = options || {};
-		currentGeneticCode = geneticCode || 'Universal';
-		currentExecutionMode = executionMode || 'local';
+		// Event contains method, options, geneticCode, executionMode
+		// Currently used for logging/debugging, timing estimate is now inside MethodSelector
+		const { method } = event.detail;
+		console.log('Method changed:', method);
 	}
 
 	/**
@@ -376,24 +368,12 @@
 		{#if analysisSectionExpanded}
 			<div class="p-premium-lg">
 				{#if $currentFile}
-					<!-- Method Selector -->
+					<!-- Method Selector (includes timing estimate) -->
 					<MethodSelector
 						{methodConfig}
 						runMethod={enhancedRunMethod}
 						on:methodChange={handleMethodChange}
 					/>
-
-					<!-- Analysis Timing Estimate -->
-					{#if currentSelectedMethod}
-						<div class="mt-premium-md">
-							<AnalysisTimingEstimate
-								method={currentSelectedMethod}
-								methodOptions={currentMethodOptions}
-								geneticCode={currentGeneticCode}
-								executionMode={currentExecutionMode === 'local' ? 'wasm' : 'backend'}
-							/>
-						</div>
-					{/if}
 
 					<!-- Console output (conditionally shown) -->
 					{#if isStdOutVisible}

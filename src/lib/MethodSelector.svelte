@@ -4,6 +4,7 @@
 	import { backendConnectivity } from '../stores/backendConnectivity.js';
 	import { treeStore } from '../stores/tree';
 	import BranchSelector from './BranchSelector.svelte';
+	import AnalysisTimingEstimate from './AnalysisTimingEstimate.svelte';
 
 	export let methodConfig;
 	export let runMethod = null;
@@ -1005,6 +1006,16 @@
 						<span>Server temporarily unavailable. Please use Local mode.</span>
 					</div>
 				{/if}
+
+				<!-- Timing Estimate - positioned near execution mode -->
+				<div class="mt-3">
+					<AnalysisTimingEstimate
+						method={selectedMethod}
+						methodOptions={methodOptions[selectedMethod] || {}}
+						{geneticCode}
+						executionMode={executionMode === 'local' ? 'wasm' : 'backend'}
+					/>
+				</div>
 			</div>
 		{/if}
 
