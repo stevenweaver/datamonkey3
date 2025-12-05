@@ -57,6 +57,8 @@ export default defineConfig({
 
 	// Optimize dependencies to prevent long processing times
 	optimizeDeps: {
-		include: ['@biowasm/aioli', 'toml', 'marked', 'socket.io-client']
+		include: ['@biowasm/aioli', 'toml', 'marked', 'socket.io-client'],
+		// Exclude linked packages so changes are picked up immediately
+		exclude: ['phylotree']
 	}
 });
