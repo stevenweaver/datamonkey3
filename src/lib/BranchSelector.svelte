@@ -49,7 +49,7 @@
 		effectiveMode === 'multi-set'
 			? initialSetNames && initialSetNames.length > 0
 				? initialSetNames
-				: ['Set_1', 'Set_2']
+				: ['Set1', 'Set2']
 			: ['Foreground'];
 
 	// Reset current index when mode changes
@@ -208,7 +208,9 @@
 				width: width,
 				'show-menu': true,
 				selectable: true,
-				collapsible: true
+				collapsible: true,
+				'left-right-spacing': 'fit-to-size',
+				'top-bottom-spacing': 'fit-to-size'
 			};
 
 			// Add multi-set selection options
@@ -489,7 +491,7 @@
 
 <!-- Phylotree CSS - using version matching our npm package -->
 <svelte:head>
-	<link rel="stylesheet" href="https://unpkg.com/phylotree@2.1.7/dist/phylotree.css" />
+	<link rel="stylesheet" href="https://unpkg.com/phylotree@2.2.1/dist/phylotree.css" />
 </svelte:head>
 
 <div class="branch-selector" class:disabled>
@@ -576,6 +578,7 @@
 		border: 1px solid #e5e7eb;
 		border-radius: 8px;
 		background: white;
+		position: relative; /* Required for absolute positioned context menu */
 	}
 
 	.branch-selector.disabled {
@@ -632,6 +635,7 @@
 		border: 2px solid #e5e7eb;
 		border-radius: 4px;
 		font-size: 14px;
+		min-width: 120px;
 	}
 
 	.set-name-input {
