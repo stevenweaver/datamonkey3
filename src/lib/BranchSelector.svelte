@@ -190,8 +190,9 @@
 				container: `#${containerId}`,
 				height: height,
 				width: width,
-				'show-menu': false, // Disable built-in menu (requires jQuery/Bootstrap)
-				selectable: true
+				'show-menu': true, // Enable context menu (now pure D3, no jQuery needed)
+				selectable: true,
+				collapsible: true
 			});
 
 			// Insert the SVG into the container
@@ -637,11 +638,10 @@
 		stroke-dasharray: 5, 5 !important;
 	}
 
-	/* Support for phylotree dropdown menus */
-	:global(.dropdown-menu) {
+	/* Phylotree context menu styles */
+	:global(.phylotree-context-menu) {
 		position: absolute;
 		z-index: 1000;
-		display: none;
 		min-width: 10rem;
 		padding: 0.5rem 0;
 		margin: 0.125rem 0 0;
@@ -650,16 +650,13 @@
 		border: 1px solid rgba(0, 0, 0, 0.15);
 		border-radius: 0.25rem;
 		box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+		font-size: 14px;
 	}
 
-	:global(.dropdown-menu.show) {
-		display: block;
-	}
-
-	:global(.dropdown-item) {
+	:global(.phylotree-menu-item) {
 		display: block;
 		width: 100%;
-		padding: 0.25rem 1.5rem;
+		padding: 0.35rem 1rem;
 		clear: both;
 		font-weight: 400;
 		color: #212529;
@@ -671,14 +668,67 @@
 		cursor: pointer;
 	}
 
+	:global(.phylotree-menu-item:hover) {
+		background-color: #f0f0f0;
+		color: #000;
+	}
+
+	:global(.phylotree-menu-divider) {
+		height: 0;
+		margin: 0.5rem 0;
+		overflow: hidden;
+		border-top: 1px solid rgba(0, 0, 0, 0.1);
+	}
+
+	:global(.phylotree-menu-header) {
+		display: block;
+		padding: 0.25rem 1rem;
+		margin-bottom: 0;
+		font-size: 0.75rem;
+		color: #6c757d;
+		white-space: nowrap;
+		font-weight: 600;
+		text-transform: uppercase;
+	}
+
+	/* Also support Bootstrap class names for compatibility */
+	:global(.dropdown-menu) {
+		position: absolute;
+		z-index: 1000;
+		min-width: 10rem;
+		padding: 0.5rem 0;
+		background-color: #fff;
+		border: 1px solid rgba(0, 0, 0, 0.15);
+		border-radius: 0.25rem;
+		box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+	}
+
+	:global(.dropdown-item) {
+		display: block;
+		width: 100%;
+		padding: 0.35rem 1rem;
+		color: #212529;
+		text-decoration: none;
+		background-color: transparent;
+		border: 0;
+		cursor: pointer;
+	}
+
 	:global(.dropdown-item:hover) {
-		background-color: #f8f9fa;
+		background-color: #f0f0f0;
 	}
 
 	:global(.dropdown-divider) {
 		height: 0;
 		margin: 0.5rem 0;
-		overflow: hidden;
-		border-top: 1px solid rgba(0, 0, 0, 0.15);
+		border-top: 1px solid rgba(0, 0, 0, 0.1);
+	}
+
+	:global(.dropdown-header) {
+		display: block;
+		padding: 0.25rem 1rem;
+		font-size: 0.75rem;
+		color: #6c757d;
+		font-weight: 600;
 	}
 </style>
