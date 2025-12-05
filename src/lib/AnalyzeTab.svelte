@@ -9,10 +9,8 @@
 		initializeBackendConnectivity
 	} from '../stores/backendConnectivity.js';
 	import MethodSelector from './MethodSelector.svelte';
-	import AnalysisTimingEstimate from './AnalysisTimingEstimate.svelte';
 	import FileIndicator from './FileIndicator.svelte';
 	import TabNavigation from './TabNavigation.svelte';
-	import TreePrompt from './TreePrompt.svelte';
 	import TreeSourceSelector from './TreeSourceSelector.svelte';
 	import backendAnalysisRunner from './services/BackendAnalysisRunner.js';
 	import wasmAnalysisRunner from './services/WasmAnalysisRunner.js';
@@ -35,22 +33,12 @@
 	// Tree detection
 	$: hasTree = $treeStore && ($treeStore.nj || $treeStore.usertree);
 
-	// Tree inference state
-	let treeGenerated = false;
-
-	// Track current method selection and options for timing estimates
-	let currentSelectedMethod = null;
-	let currentMethodOptions = {};
-	let currentGeneticCode = 'Universal';
-	let currentExecutionMode = 'local';
-
 	// Handle method selection changes from MethodSelector
 	function handleMethodChange(event) {
-		const { method, options, geneticCode, executionMode } = event.detail;
-		currentSelectedMethod = method;
-		currentMethodOptions = options || {};
-		currentGeneticCode = geneticCode || 'Universal';
-		currentExecutionMode = executionMode || 'local';
+		// Event contains method, options, geneticCode, executionMode
+		// Currently used for logging/debugging, timing estimate is now inside MethodSelector
+		const { method } = event.detail;
+		console.log('Method changed:', method);
 	}
 
 	/**
@@ -234,17 +222,6 @@
 		initializeBackendConnectivity();
 	});
 
-	// Handle tree generation prompt
-	function handleGenerateTreeClick() {
-		// Navigate to the Data tab
-		onChange('data');
-	}
-
-	// Handle tree generation completion
-	function handleTreeGenerated() {
-		treeGenerated = true;
-	}
-
 	// Handle tree source change from TreeSourceSelector
 	function handleTreeSourceChange(event) {
 		const { treeSource, hasUploadedTree, hasInferredTree, uploadedFile } = event.detail;
@@ -311,9 +288,6 @@
 	<!-- File Indicator (visible when a file is selected) -->
 	<FileIndicator />
 
-	<!-- Tree Prompt (shown if no tree is available) -->
-	<TreePrompt onGenerateClick={handleGenerateTreeClick} />
-
 	<!-- Tree Source Selector -->
 	{#if $currentFile}
 		<div class="mb-premium-xl">
@@ -376,24 +350,12 @@
 		{#if analysisSectionExpanded}
 			<div class="p-premium-lg">
 				{#if $currentFile}
-					<!-- Method Selector -->
+					<!-- Method Selector (includes timing estimate) -->
 					<MethodSelector
 						{methodConfig}
 						runMethod={enhancedRunMethod}
 						on:methodChange={handleMethodChange}
 					/>
-
-					<!-- Analysis Timing Estimate -->
-					{#if currentSelectedMethod}
-						<div class="mt-premium-md">
-							<AnalysisTimingEstimate
-								method={currentSelectedMethod}
-								methodOptions={currentMethodOptions}
-								geneticCode={currentGeneticCode}
-								executionMode={currentExecutionMode === 'local' ? 'wasm' : 'backend'}
-							/>
-						</div>
-					{/if}
 
 					<!-- Console output (conditionally shown) -->
 					{#if isStdOutVisible}

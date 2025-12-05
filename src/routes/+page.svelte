@@ -919,8 +919,6 @@
 			<!-- Main Tabbed Interface with Smart Navigation -->
 			<SmartTabNavigation
 				{activeTab}
-				showRunningIndicator={$activeAnalysisProgress.id &&
-					$activeAnalysisProgress.status !== 'completed'}
 				onChange={(tab) => (activeTab = tab)}
 			/>
 

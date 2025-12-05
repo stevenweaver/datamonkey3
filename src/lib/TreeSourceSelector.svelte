@@ -14,15 +14,15 @@
 	let fileInput;
 	let uploadedFile = null;
 
-	// Status display
-	const getStatusText = () => {
+	// Status display - parameters are used for Svelte reactivity tracking
+	const getStatusText = (_treeSource, _uploadedFile, _hasUploadedTree, _hasInferredTree) => {
 		if (treeSource === 'uploaded' && hasUploadedTree) {
 			return '✓ Using uploaded tree';
 		} else if (treeSource === 'inferred' && hasInferredTree) {
-			return '✓ Using neighbor-joining tree from alignment metrics';
+			return '✓ Using neighbor-joining tree';
 		} else if (treeSource === 'upload-new') {
 			if (uploadedFile) {
-				return `✓ Ready to use ${uploadedFile.name}`;
+				return `✓ Using ${uploadedFile.name}`;
 			}
 			return '⚪ Select tree file to upload';
 		}
@@ -59,8 +59,8 @@
 		handleTreeSourceChange();
 	}
 
-	// Reactive statements
-	$: statusText = getStatusText();
+	// Reactive statements - must explicitly depend on treeSource and uploadedFile
+	$: statusText = getStatusText(treeSource, uploadedFile, hasUploadedTree, hasInferredTree);
 </script>
 
 <div class="tree-source-selector">

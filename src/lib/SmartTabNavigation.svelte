@@ -4,7 +4,6 @@
 
 	export let activeTab = 'data';
 	export let onChange = (tabName) => {};
-	export let showRunningIndicator = false;
 
 	// Reactive variables to track state conditions
 	$: hasFiles = $persistentFileStore?.files?.length > 0;
@@ -103,17 +102,6 @@
 					</div>
 					<span class="text-[10px] sm:text-sm">Analyze</span>
 				</span>
-				{#if showRunningIndicator && !isAnalyzeDisabled}
-					<span
-						class="absolute right-1 top-1 flex h-2 w-2 sm:relative sm:right-auto sm:top-auto sm:ml-2 sm:h-auto sm:w-auto sm:px-2.5 sm:py-0.5"
-					>
-						<span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-royal opacity-75 sm:hidden"></span>
-						<span class="relative inline-flex h-2 w-2 rounded-full bg-brand-royal sm:hidden"></span>
-						<span class="hidden animate-pulse-premium items-center rounded-premium-xl bg-brand-royal text-premium-caption font-semibold tracking-premium-badge text-white sm:inline-flex">
-							Running
-						</span>
-					</span>
-				{/if}
 				{#if activeTab === 'analyze' && !isAnalyzeDisabled}
 					<div class="absolute bottom-0 left-0 right-0 h-[3px] bg-accent-copper"></div>
 				{/if}

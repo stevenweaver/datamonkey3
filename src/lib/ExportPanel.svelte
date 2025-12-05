@@ -1,6 +1,5 @@
 <script>
-	import { onMount, onDestroy } from 'svelte';
-	import { exportData, createShareableLink, copyToClipboard } from './utils/exportUtils';
+	import { exportData } from './utils/exportUtils';
 	import { analysisStore } from '../stores/analyses';
 	import { persistentFileStore } from '../stores/fileInfo';
 
@@ -13,8 +12,6 @@
 	let exportFormat = 'json';
 	let showExportOptions = false;
 	let exportStatus = '';
-	let shareLinkCopied = false;
-	let shareLinkTimeout;
 
 	// Available export formats
 	const exportFormats = [
@@ -102,26 +99,6 @@
 		}
 	}
 
-	// Copy shareable link to clipboard
-	async function copyShareLink() {
-		if (!analysisId) return;
-
-		const link = createShareableLink(analysisId);
-		const success = await copyToClipboard(link);
-
-		if (success) {
-			shareLinkCopied = true;
-			clearTimeout(shareLinkTimeout);
-			shareLinkTimeout = setTimeout(() => {
-				shareLinkCopied = false;
-			}, 3000);
-		}
-	}
-
-	// Clean up on destroy
-	onDestroy(() => {
-		clearTimeout(shareLinkTimeout);
-	});
 </script>
 
 <div class="export-panel mb-4 rounded-lg border border-border-subtle bg-white shadow-sm">
@@ -202,24 +179,6 @@
 						/>
 					</svg>
 					Export
-				</button>
-
-				<button
-					on:click={copyShareLink}
-					class="flex items-center rounded bg-status-success px-3 py-1 text-white hover:bg-status-success-text"
-					disabled={!analysisId}
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="mr-1 h-4 w-4"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-					>
-						<path
-							d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"
-						/>
-					</svg>
-					{shareLinkCopied ? 'Link Copied!' : 'Copy Link'}
 				</button>
 
 				{#if exportStatus}

@@ -1,7 +1,6 @@
 <!-- src/lib/EnhancedExportPanel.svelte -->
 <script>
-	import { onMount, onDestroy } from 'svelte';
-	import { exportData, createShareableLink, copyToClipboard } from './utils/exportUtils';
+	import { exportData } from './utils/exportUtils';
 	import { analysisStore } from '../stores/analyses';
 	import { persistentFileStore } from '../stores/fileInfo';
 	import LogDownloader from './LogDownloader.svelte';
@@ -15,8 +14,6 @@
 	let exportFormat = 'json';
 	let showExportOptions = false;
 	let exportStatus = '';
-	let shareLinkCopied = false;
-	let shareLinkTimeout;
 	let showPreview = false;
 	let previewContent = '';
 	let includeMetadata = true;
@@ -224,22 +221,6 @@
 		}
 	}
 
-	// Copy shareable link to clipboard
-	async function copyShareLink() {
-		if (!analysisId) return;
-
-		const link = createShareableLink(analysisId);
-		const success = await copyToClipboard(link);
-
-		if (success) {
-			shareLinkCopied = true;
-			clearTimeout(shareLinkTimeout);
-			shareLinkTimeout = setTimeout(() => {
-				shareLinkCopied = false;
-			}, 3000);
-		}
-	}
-
 	// Toggle preview
 	function togglePreview() {
 		showPreview = !showPreview;
@@ -257,16 +238,11 @@
 	$: if (includeMetadata !== undefined && showPreview) {
 		generatePreview();
 	}
-
-	// Clean up on destroy
-	onDestroy(() => {
-		clearTimeout(shareLinkTimeout);
-	});
 </script>
 
 <div class="enhanced-export-panel mb-4 rounded-lg border border-border-subtle bg-white shadow-md">
 	<div class="flex items-center justify-between border-b border-border-subtle p-4">
-		<h3 class="text-lg font-semibold">Export & Share</h3>
+		<h3 class="text-lg font-semibold">Export</h3>
 		<button
 			on:click={toggleExportOptions}
 			class="rounded-full p-1 text-text-silver hover:bg-surface-sunken"
@@ -397,29 +373,6 @@
 					Download {exportFormat.toUpperCase()}
 				</button>
 
-				<button
-					on:click={copyShareLink}
-					class={`flex items-center rounded px-4 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 
-            ${
-							shareLinkCopied
-								? 'bg-status-success-bg text-status-success-text focus:ring-status-success'
-								: 'bg-surface-sunken text-text-rich hover:bg-surface-sunken focus:ring-text-silver'
-						}`}
-					disabled={!analysisId}
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="mr-2 h-5 w-5"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-					>
-						<path
-							d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"
-						/>
-					</svg>
-					{shareLinkCopied ? 'Link Copied!' : 'Copy Shareable Link'}
-				</button>
-
 				<!-- Log Downloader dropdown -->
 				<LogDownloader {analysisId} />
 
@@ -444,8 +397,7 @@
 					</svg>
 					<span>
 						<strong>Export tips:</strong> JSON format preserves all analysis details, while CSV is
-						best for importing into spreadsheet software. You can share your analysis with others by
-						copying the shareable link.
+						best for importing into spreadsheet software.
 						<br /><br />
 						<strong>Technical users:</strong> For debugging and reproducibility, download the raw log
 						files (stdout/stderr) using the "Download Logs" dropdown.
