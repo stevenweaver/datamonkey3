@@ -271,66 +271,38 @@
 		}
 	}
 
-	// Set up click handlers for branch selection
+	// Set up event listeners for branch selection
 	function setupClickHandlers(container) {
-		// Target specific elements: branch paths and node circles
-		// This is more reliable than selecting all '*' elements
+		// Phylotree already has built-in click handlers on branches (in edges.js)
+		// that call modifySelection() and update(). Instead of overwriting those,
+		// we listen for selection changes via phylotree's event system.
+
+		// Use phylotree's selectionCallback to track selection changes
+		// This is called after every selection modification
+		if (tree?.display?.selectionCallback) {
+			tree.display.selectionCallback((selection) => {
+				updateSelectedBranches();
+			});
+		}
+
+		// Also listen for the selectionChange event (newer event system)
+		if (tree?.display?.on) {
+			tree.display.on('selectionChange', (selection) => {
+				updateSelectedBranches();
+			});
+		}
+
+		// For multi-set mode, also listen for setChange events
+		if (effectiveMode === 'multi-set' && tree?.display?.on) {
+			tree.display.on('setChange', () => {
+				updateSelectedBranches();
+			});
+		}
+
+		// Set cursor style to indicate clickability
 		d3.select(container)
-			.selectAll('.branch path, .node circle, .node text')
-			.style('cursor', 'pointer')
-			.on('click', handleBranchClick);
-
-		// Also handle clicks on the branch lines themselves
-		d3.select(container)
-			.selectAll('path.branch')
-			.style('cursor', 'pointer')
-			.on('click', handleBranchClick);
-	}
-
-	// Handle branch/node click
-	function handleBranchClick(event, d) {
-		if (disabled) return;
-		if (!d) return;
-
-		event.preventDefault();
-		event.stopPropagation();
-
-		// Find the node object
-		let nodeToSelect = d.target || d.source || d;
-		const nodeName = nodeToSelect.data?.name || nodeToSelect.name;
-
-		if (!nodeName) {
-			console.warn('BranchSelector: Could not determine node name');
-			return;
-		}
-
-		// Handle single vs multi-select
-		if (!allowMultiSelect && effectiveMode === 'single-set') {
-			// Clear all other selections first
-			tree.display.clearSelection();
-		}
-
-		// Toggle selection based on mode
-		if (effectiveMode === 'multi-set') {
-			const currentSet = selectionSets[currentSetIndex];
-			// Use phylotree's multi-set selection API
-			if (tree?.display?.isInSet && tree.display.isInSet(nodeToSelect, currentSet)) {
-				tree.display.removeFromSet(nodeToSelect, currentSet);
-			} else if (tree?.display?.addToSet) {
-				tree.display.addToSet(nodeToSelect, currentSet);
-			}
-			updateSelectedBranches();
-		} else {
-			// Single-set mode - use phylotree's Selection API
-			if (nodeToSelect.selected) {
-				tree.display.deselectNodes([nodeName]);
-			} else {
-				tree.display.selectNodes([nodeName]);
-			}
-			// Note: selectNodes/deselectNodes internally call refresh() and update()
-			// so CSS classes are applied automatically
-			updateSelectedBranches();
-		}
+			.selectAll('.branch, path.branch, .node circle')
+			.style('cursor', 'pointer');
 	}
 
 	// Clear all selections (for single-select mode)
