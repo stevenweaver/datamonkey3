@@ -89,7 +89,7 @@
 		"@biowasm/aioli": "^3.2.1",
 		"@sentry/sveltekit": "^9",
 		"d3": "^7.9.0",
-		"hyphy-scope": "^1.7.1",
+		"hyphy-scope": "^1.7.2",
 		"marked": "^15.0.12",
 		"phylotree": "^2.2.1",
 		"socket.io-client": "^4.8.1",
