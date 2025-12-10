@@ -90,6 +90,7 @@
 		"@sentry/sveltekit": "^9",
 		"d3": "^7.9.0",
 		"hyphy-scope": "^1.7.2",
+		"lucide-svelte": "^0.559.0",
 		"marked": "^15.0.12",
 		"phylotree": "^2.2.1",
 		"socket.io-client": "^4.8.1",

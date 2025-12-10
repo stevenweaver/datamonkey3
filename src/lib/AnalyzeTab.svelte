@@ -14,6 +14,7 @@
 	import TreeSourceSelector from './TreeSourceSelector.svelte';
 	import backendAnalysisRunner from './services/BackendAnalysisRunner.js';
 	import wasmAnalysisRunner from './services/WasmAnalysisRunner.js';
+	import { ChevronDown } from '$lib/icons';
 
 	// Props
 	export let methodConfig = {};
@@ -329,21 +330,9 @@
 						{isStdOutVisible ? 'Hide Console' : 'Show Console'}
 					</button>
 				{/if}
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-6 w-6 text-brand-royal transition-transform duration-premium"
-					class:rotate-180={analysisSectionExpanded}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M19 9l-7 7-7-7"
-					/>
-				</svg>
+				<ChevronDown
+					class="h-6 w-6 text-brand-royal transition-transform duration-premium {analysisSectionExpanded ? 'rotate-180' : ''}"
+				/>
 			</div>
 		</div>
 

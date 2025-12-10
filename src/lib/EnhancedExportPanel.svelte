@@ -4,6 +4,7 @@
 	import { analysisStore } from '../stores/analyses';
 	import { persistentFileStore } from '../stores/fileInfo';
 	import LogDownloader from './LogDownloader.svelte';
+	import { ChevronUp, ChevronDown, Download, Info } from '$lib/icons';
 
 	// Props
 	export let analysisId;
@@ -249,31 +250,9 @@
 			aria-label={showExportOptions ? 'Hide export options' : 'Show export options'}
 		>
 			{#if showExportOptions}
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-5 w-5"
-					viewBox="0 0 20 20"
-					fill="currentColor"
-				>
-					<path
-						fill-rule="evenodd"
-						d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-						clip-rule="evenodd"
-					/>
-				</svg>
+				<ChevronUp class="h-5 w-5" />
 			{:else}
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-5 w-5"
-					viewBox="0 0 20 20"
-					fill="currentColor"
-				>
-					<path
-						fill-rule="evenodd"
-						d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-						clip-rule="evenodd"
-					/>
-				</svg>
+				<ChevronDown class="h-5 w-5" />
 			{/if}
 		</button>
 	</div>
@@ -358,18 +337,7 @@
 					class="flex items-center rounded bg-brand-royal px-4 py-2 font-semibold text-white hover:bg-brand-deep focus:outline-none focus:ring-2 focus:ring-brand-royal focus:ring-offset-2"
 					disabled={!analysis}
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="mr-2 h-5 w-5"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-							clip-rule="evenodd"
-						/>
-					</svg>
+					<Download class="mr-2 h-5 w-5" />
 					Download {exportFormat.toUpperCase()}
 				</button>
 
@@ -383,18 +351,7 @@
 
 			<div class="mt-4 rounded-md bg-brand-ghost p-3 text-sm text-brand-deep">
 				<p class="flex items-start">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="mr-2 mt-0.5 h-4 w-4"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-							clip-rule="evenodd"
-						/>
-					</svg>
+					<Info class="mr-2 mt-0.5 h-4 w-4 flex-shrink-0" />
 					<span>
 						<strong>Export tips:</strong> JSON format preserves all analysis details, while CSV is
 						best for importing into spreadsheet software.

@@ -1,6 +1,7 @@
 <!-- TreeSourceSelector.svelte - Tree source selection component for Storybook -->
 <script>
 	import { createEventDispatcher } from 'svelte';
+	import { Upload, X } from '$lib/icons';
 
 	const dispatch = createEventDispatcher();
 
@@ -138,14 +139,7 @@
 					id="tree-file-input"
 				/>
 				<label for="tree-file-input" class="file-input-label" class:disabled>
-					<svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-						/>
-					</svg>
+					<Upload class="upload-icon" />
 					{#if uploadedFile}
 						<span class="file-name">{uploadedFile.name}</span>
 						<span class="file-size">({(uploadedFile.size / 1024).toFixed(1)} KB)</span>
@@ -163,14 +157,7 @@
 						class="clear-file-btn"
 						title="Remove selected file"
 					>
-						<svg class="clear-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
+						<X class="clear-icon" />
 					</button>
 				{/if}
 			</div>
