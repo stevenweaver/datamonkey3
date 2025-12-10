@@ -1,18 +1,18 @@
 <script>
 	import { onMount } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { Dna, FileText, Sparkles, ArrowRight } from 'lucide-svelte';
+	import { Dna, Sparkles, ArrowRight } from 'lucide-svelte';
 
 	const dispatch = createEventDispatcher();
 
 	// Sample files available for demo with enhanced metadata
+	// All demo files are sequence alignments, so they all use the Dna icon
 	const demoFiles = [
 		{
 			name: 'CD2-slim.fna',
 			description: 'CD2 gene alignment',
 			detail: '10 sequences • FASTA format',
 			path: '/test-data/CD2-slim.fna',
-			icon: 'dna',
 			size: 'small'
 		},
 		{
@@ -20,7 +20,6 @@
 			description: 'Small alignment',
 			detail: 'NEXUS format • Quick test',
 			path: '/test-data/small.nex',
-			icon: 'file',
 			size: 'small'
 		},
 		{
@@ -28,7 +27,6 @@
 			description: 'Medium alignment',
 			detail: 'NEXUS format • Standard',
 			path: '/test-data/medium.nex',
-			icon: 'file',
 			size: 'medium'
 		},
 		{
@@ -36,7 +34,6 @@
 			description: 'Large alignment',
 			detail: 'NEXUS format • Extended',
 			path: '/test-data/large.nex',
-			icon: 'file',
 			size: 'large'
 		}
 	];
@@ -109,11 +106,7 @@
 							? 'bg-brand-royal text-white'
 							: 'bg-brand-ghost text-brand-royal group-hover:bg-brand-whisper'}"
 					>
-						{#if demoFile.icon === 'dna'}
-							<Dna class="h-4 w-4 sm:h-5 sm:w-5" />
-						{:else}
-							<FileText class="h-4 w-4 sm:h-5 sm:w-5" />
-						{/if}
+						<Dna class="h-4 w-4 sm:h-5 sm:w-5" />
 					</div>
 
 					<!-- Size indicator badge -->
