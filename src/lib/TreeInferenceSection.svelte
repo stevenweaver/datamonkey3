@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { treeStore } from '../stores/tree';
 	import { currentFile, fileMetricsStore } from '../stores/fileInfo';
-	import { Loader2, ChevronRight } from 'lucide-svelte';
+	import { Loader2, ChevronRight, TreeDeciduous } from 'lucide-svelte';
 
 	// Tree status constants
 	const STATUS = {
@@ -155,8 +155,8 @@
 </script>
 
 <div class="mb-premium-xl">
-	<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">
-		<span class="mr-premium-xs">🌳</span> Phylogenetic Tree
+	<h2 class="mb-premium-md flex items-center text-premium-header font-semibold text-text-rich">
+		<TreeDeciduous class="mr-2 h-5 w-5 text-green-600" /> Phylogenetic Tree
 	</h2>
 
 	<div class="rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium">
