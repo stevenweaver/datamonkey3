@@ -16,6 +16,7 @@
 		// Sequence files - use Dna icon
 		fasta: Dna,
 		fa: Dna,
+		fna: Dna,
 		fastq: Dna,
 		fq: Dna,
 		nex: Dna,
