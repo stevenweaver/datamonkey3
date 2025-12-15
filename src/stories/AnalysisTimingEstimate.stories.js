@@ -71,7 +71,7 @@ export const FastAnalysis = {
 		method: 'fel',
 		methodOptions: {},
 		geneticCode: 'Universal',
-		datasetSize: 'small',
+		datasetSize: 'large',
 		executionMode: 'backend'
 	}
 };
