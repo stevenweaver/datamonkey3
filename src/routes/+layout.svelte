@@ -2,6 +2,7 @@
 	import '../app.css';
 	import AnalysisStatusIndicator from '../lib/AnalysisStatusIndicator.svelte';
 	import BackendConnectivityIndicator from '../lib/BackendConnectivityIndicator.svelte';
+	import { X, Menu } from 'lucide-svelte';
 
 	// Get version from Vite define
 	const version = __APP_VERSION__;
@@ -54,15 +55,9 @@
 			>
 				<span class="sr-only">Open main menu</span>
 				{#if mobileMenuOpen}
-					<!-- Close icon -->
-					<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-					</svg>
+					<X class="h-6 w-6" />
 				{:else}
-					<!-- Hamburger icon -->
-					<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-					</svg>
+					<Menu class="h-6 w-6" />
 				{/if}
 			</button>
 
