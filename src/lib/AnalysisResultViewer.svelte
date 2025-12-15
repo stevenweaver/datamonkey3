@@ -27,6 +27,7 @@
 	import AbsrelVisualizationWrapper from './AbsrelVisualizationWrapper.svelte';
 	import FubarVisualizationWrapper from './FubarVisualizationWrapper.svelte';
 	import MultiHitVisualizationWrapper from './MultiHitVisualizationWrapper.svelte';
+	import { Server, Monitor, ExternalLink } from 'lucide-svelte';
 
 	export let analysisId = null;
 
@@ -222,22 +223,12 @@
 						<span class="font-medium">
 							{#if analysis.metadata?.executionMode === 'backend'}
 								<span class="inline-flex items-center text-status-info">
-									<svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-										<path
-											d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
-										/>
-									</svg>
+									<Server class="mr-1 h-3 w-3" />
 									Server
 								</span>
 							{:else if analysis.metadata?.executionMode === 'wasm'}
 								<span class="inline-flex items-center text-brand-royal">
-									<svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-										<path
-											fill-rule="evenodd"
-											d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z"
-											clip-rule="evenodd"
-										/>
-									</svg>
+									<Monitor class="mr-1 h-3 w-3" />
 									Local (WebAssembly)
 								</span>
 							{:else}
@@ -395,23 +386,10 @@
 									<p class="mb-2 text-status-info-text">View results with automatic data sharing:</p>
 									<button
 										on:click={() => shareWithHyphyEye(resultData, analysis.method)}
-										class="inline-block rounded-md bg-brand-royal px-4 py-2 text-white transition-colors hover:bg-brand-deep"
+										class="inline-flex items-center rounded-md bg-brand-royal px-4 py-2 text-white transition-colors hover:bg-brand-deep"
 									>
 										View in HyPhy-eye
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											class="ml-1 inline-block h-4 w-4"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-											/>
-										</svg>
+										<ExternalLink class="ml-1 h-4 w-4" />
 									</button>
 									<p class="mt-2 text-sm text-brand-royal">
 										Analysis results will be automatically shared via localStorage.
@@ -426,23 +404,10 @@
 											.replace('-', '')}"
 										target="_blank"
 										rel="noopener noreferrer"
-										class="inline-block rounded-md bg-brand-royal px-4 py-2 text-white transition-colors hover:bg-brand-deep"
+										class="inline-flex items-center rounded-md bg-brand-royal px-4 py-2 text-white transition-colors hover:bg-brand-deep"
 									>
 										Open {analysis.method.toUpperCase()} Results in hyphy-eye
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											class="ml-1 inline-block h-4 w-4"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-											/>
-										</svg>
+										<ExternalLink class="ml-1 h-4 w-4" />
 									</a>
 									<p class="mt-2 text-sm text-text-slate">
 										Note: You will need to upload your result JSON to hyphy-eye manually.
