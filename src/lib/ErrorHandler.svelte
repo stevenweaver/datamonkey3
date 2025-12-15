@@ -119,8 +119,7 @@
 						>
 							<span>Details</span>
 							<ChevronDown
-								class="ml-1 h-4 w-4 transform transition-transform"
-								class:rotate-180={isExpanded}
+								class="ml-1 h-4 w-4 transform transition-transform {isExpanded ? 'rotate-180' : ''}"
 							/>
 						</button>
 
