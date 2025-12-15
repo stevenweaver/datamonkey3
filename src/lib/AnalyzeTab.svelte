@@ -304,6 +304,8 @@
 					{hasInferredTree}
 					bind:treeSource={selectedTreeSource}
 					disabled={false}
+					uploadedTreeNewick={$treeStore?.usertree || ''}
+					inferredTreeNewick={$treeStore?.nj || ''}
 					on:treeSourceChange={handleTreeSourceChange}
 					on:fileUploaded={handleFileUploaded}
 				/>
