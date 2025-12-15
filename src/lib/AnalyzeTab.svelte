@@ -138,10 +138,15 @@
 
 				// Get tree data based on user's selection
 				let treeData = getSelectedTreeData();
+				console.log('🌳 Tree selection for analysis:', {
+					source: selectedTreeSource,
+					treePreview: treeData ? treeData.substring(0, 100) + '...' : 'none'
+				});
 
 				// Check if we have interactive branch selection with tagged tree
 				if (config.branchesToTest === 'Interactive' && config.interactiveTree) {
 					treeData = config.interactiveTree;
+					console.log('🌳 Using interactive tree instead:', treeData.substring(0, 100) + '...');
 				}
 				if (!treeData) {
 					const treeSourceName =
