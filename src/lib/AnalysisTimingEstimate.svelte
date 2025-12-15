@@ -2,7 +2,7 @@
 <script>
 	import { currentFile, fileMetricsStore } from '../stores/fileInfo';
 	import { calculateRuntimeEstimate, SPEED_CATEGORIES } from './utils/timingEstimates.js';
-	import { Zap, Clock, Turtle, Snail, AlertTriangle } from 'lucide-svelte';
+	import { Zap, Clock, Turtle, Snail } from 'lucide-svelte';
 
 	// Props
 	export let method = null;
@@ -87,14 +87,6 @@
 			</div>
 		{/if}
 
-		{#if estimatedTime.category === 'very-slow' || estimatedTime.category === 'slow'}
-			<div class="timing-warning">
-				<AlertTriangle class="warning-icon" />
-				<span class="warning-text">
-					Long-running analysis - consider using smaller datasets for testing
-				</span>
-			</div>
-		{/if}
 	</div>
 {:else if method}
 	<div class="timing-estimate rounded-md border border-gray-200 bg-gray-50 p-3">
@@ -184,27 +176,4 @@
 		cursor: help;
 	}
 
-	.timing-warning {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		margin-top: 8px;
-		padding: 6px 8px;
-		background: rgba(251, 191, 36, 0.1);
-		border: 1px solid rgba(251, 191, 36, 0.2);
-		border-radius: 4px;
-	}
-
-	.warning-icon {
-		width: 14px;
-		height: 14px;
-		color: #f59e0b;
-		flex-shrink: 0;
-	}
-
-	.warning-text {
-		color: #92400e;
-		font-size: 11px;
-		font-weight: 500;
-	}
 </style>
