@@ -1,51 +1,18 @@
-<!-- src/lib/ExportPanel.svelte -->
 <script>
-	import { exportData } from './utils/exportUtils';
-	import { analysisStore } from '../stores/analyses';
-	import { persistentFileStore } from '../stores/fileInfo';
-	import LogDownloader from './LogDownloader.svelte';
-	import { ChevronUp, ChevronDown, Download } from '$lib/icons';
+	import { ChevronUp, ChevronDown, Download } from 'lucide-svelte';
 
-	// Props
-	export let analysisId;
+	// Props - mock data passed in directly
+	export let analysis = null;
+	export let file = null;
+	export let showExportOptions = false;
+	export let resultData = null;
 
 	// Internal state
-	let analysis = null;
-	let file = null;
-	let showExportOptions = false;
 	let exportStatus = '';
 	let showPreview = false;
 	let previewContent = '';
 	let includeMetadata = true;
 	let exportFilename = '';
-
-	// Load analysis data
-	$: if (analysisId) {
-		loadAnalysisData(analysisId);
-	}
-
-	async function loadAnalysisData(id) {
-		try {
-			// Get analysis details
-			analysis = $analysisStore.analyses.find((a) => a.id === id);
-
-			if (!analysis) {
-				analysis = await analysisStore.getAnalysis(id);
-			}
-
-			if (!analysis) {
-				throw new Error('Analysis not found');
-			}
-
-			// Get associated file
-			file = $persistentFileStore.files.find((f) => f.id === analysis.fileId);
-
-			// Generate default filename
-			updateExportFilename();
-		} catch (error) {
-			console.error('Error loading analysis data:', error);
-		}
-	}
 
 	// Update export filename when analysis changes
 	$: if (analysis) {
@@ -55,7 +22,7 @@
 	function updateExportFilename() {
 		if (!analysis) return;
 
-		const method = analysis.method.toUpperCase();
+		const method = analysis.method?.toUpperCase() || 'ANALYSIS';
 		const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
 		exportFilename = `${method}_analysis_${timestamp}.json`;
 	}
@@ -63,95 +30,48 @@
 	// Toggle export options
 	function toggleExportOptions() {
 		showExportOptions = !showExportOptions;
-
-		// Generate preview if options are shown
 		if (showExportOptions && analysis) {
 			generatePreview();
 		}
 	}
 
 	// Generate preview of export content
-	async function generatePreview() {
-		if (!analysis) return;
+	function generatePreview() {
+		if (!resultData) {
+			previewContent = 'No data available for preview';
+			return;
+		}
 
-		try {
-			// Parse the analysis result if needed
-			let resultData;
-			try {
-				resultData =
-					typeof analysis.result === 'string' ? JSON.parse(analysis.result) : analysis.result;
-			} catch (e) {
-				resultData = { error: 'Could not parse results', raw: analysis.result };
-			}
+		let data = resultData;
+		if (includeMetadata) {
+			data = {
+				...data,
+				exportMetadata: {
+					analysisId: analysis?.id || 'demo-123',
+					method: analysis?.method || 'unknown',
+					createdAt: analysis?.createdAt,
+					completedAt: analysis?.completedAt,
+					filename: file?.filename || 'Unknown file',
+					exportDate: new Date().toISOString()
+				}
+			};
+		}
 
-			// Add metadata if needed
-			if (includeMetadata) {
-				resultData = addMetadata(resultData);
-			}
+		previewContent = JSON.stringify(data, null, 2);
 
-			previewContent = JSON.stringify(resultData, null, 2);
-
-			// Truncate preview for display
-			if (previewContent.length > 2000) {
-				previewContent = previewContent.substring(0, 2000) + '...\n[Content truncated for preview]';
-			}
-		} catch (error) {
-			console.error('Error generating preview:', error);
-			previewContent = 'Error generating preview: ' + error.message;
+		if (previewContent.length > 2000) {
+			previewContent = previewContent.substring(0, 2000) + '...\n[Content truncated for preview]';
 		}
 	}
 
-	// Add metadata to export
-	function addMetadata(data) {
-		if (!data || typeof data !== 'object') return data;
-
-		return {
-			...data,
-			exportMetadata: {
-				analysisId: analysis.id,
-				method: analysis.method,
-				createdAt: analysis.createdAt,
-				completedAt: analysis.completedAt,
-				filename: file?.filename || 'Unknown file',
-				exportDate: new Date().toISOString()
-			}
-		};
-	}
-
-	// Export analysis results
-	async function exportAnalysisResults() {
+	// Mock export function
+	function exportAnalysisResults() {
 		if (!analysis) return;
 
-		try {
-			// Parse the analysis result if needed
-			let resultData;
-			try {
-				resultData =
-					typeof analysis.result === 'string' ? JSON.parse(analysis.result) : analysis.result;
-			} catch (e) {
-				resultData = { error: 'Could not parse results', raw: analysis.result };
-			}
-
-			// Add metadata if requested
-			if (includeMetadata) {
-				resultData = addMetadata(resultData);
-			}
-
-			// Export the data as JSON
-			exportData(resultData, exportFilename, 'json');
-
-			// Show success message
-			exportStatus = 'Exported successfully';
-			setTimeout(() => {
-				exportStatus = '';
-			}, 3000);
-		} catch (error) {
-			console.error('Error exporting results:', error);
-			exportStatus = 'Export failed';
-			setTimeout(() => {
-				exportStatus = '';
-			}, 3000);
-		}
+		exportStatus = 'Exported successfully';
+		setTimeout(() => {
+			exportStatus = '';
+		}, 3000);
 	}
 
 	// Toggle preview
@@ -240,8 +160,13 @@
 					Download JSON
 				</button>
 
-				<!-- Log Downloader dropdown -->
-				<LogDownloader {analysisId} />
+				<!-- Mock Log Downloader dropdown -->
+				<button
+					class="flex items-center rounded border border-border-subtle bg-white px-4 py-2 text-text-slate hover:bg-surface-raised"
+				>
+					<Download class="mr-2 h-5 w-5" />
+					Download Logs
+				</button>
 
 				{#if exportStatus}
 					<span class="ml-2 self-center text-sm font-medium text-status-success">{exportStatus}</span>

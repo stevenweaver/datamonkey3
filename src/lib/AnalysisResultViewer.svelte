@@ -3,7 +3,6 @@
 	import { analysisStore } from '../stores/analyses';
 	import { persistentFileStore } from '../stores/fileInfo';
 	import ExportPanel from './ExportPanel.svelte';
-	import EnhancedExportPanel from './EnhancedExportPanel.svelte';
 	import FelVisualization from './FelVisualization.svelte';
 	import AnalysisProgress from './AnalysisProgress.svelte';
 	import { FINAL_HYPHY_EYE_URL } from './config/env';
@@ -197,8 +196,8 @@
 		</div>
 	{:else if analysis && file}
 		<div class="analysis-container">
-			<!-- Enhanced Export panel with options -->
-			<EnhancedExportPanel {analysisId} />
+			<!-- Export panel with options -->
+			<ExportPanel {analysisId} />
 
 			<div class="bg-surface-sunken p-4">
 				<div class="flex items-center justify-between">

@@ -39,7 +39,7 @@
 <div class="flex min-h-screen flex-col bg-brand-ghost">
 	<nav class="border-b border-border-platinum bg-white shadow-sm">
 		<div class="container mx-auto flex items-center justify-between px-4 py-3 sm:px-premium-xl sm:py-premium-md">
-			<a class="flex items-center" href="/" onclick={closeMobileMenu}>
+			<a class="flex items-center" href="/?tab=data" onclick={closeMobileMenu}>
 				<span class="text-lg font-bold tracking-premium-tight text-text-rich sm:text-premium-header">
 					<span class="text-brand-royal">Datamonkey</span> <span class="text-accent-copper">3</span>
 				</span>
@@ -67,7 +67,7 @@
 					<li>
 						<a
 							class="rounded-premium-sm px-3 py-2 text-premium-brand font-medium text-text-rich transition-colors duration-premium hover:bg-brand-whisper hover:text-brand-royal"
-							href="/"
+							href="/?tab=data"
 						>
 							Home
 						</a>
@@ -98,7 +98,7 @@
 				<div class="space-y-1 px-4 pb-4 pt-2">
 					<a
 						class="block rounded-premium-sm px-3 py-3 text-base font-medium text-text-rich transition-colors duration-premium hover:bg-brand-whisper hover:text-brand-royal"
-						href="/"
+						href="/?tab=data"
 						onclick={closeMobileMenu}
 					>
 						Home

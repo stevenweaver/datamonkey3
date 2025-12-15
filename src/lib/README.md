@@ -40,9 +40,8 @@ The floating dropdown monitor has been replaced with a streamlined status counte
 - `DemoFileSelector.svelte`: UI for selecting demo files
 - `DesignSystem.svelte`: Design system documentation
 - `EnhancedAnalysisProgress.svelte`: Enhanced progress display
-- `EnhancedExportPanel.svelte`: Enhanced export functionality
 - `ErrorHandler.svelte`: Generic error handling component
-- `ExportPanel.svelte`: Export panel for analysis results
+- `ExportPanel.svelte`: Export panel for analysis results with filename customization, metadata toggle, and preview
 - `FastaExport.svelte`: Export functionality for FASTA files
 - `FastaValidator.svelte`: Validates FASTA file structure
 - `FileCard.svelte`: Display card for individual files
