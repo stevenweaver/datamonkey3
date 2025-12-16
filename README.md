@@ -1,7 +1,7 @@
 # Datamonkey 3
 
 ![License](https://img.shields.io/github/license/stevenweaver/datamonkey3)
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.1.0--beta.8-blue)
 
 A modern, browser-based tool for sequence analysis and molecular evolution studies.
 
@@ -20,14 +20,16 @@ Datamonkey 3 is designed to provide researchers with an intuitive interface to v
 
 - **Sequence Validation**: Identify and repair issues in FASTA and NEXUS files
 - **Phylogenetic Analysis**: Run methods including FEL, SLAC, MEME, BUSTED, and more
+- **Tree Selection**: Choose from inferred or user-provided trees for analysis
 - **Interactive Visualization**: Explore results with embedded interactive visualizations
+- **Batch Export**: Export multiple analysis results as a ZIP archive
 - **Local Data Storage**: Secure, browser-based storage for files and analyses
 
 ## Getting Started
 
 ### For Users
 
-Visit the hosted version: [https://datamonkey3.hyphy.org](https://datamonkey3.hyphy.org)
+Visit the hosted version: [https://v3.datamonkey.org](https://v3.datamonkey.org)
 
 ### For Developers
 
