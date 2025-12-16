@@ -12,7 +12,7 @@ export default {
 		docs: {
 			description: {
 				component:
-					'Batch export component for downloading multiple analysis results at once. Features filtering by method and file, multi-select functionality, and special FASTA export for DataReader analyses. Ideal for users who need to export results from multiple analyses in a single operation.'
+					'Batch export component for downloading multiple analysis results as a ZIP archive. Features filtering by method and file, multi-select functionality. Each analysis is exported as a separate JSON file within the ZIP.'
 			}
 		}
 	}
@@ -25,7 +25,7 @@ const mockFiles = [
 	{ id: 'file-3', filename: 'coronavirus_genes.fasta', size: 8192 }
 ];
 
-// Mock analyses
+// Mock analyses (excluding datareader since those are now in Data tab)
 const mockAnalyses = [
 	{
 		id: 'analysis-1',
@@ -49,13 +49,6 @@ const mockAnalyses = [
 		createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).getTime()
 	},
 	{
-		id: 'analysis-4',
-		method: 'datareader',
-		status: 'completed',
-		fileId: 'file-2',
-		createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).getTime()
-	},
-	{
 		id: 'analysis-5',
 		method: 'slac',
 		status: 'completed',
@@ -68,13 +61,6 @@ const mockAnalyses = [
 		status: 'completed',
 		fileId: 'file-3',
 		createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).getTime()
-	},
-	{
-		id: 'analysis-7',
-		method: 'datareader',
-		status: 'completed',
-		fileId: 'file-3',
-		createdAt: new Date(Date.now() - 30 * 60 * 1000).getTime()
 	}
 ];
 
@@ -91,7 +77,7 @@ Default.args = {
 Default.parameters = {
 	docs: {
 		description: {
-			story: 'Default batch export panel showing multiple completed analyses with filtering options and multi-select functionality.'
+			story: 'Default batch export panel showing multiple completed analyses with filtering options and multi-select functionality. Exports as ZIP archive.'
 		}
 	}
 };
@@ -104,14 +90,14 @@ MultipleAnalyses.args = {
 MultipleAnalyses.parameters = {
 	docs: {
 		description: {
-			story: 'Batch export with multiple analyses from different methods (FEL, BUSTED, MEME, SLAC, DataReader) across multiple files.'
+			story: 'Batch export with multiple analyses from different methods (FEL, BUSTED, MEME, SLAC) across multiple files.'
 		}
 	}
 };
 
 export const SingleMethod = Template.bind({});
 SingleMethod.args = {
-	analyses: mockAnalyses.filter(a => a.method === 'fel'),
+	analyses: mockAnalyses.filter((a) => a.method === 'fel'),
 	files: mockFiles
 };
 SingleMethod.parameters = {
@@ -122,23 +108,10 @@ SingleMethod.parameters = {
 	}
 };
 
-export const WithDataReaderAnalyses = Template.bind({});
-WithDataReaderAnalyses.args = {
-	analyses: mockAnalyses.filter(a => a.method === 'datareader'),
-	files: mockFiles
-};
-WithDataReaderAnalyses.parameters = {
-	docs: {
-		description: {
-			story: 'Batch export showing DataReader analyses which have the special "Export FASTA" button for extracting sequences.'
-		}
-	}
-};
-
 export const SingleFile = Template.bind({});
 SingleFile.args = {
-	analyses: mockAnalyses.filter(a => a.fileId === 'file-1'),
-	files: mockFiles.filter(f => f.id === 'file-1')
+	analyses: mockAnalyses.filter((a) => a.fileId === 'file-1'),
+	files: mockFiles.filter((f) => f.id === 'file-1')
 };
 SingleFile.parameters = {
 	docs: {
