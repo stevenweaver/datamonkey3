@@ -67,14 +67,6 @@
 					<li>
 						<a
 							class="rounded-premium-sm px-3 py-2 text-premium-brand font-medium text-text-rich transition-colors duration-premium hover:bg-brand-whisper hover:text-brand-royal"
-							href="/?tab=data"
-						>
-							Home
-						</a>
-					</li>
-					<li>
-						<a
-							class="rounded-premium-sm px-3 py-2 text-premium-brand font-medium text-text-rich transition-colors duration-premium hover:bg-brand-whisper hover:text-brand-royal"
 							href="http://help.datamonkey.org"
 							target="_blank"
 							rel="noopener noreferrer"
@@ -96,13 +88,6 @@
 		{#if mobileMenuOpen}
 			<div class="border-t border-border-platinum sm:hidden" id="mobile-menu">
 				<div class="space-y-1 px-4 pb-4 pt-2">
-					<a
-						class="block rounded-premium-sm px-3 py-3 text-base font-medium text-text-rich transition-colors duration-premium hover:bg-brand-whisper hover:text-brand-royal"
-						href="/?tab=data"
-						onclick={closeMobileMenu}
-					>
-						Home
-					</a>
 					<a
 						class="block rounded-premium-sm px-3 py-3 text-base font-medium text-text-rich transition-colors duration-premium hover:bg-brand-whisper hover:text-brand-royal"
 						href="http://help.datamonkey.org"
