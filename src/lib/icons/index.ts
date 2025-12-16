@@ -7,3 +7,6 @@ export { Dna, FileSpreadsheet, FileJson, FileCode, FileText, File } from 'lucide
 
 // UI icons
 export { Search, ChevronUp, ChevronDown, Trash2, Check, Download, Info, Upload, X } from 'lucide-svelte';
+
+// Tree/Nature icons
+export { TreeDeciduous } from 'lucide-svelte';
