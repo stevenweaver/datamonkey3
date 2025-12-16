@@ -43,6 +43,7 @@
 				<span class="text-lg font-bold tracking-premium-tight text-text-rich sm:text-premium-header">
 					<span class="text-brand-royal">Datamonkey</span> <span class="text-accent-copper">3</span>
 				</span>
+				<span class="ml-2 rounded bg-accent-copper px-1.5 py-0.5 text-xs font-semibold text-white">BETA</span>
 			</a>
 
 			<!-- Mobile menu button -->
