@@ -1,6 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
-	import { fileMetricsStore, currentFile } from '../stores/fileInfo';
+	import { fileMetricsStore, currentFile, alignmentFileStore } from '../stores/fileInfo';
 	import DataReaderResults from './dataReaderResults.svelte';
 	import FastaValidator from './FastaValidator.svelte';
 	import SequenceWarnings from './SequenceWarnings.svelte';
@@ -8,6 +7,7 @@
 	import ErrorHandler from './ErrorHandler.svelte';
 	import DemoFileSelector from './DemoFileSelector.svelte';
 	import TabNavigation from './TabNavigation.svelte';
+	import FastaExport from './FastaExport.svelte';
 
 	// Props
 	export let handleFileUpload = () => {};
@@ -81,7 +81,19 @@
 		<!-- Sequence Warnings Section -->
 		<SequenceWarnings {fileMetricsJSON} />
 
-		<!-- Export functionality moved to Results tab for unified export experience -->
+		<!-- Sequence Export Section -->
+		{#if $alignmentFileStore}
+			<div class="mb-premium-xl">
+				<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">
+					Export Sequences
+				</h2>
+				<div
+					class="rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium"
+				>
+					<FastaExport alignmentFile={$alignmentFileStore} />
+				</div>
+			</div>
+		{/if}
 	{:else}
 		<div
 			class="my-premium-xl rounded-premium border border-border-platinum bg-brand-whisper p-premium-xl text-center"

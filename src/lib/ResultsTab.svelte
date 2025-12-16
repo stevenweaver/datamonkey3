@@ -1,11 +1,9 @@
 <script>
-	import { onMount } from 'svelte';
 	import { analysisStore } from '../stores/analyses';
-	import { currentFile, fileMetricsStore } from '../stores/fileInfo';
+	import { currentFile } from '../stores/fileInfo';
 	import AnalysisResultViewer from './AnalysisResultViewer.svelte';
 	import AnalysisHistory from './AnalysisHistory.svelte';
 	import BatchExport from './BatchExport.svelte';
-	import FastaExport from './FastaExport.svelte';
 	import TabNavigation from './TabNavigation.svelte';
 	import { Trash2, BarChart3, Info } from 'lucide-svelte';
 
@@ -43,32 +41,18 @@
 	<div
 		class="mb-premium-xl rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium"
 	>
-		<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">Export Options</h2>
+		<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">Export Analysis Results</h2>
 
-		<div class="grid grid-cols-1 gap-premium-lg md:grid-cols-2">
-			<!-- Sequence Data Export (if file metrics available) -->
-			{#if $fileMetricsStore}
-				<div class="border-r border-border-platinum pr-premium-lg">
-					<h3 class="mb-premium-sm text-premium-title font-semibold">Sequence Data Export</h3>
-					<FastaExport fileMetricsJSON={$fileMetricsStore} />
-				</div>
-			{/if}
-
-			<!-- Analysis Results Export -->
-			<div class={$fileMetricsStore ? '' : 'col-span-2'}>
-				<h3 class="mb-premium-sm text-premium-title font-semibold">Analysis Results Export</h3>
-				{#if showBatchExport}
-					<BatchExport />
-				{:else}
-					<button
-						on:click={toggleBatchExport}
-						class="rounded bg-accent-copper px-4 py-2 font-medium text-white transition-colors hover:bg-accent-warm"
-					>
-						Show Batch Export
-					</button>
-				{/if}
-			</div>
-		</div>
+		{#if showBatchExport}
+			<BatchExport />
+		{:else}
+			<button
+				on:click={toggleBatchExport}
+				class="rounded bg-accent-copper px-4 py-2 font-medium text-white transition-colors hover:bg-accent-warm"
+			>
+				Show Batch Export
+			</button>
+		{/if}
 	</div>
 
 	<!-- Main content area -->

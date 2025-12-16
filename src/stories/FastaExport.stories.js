@@ -5,95 +5,59 @@ export default {
 	title: 'Export/FastaExport',
 	component: FastaExport,
 	argTypes: {
-		fileMetricsJSON: { control: 'object' },
+		alignmentFile: { control: 'object' },
 		showExport: { control: 'boolean' }
 	},
 	parameters: {
 		docs: {
 			description: {
 				component:
-					'Specialized export component for sequence data. Supports FASTA, CSV, and JSON export formats with options for line wrapping and gap character handling. Designed for use with DataReader analysis results.'
+					'Specialized export component for sequence data. Supports FASTA and NEXUS export formats with line wrapping option. Parses alignment files directly to extract sequences.'
 			}
 		}
 	}
 };
 
-// Mock sequence data
-const mockFileMetricsWithSequences = {
-	FILE_INFO: {
-		name: 'hiv_sequences.fasta',
-		type: 'FASTA nucleotide alignment',
-		sequences: 12,
-		sites: 450
-	},
-	FILE_PARTITION_INFO: {
-		0: {
-			sites: 450,
-			sequences: {
-				'HIV-1_A1_U455': 'ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT',
-				'HIV-1_B_HXB2': 'ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT',
-				'HIV-1_C_ETH222': 'ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT',
-				'HIV-1_D_84ZR085': 'ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT',
-				'HIV-1_F1_VI850': 'ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT'
-			}
-		}
-	}
-};
+// Helper to create a mock File object
+function createMockFile(content, filename, type = 'text/plain') {
+	const blob = new Blob([content], { type });
+	return new File([blob], filename, { type });
+}
 
-const mockFileMetricsMultiPartition = {
-	FILE_INFO: {
-		name: 'multi_gene_alignment.fasta',
-		type: 'FASTA nucleotide alignment',
-		sequences: 8,
-		sites: 900
-	},
-	FILE_PARTITION_INFO: {
-		0: {
-			sites: 300,
-			sequences: {
-				'Seq_A': 'ATGCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG',
-				'Seq_B': 'ATGCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG',
-				'Seq_C': 'ATGCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG'
-			}
-		},
-		1: {
-			sites: 300,
-			sequences: {
-				'Seq_A': 'GCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTA',
-				'Seq_B': 'GCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTA',
-				'Seq_C': 'GCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTA'
-			}
-		},
-		2: {
-			sites: 300,
-			sequences: {
-				'Seq_A': 'TACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT',
-				'Seq_B': 'TACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT',
-				'Seq_C': 'TACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT'
-			}
-		}
-	}
-};
+// Sample FASTA content
+const sampleFastaContent = `>HIV-1_A1_U455
+ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT
+>HIV-1_B_HXB2
+ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT
+>HIV-1_C_ETH222
+ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT
+>HIV-1_D_84ZR085
+ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT
+>HIV-1_F1_VI850
+ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT`;
 
-const mockFileMetricsWithGaps = {
-	FILE_INFO: {
-		name: 'gapped_alignment.fasta',
-		type: 'FASTA nucleotide alignment',
-		sequences: 4,
-		sites: 120
-	},
-	FILE_PARTITION_INFO: {
-		0: {
-			sites: 120,
-			sequences: {
-				'Sequence_1': 'ATGCGA---TCGATCGATCGATCGATCGATCG---ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG---ATCGATCGATCG',
-				'Sequence_2': 'ATGCGATCG---ATCGATCGATCGATCGATCGATCG---ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG---ATCGATCG',
-				'Sequence_3': 'ATGCGATCGATCG---ATCGATCGATCGATCGATCGATCG---ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG---ATCG',
-				'Sequence_4': 'ATGCGATCGATCGATCG---ATCGATCGATCGATCGATCGATCG---ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG---'
-			}
-		}
-	}
-};
+const sampleFastaWithGaps = `>Sequence_1
+ATGCGA---TCGATCGATCGATCGATCGATCG---ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG---ATCGATCGATCG
+>Sequence_2
+ATGCGATCG---ATCGATCGATCGATCGATCGATCG---ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG---ATCGATCG
+>Sequence_3
+ATGCGATCGATCG---ATCGATCGATCGATCGATCGATCG---ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG---ATCG
+>Sequence_4
+ATGCGATCGATCGATCG---ATCGATCGATCGATCGATCGATCG---ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG---`;
+
+const sampleNexusContent = `#NEXUS
+
+BEGIN DATA;
+  DIMENSIONS NTAX=5 NCHAR=187;
+  FORMAT DATATYPE=DNA GAP=- MISSING=?;
+  MATRIX
+    HUMAN    ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT
+    CHIMP    ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT
+    GORILLA  ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT
+    MOUSE    ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT
+    RAT      ATGGCAGATGATTTGTTAGTAGATGGAGGGGTTAACGAAAGCCCAATAAATTTGGGAAAGCTGGGTTATAATGATAAAGTGTTAATAAACGTTTGTGATTCAAAGCTTAATTGCTTAGAGGATATAAATTATAAGGCATTGAAAGAGGCAATAAAAAAATTAGGAGAACTTTTCTATAACATGGCAGTT
+  ;
+END;`;
 
 const Template = (args) => ({
 	Component: FastaExport,
@@ -102,77 +66,46 @@ const Template = (args) => ({
 
 export const Default = Template.bind({});
 Default.args = {
-	fileMetricsJSON: mockFileMetricsWithSequences,
+	alignmentFile: createMockFile(sampleFastaContent, 'hiv_sequences.fasta'),
 	showExport: true
 };
 Default.parameters = {
 	docs: {
 		description: {
-			story: 'Default FASTA export panel showing format selection (FASTA, CSV, JSON) and export options.'
+			story: 'Default export panel showing format selection (FASTA, NEXUS) and line wrap option.'
 		}
 	}
 };
 
 export const WithGappedSequences = Template.bind({});
 WithGappedSequences.args = {
-	fileMetricsJSON: mockFileMetricsWithGaps,
+	alignmentFile: createMockFile(sampleFastaWithGaps, 'gapped_alignment.fasta'),
 	showExport: true
 };
 WithGappedSequences.parameters = {
 	docs: {
 		description: {
-			story: 'Export panel with sequences containing gap characters (---). The "Include gap characters" checkbox controls whether gaps are preserved in the export.'
+			story: 'Export panel with sequences containing gap characters (---). Gaps are preserved in both FASTA and NEXUS exports.'
 		}
 	}
 };
 
-export const MultiPartitionAlignment = Template.bind({});
-MultiPartitionAlignment.args = {
-	fileMetricsJSON: mockFileMetricsMultiPartition,
+export const NexusInput = Template.bind({});
+NexusInput.args = {
+	alignmentFile: createMockFile(sampleNexusContent, 'alignment.nex'),
 	showExport: true
 };
-MultiPartitionAlignment.parameters = {
+NexusInput.parameters = {
 	docs: {
 		description: {
-			story: 'Export panel for a multi-partition alignment file. Sequences from all partitions will be included in the export.'
-		}
-	}
-};
-
-export const LargeAlignment = Template.bind({});
-LargeAlignment.args = {
-	fileMetricsJSON: {
-		FILE_INFO: {
-			name: 'large_dataset.fasta',
-			type: 'FASTA nucleotide alignment',
-			sequences: 50,
-			sites: 1500
-		},
-		FILE_PARTITION_INFO: {
-			0: {
-				sites: 1500,
-				sequences: Object.fromEntries(
-					Array.from({ length: 50 }, (_, i) => [
-						`Taxon_${String(i + 1).padStart(3, '0')}`,
-						'ATGCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG'
-					])
-				)
-			}
-		}
-	},
-	showExport: true
-};
-LargeAlignment.parameters = {
-	docs: {
-		description: {
-			story: 'Export panel for a larger alignment with 50 sequences. Line wrap option becomes important for readability.'
+			story: 'Export panel with a NEXUS format input file. The component parses NEXUS and can export to either format.'
 		}
 	}
 };
 
 export const Hidden = Template.bind({});
 Hidden.args = {
-	fileMetricsJSON: mockFileMetricsWithSequences,
+	alignmentFile: createMockFile(sampleFastaContent, 'sequences.fasta'),
 	showExport: false
 };
 Hidden.parameters = {
@@ -183,36 +116,15 @@ Hidden.parameters = {
 	}
 };
 
-export const NoData = Template.bind({});
-NoData.args = {
-	fileMetricsJSON: null,
+export const NoFile = Template.bind({});
+NoFile.args = {
+	alignmentFile: null,
 	showExport: true
 };
-NoData.parameters = {
+NoFile.parameters = {
 	docs: {
 		description: {
-			story: 'Export panel when no file metrics data is available. Component will not render.'
-		}
-	}
-};
-
-export const EmptyPartitions = Template.bind({});
-EmptyPartitions.args = {
-	fileMetricsJSON: {
-		FILE_INFO: {
-			name: 'empty_file.fasta',
-			type: 'FASTA nucleotide alignment',
-			sequences: 0,
-			sites: 0
-		},
-		FILE_PARTITION_INFO: {}
-	},
-	showExport: true
-};
-EmptyPartitions.parameters = {
-	docs: {
-		description: {
-			story: 'Export panel with file metrics but no actual sequence data in partitions.'
+			story: 'Export panel when no alignment file is available. Component will not render.'
 		}
 	}
 };

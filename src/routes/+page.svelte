@@ -499,6 +499,30 @@
 						(a, b) => b.createdAt - a.createdAt
 					)[0];
 					selectAnalysis(mostRecent.id);
+
+					// Also load the alignment file for the current file if available
+					if (mostRecent.fileId) {
+						try {
+							const alignmentFile = await persistentFileStore.getFile(mostRecent.fileId);
+							if (alignmentFile) {
+								alignmentFileStore.set(alignmentFile);
+
+								// Also load the file metrics if we have a datareader result
+								const datareaderAnalysis = $analysisStore.analyses.find(
+									(a) =>
+										a.fileId === mostRecent.fileId &&
+										a.method === 'datareader' &&
+										a.status === 'completed'
+								);
+								if (datareaderAnalysis?.result) {
+									const metrics = JSON.parse(datareaderAnalysis.result);
+									fileMetricsStore.set(metrics);
+								}
+							}
+						} catch (err) {
+							console.error('Error loading alignment file on mount:', err);
+						}
+					}
 				}
 
 				// Load tree data from the store if available

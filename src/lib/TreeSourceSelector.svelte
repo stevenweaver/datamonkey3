@@ -222,17 +222,18 @@
 		</div>
 
 		<div class="option-block">
-			<label class="option-row">
+			<label class="option-row disabled">
 				<input
 					type="radio"
 					bind:group={treeSource}
 					value="upload-new"
 					on:change={handleTreeSourceChange}
-					{disabled}
+					disabled={true}
 					class="option-radio"
 				/>
 				<span class="option-content">
 					<span class="option-text">Upload a different tree</span>
+					<span class="option-hint">(Not implemented yet)</span>
 				</span>
 			</label>
 		</div>
