@@ -4,6 +4,7 @@
 	import { persistentFileStore } from '../stores/fileInfo';
 	import { analysisStore, activeAnalysisProgress } from '../stores/analyses';
 	import { treeStore } from '../stores/tree';
+	import { toastStore } from '../stores/toast';
 	import {
 		backendConnectivity,
 		initializeBackendConnectivity
@@ -109,6 +110,13 @@
 
 	// Enhanced runMethod that handles both local and backend execution
 	async function enhancedRunMethod(method, config) {
+		// Show "analysis started" toast
+		const methodName = method.toUpperCase();
+		const executionModeLabel = config.executionMode === 'backend' ? 'server' : 'local';
+		toastStore.info(`${methodName} analysis started (${executionModeLabel})`, {
+			duration: 3000
+		});
+
 		try {
 			if (config.executionMode === 'backend') {
 				// Backend execution
@@ -218,8 +226,10 @@
 			}
 		} catch (error) {
 			console.error('❌ Analysis execution failed:', error);
-			// Could show error notification to user
-			alert(`Analysis failed: ${error.message}`);
+			// Show error toast instead of alert
+			toastStore.error(`Analysis failed: ${error.message}`, {
+				duration: 8000
+			});
 		}
 	}
 

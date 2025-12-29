@@ -5,7 +5,7 @@
 	import { treeStore } from '../stores/tree';
 	import BranchSelector from './BranchSelector.svelte';
 	import AnalysisTimingEstimate from './AnalysisTimingEstimate.svelte';
-	import { AlertTriangle, Play } from 'lucide-svelte';
+	import { AlertTriangle, Play, Loader2 } from 'lucide-svelte';
 
 	export let methodConfig;
 	export let runMethod = null;
@@ -115,6 +115,7 @@
 	let geneticCode = 'Universal';
 	let geneticCodeId = 0; // For matching HyPhy numeric codes
 	let executionMode = 'local'; // 'local' or 'backend'
+	let isSubmitting = false; // Track submission state for button feedback
 
 	// Genetic code mapping (HyPhy uses numeric IDs)
 	const GENETIC_CODES = [
@@ -833,7 +834,9 @@
 
 	// Run analysis
 	function runAnalysis() {
-		if (selectedMethod && runMethod) {
+		if (selectedMethod && runMethod && !isSubmitting) {
+			isSubmitting = true;
+
 			const analysisConfig = {
 				method: selectedMethod,
 				geneticCode,
@@ -849,6 +852,12 @@
 				`🚀 METHODSELECTOR DEBUG - branchSet1: "${analysisConfig.branchSet1}", branchSet2: "${analysisConfig.branchSet2}"`
 			);
 			runMethod(selectedMethod, analysisConfig);
+
+			// Reset button state after parent has had time to start the analysis
+			// This provides immediate feedback that the click was registered
+			setTimeout(() => {
+				isSubmitting = false;
+			}, 2000);
 		}
 	}
 
@@ -1210,10 +1219,14 @@
 		<div class="run-analysis-container">
 			<button
 				class="run-button-large"
+				class:submitting={isSubmitting}
 				on:click={runAnalysis}
-				disabled={!selectedMethod || !currentMethod?.info.supported}
+				disabled={!selectedMethod || !currentMethod?.info.supported || isSubmitting}
 			>
-				{#if currentMethod?.info.supported}
+				{#if isSubmitting}
+					<Loader2 class="run-icon spinning" />
+					Starting Analysis...
+				{:else if currentMethod?.info.supported}
 					<Play class="run-icon" />
 					Run {currentMethod?.info.name || ''} Analysis
 				{:else}
@@ -1558,6 +1571,24 @@
 		height: 20px;
 		fill: currentColor;
 		stroke: none;
+	}
+
+	.run-icon.spinning {
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.run-button-large.submitting {
+		background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+		cursor: wait;
 	}
 
 	.advanced-content {

@@ -9,6 +9,24 @@
 	$: hasFiles = $persistentFileStore?.files?.length > 0;
 	$: hasAnalyses = $analysisStore?.analyses?.length > 0;
 
+	// Track when user last viewed the Results tab to clear badge
+	// Initialize to current time so existing analyses don't show as "new" on page load
+	let lastResultsViewTime = Date.now();
+
+	// Update lastResultsViewTime when user navigates to Results tab
+	$: if (activeTab === 'results') {
+		lastResultsViewTime = Date.now();
+	}
+
+	// Count analyses completed AFTER the user last viewed Results tab
+	$: unviewedCompletedCount = ($analysisStore?.analyses || []).filter((a) => {
+		if (a.status !== 'completed' || !a.completedAt) return false;
+		return a.completedAt > lastResultsViewTime;
+	}).length;
+
+	// Show badge only if there are unviewed completions and not currently on Results tab
+	$: showResultsBadge = activeTab !== 'results' && unviewedCompletedCount > 0;
+
 	// Logic to determine if a tab should be disabled
 	$: isAnalyzeDisabled = !hasFiles;
 	$: isResultsDisabled = !hasAnalyses;
@@ -54,13 +72,14 @@
 			>
 				<span class="flex flex-col items-center gap-1 sm:flex-row sm:gap-2">
 					<div
-						class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border"
+						class="step-indicator flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border transition-all"
 						class:bg-brand-royal={activeTab === 'data'}
 						class:text-white={activeTab === 'data'}
 						class:border-brand-royal={activeTab === 'data'}
 						class:bg-white={activeTab !== 'data'}
 						class:text-text-rich={activeTab !== 'data'}
 						class:border-text-slate={activeTab !== 'data'}
+						class:active-step={activeTab === 'data'}
 					>
 						<span class="text-xs font-bold sm:text-sm">1</span>
 					</div>
@@ -87,7 +106,7 @@
 			>
 				<span class="flex flex-col items-center gap-1 sm:flex-row sm:gap-2">
 					<div
-						class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border"
+						class="step-indicator flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border transition-all"
 						class:bg-brand-royal={activeTab === 'analyze' && !isAnalyzeDisabled}
 						class:text-white={activeTab === 'analyze' && !isAnalyzeDisabled}
 						class:border-brand-royal={activeTab === 'analyze' && !isAnalyzeDisabled}
@@ -97,6 +116,7 @@
 						class:bg-gray-100={isAnalyzeDisabled}
 						class:text-text-silver={isAnalyzeDisabled}
 						class:border-gray-200={isAnalyzeDisabled}
+						class:active-step={activeTab === 'analyze'}
 					>
 						<span class="text-xs font-bold sm:text-sm">2</span>
 					</div>
@@ -123,7 +143,7 @@
 			>
 				<span class="flex flex-col items-center gap-1 sm:flex-row sm:gap-2">
 					<div
-						class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border"
+						class="relative flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border"
 						class:bg-brand-royal={activeTab === 'results' && !isResultsDisabled}
 						class:text-white={activeTab === 'results' && !isResultsDisabled}
 						class:border-brand-royal={activeTab === 'results' && !isResultsDisabled}
@@ -135,6 +155,10 @@
 						class:border-gray-200={isResultsDisabled}
 					>
 						<span class="text-xs font-bold sm:text-sm">3</span>
+						<!-- Badge for recently completed analyses -->
+						{#if showResultsBadge}
+							<span class="results-badge">{unviewedCompletedCount}</span>
+						{/if}
 					</div>
 					<span class="text-[10px] sm:text-sm">Results</span>
 				</span>
@@ -147,6 +171,41 @@
 </div>
 
 <style>
+	/* Active step indicator - slightly larger and with shadow */
+	.step-indicator.active-step {
+		transform: scale(1.15);
+		box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+	}
+
+	/* Badge for new results notification */
+	.results-badge {
+		position: absolute;
+		top: -6px;
+		right: -6px;
+		min-width: 16px;
+		height: 16px;
+		padding: 0 4px;
+		background-color: #10b981;
+		color: white;
+		font-size: 10px;
+		font-weight: 700;
+		line-height: 16px;
+		text-align: center;
+		border-radius: 9999px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+		animation: badge-pulse 2s ease-in-out infinite;
+	}
+
+	@keyframes badge-pulse {
+		0%,
+		100% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.1);
+		}
+	}
+
 	/* Add styles for custom tooltip on hover */
 	button[title]:hover::after {
 		content: attr(title);
