@@ -45,23 +45,8 @@
 		error = null;
 
 		try {
-			// Try to get analysis from server first (most up-to-date status)
-			try {
-				const response = await fetch(`/api/analyses/${id}`);
-				if (response.ok) {
-					const serverAnalysis = await response.json();
-					// Update local store with server data to keep them in sync
-					await analysisStore.updateAnalysis(id, serverAnalysis);
-					analysis = serverAnalysis;
-				} else {
-					// Fall back to local storage if server request fails
-					analysis = await analysisStore.getAnalysis(id);
-				}
-			} catch (err) {
-				console.warn('Server fetch failed, using local data:', err);
-				// Fall back to local storage
-				analysis = await analysisStore.getAnalysis(id);
-			}
+			// Get analysis from local IndexedDB storage
+			analysis = await analysisStore.getAnalysis(id);
 
 			if (!analysis) {
 				error = 'Analysis not found';

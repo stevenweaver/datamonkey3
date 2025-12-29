@@ -493,39 +493,7 @@ function createAnalysisStore() {
 					console.error('Error updating analysis in IndexedDB:', error);
 				}
 
-				// Update server via API (only in browser environment with proper URL)
-				try {
-					if (
-						browser &&
-						typeof window !== 'undefined' &&
-						window.location &&
-						!import.meta.env?.VITEST
-					) {
-						fetch(`/api/analyses/${analysisId}`, {
-							method: 'PATCH',
-							headers: {
-								'Content-Type': 'application/json'
-							},
-							body: JSON.stringify({
-								status,
-								logs: currentLogs, // Include logs in the server update
-								result: currentResult, // Include result with raw stdout in the server update
-								metadata: currentMetadata, // Include metadata in the server update
-								completedAt: success ? new Date().getTime() : undefined
-							})
-						})
-							.then((response) => response.json())
-							.then((data) => {
-								console.log('Server analysis status updated:', data);
-							})
-							.catch((error) => {
-								console.error('Error updating analysis status on server:', error);
-							});
-					}
-				} catch (error) {
-					console.error('Error updating analysis on server:', error);
 				}
-			}
 		},
 
 		// Complete analysis progress by specific ID (atomic, avoids race conditions)
@@ -622,39 +590,6 @@ function createAnalysisStore() {
 				}
 			} catch (error) {
 				console.error('Error updating analysis in IndexedDB:', error);
-			}
-
-			// Update server via API (only in browser environment)
-			try {
-				if (
-					browser &&
-					typeof window !== 'undefined' &&
-					window.location &&
-					!import.meta.env?.VITEST
-				) {
-					fetch(`/api/analyses/${analysisId}`, {
-						method: 'PATCH',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify({
-							status,
-							logs: currentLogs,
-							result: currentResult,
-							metadata: currentMetadata,
-							completedAt: success ? new Date().getTime() : undefined
-						})
-					})
-						.then((response) => response.json())
-						.then((data) => {
-							console.log('Server analysis status updated:', data);
-						})
-						.catch((error) => {
-							console.error('Error updating analysis status on server:', error);
-						});
-				}
-			} catch (error) {
-				console.error('Error updating analysis on server:', error);
 			}
 		},
 
