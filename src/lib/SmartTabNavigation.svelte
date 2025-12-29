@@ -19,8 +19,10 @@
 	}
 
 	// Count analyses completed AFTER the user last viewed Results tab
+	// Exclude datareader results since those are automatic file parsing, not user-initiated analyses
 	$: unviewedCompletedCount = ($analysisStore?.analyses || []).filter((a) => {
 		if (a.status !== 'completed' || !a.completedAt) return false;
+		if (a.method === 'datareader') return false;
 		return a.completedAt > lastResultsViewTime;
 	}).length;
 
