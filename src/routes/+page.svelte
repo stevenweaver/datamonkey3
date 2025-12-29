@@ -920,15 +920,22 @@
 		}
 	}
 
+	// Handle navigation from toast action (analysis completion)
+	function handleNavigateToResults() {
+		activeTab = 'results';
+	}
+
 	// Set up beforeunload handler
 	if (browser) {
 		window.addEventListener('beforeunload', handleBeforeUnload);
+		window.addEventListener('navigate-to-results', handleNavigateToResults);
 	}
 
-	// Clean up beforeunload handler on component destroy
+	// Clean up event handlers on component destroy
 	onDestroy(() => {
 		if (browser) {
 			window.removeEventListener('beforeunload', handleBeforeUnload);
+			window.removeEventListener('navigate-to-results', handleNavigateToResults);
 		}
 	});
 </script>

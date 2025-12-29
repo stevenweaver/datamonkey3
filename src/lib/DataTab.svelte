@@ -1,5 +1,6 @@
 <script>
 	import { fileMetricsStore, currentFile, alignmentFileStore } from '../stores/fileInfo';
+	import { treeStore } from '../stores/tree';
 	import DataReaderResults from './dataReaderResults.svelte';
 	import FastaValidator from './FastaValidator.svelte';
 	import SequenceWarnings from './SequenceWarnings.svelte';
@@ -8,6 +9,7 @@
 	import DemoFileSelector from './DemoFileSelector.svelte';
 	import TabNavigation from './TabNavigation.svelte';
 	import FastaExport from './FastaExport.svelte';
+	import { ArrowRight } from 'lucide-svelte';
 
 	// Props
 	export let handleFileUpload = () => {};
@@ -23,6 +25,8 @@
 
 	// Computed props
 	$: hasFileMetrics = !!fileMetricsJSON && Object.keys(fileMetricsJSON).length > 0;
+	$: hasTree = $treeStore && ($treeStore.nj || $treeStore.usertree);
+	$: isReadyForAnalysis = hasFileMetrics && hasTree;
 </script>
 
 <div class="data-tab">
@@ -101,6 +105,46 @@
 			<p class="text-premium-body text-text-slate">
 				Upload or select a file to view sequence data information
 			</p>
+		</div>
+	{/if}
+
+	<!-- Continue to Analysis CTA -->
+	{#if isReadyForAnalysis}
+		<div class="continue-cta mb-premium-xl">
+			<div class="rounded-premium border border-green-200 bg-green-50 p-premium-lg">
+				<div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+					<div class="flex items-center gap-3">
+						<div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+							<svg
+								class="h-5 w-5 text-green-600"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M5 13l4 4L19 7"
+								/>
+							</svg>
+						</div>
+						<div>
+							<p class="font-semibold text-green-800">Data ready for analysis</p>
+							<p class="text-sm text-green-600">
+								Your sequence data and phylogenetic tree are loaded
+							</p>
+						</div>
+					</div>
+					<button
+						on:click={() => onChange('analyze')}
+						class="inline-flex items-center gap-2 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md"
+					>
+						Continue to Analysis
+						<ArrowRight class="h-5 w-5" />
+					</button>
+				</div>
+			</div>
 		</div>
 	{/if}
 

@@ -4,6 +4,7 @@
  */
 
 import { analysisStore } from '../../stores/analyses.js';
+import { toastStore } from '../../stores/toast.js';
 import { get } from 'svelte/store';
 
 export class BaseAnalysisRunner {
@@ -84,6 +85,20 @@ export class BaseAnalysisRunner {
 		const currentState = get(analysisStore);
 		const activeAnalysis = currentState?.activeAnalyses?.find((a) => a.id === analysisId);
 		const argumentsMetadata = activeAnalysis?.metadata?.arguments || null;
+		const methodName = activeAnalysis?.method?.toUpperCase() || 'Analysis';
+
+		// Show toast notification for completion
+		if (success) {
+			toastStore.success(`${methodName} analysis complete!`, {
+				action: 'View Results',
+				onAction: () => {
+					// Navigate to results tab - this will be picked up by the app
+					window.dispatchEvent(new CustomEvent('navigate-to-results'));
+				}
+			});
+		} else {
+			toastStore.error(`${methodName} analysis failed: ${message || 'Unknown error'}`);
+		}
 
 		if (success && result) {
 			// Ensure result is stored consistently as JSON string

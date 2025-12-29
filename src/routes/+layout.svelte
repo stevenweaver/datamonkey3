@@ -2,6 +2,7 @@
 	import '../app.css';
 	import AnalysisStatusIndicator from '../lib/AnalysisStatusIndicator.svelte';
 	import BackendConnectivityIndicator from '../lib/BackendConnectivityIndicator.svelte';
+	import Toast from '../lib/Toast.svelte';
 	import { X, Menu } from 'lucide-svelte';
 
 	// Get version from Vite define
@@ -145,3 +146,6 @@
 		</div>
 	</footer>
 </div>
+
+<!-- Global Toast Notifications -->
+<Toast />
