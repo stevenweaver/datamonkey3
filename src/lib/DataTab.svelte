@@ -102,12 +102,11 @@
 		<div
 			class="my-premium-xl flex flex-col items-center rounded-2xl border border-border-platinum bg-gradient-to-b from-brand-whisper to-white p-8 text-center shadow-sm"
 		>
-			<!-- Cropped container to hide Twitter icon on right side -->
-			<div class="mb-6 h-32 w-64 overflow-hidden rounded-xl">
+			<div class="mb-6 overflow-hidden rounded-xl">
 				<img
 					src="/img/Gemini_Generated_Image_6asu8i6asu8i6asu.png"
 					alt="Datamonkey mascot ready for sequence input"
-					class="h-full w-auto max-w-none object-cover object-left opacity-60 transition-opacity hover:opacity-80"
+					class="h-32 w-auto opacity-60 transition-opacity hover:opacity-80"
 				/>
 			</div>
 			<p class="max-w-sm text-base text-text-slate">
