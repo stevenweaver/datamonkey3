@@ -100,18 +100,20 @@
 		{/if}
 	{:else}
 		<div
-			class="my-premium-xl flex flex-col items-center rounded-2xl border border-border-platinum bg-gradient-to-b from-brand-whisper to-white p-8 text-center shadow-sm"
+			class="relative my-premium-xl overflow-hidden rounded-2xl border border-border-platinum bg-gradient-to-br from-brand-whisper via-white to-brand-whisper/50 p-8 text-center shadow-sm"
 		>
-			<div class="mb-6 overflow-hidden rounded-xl">
+			<div class="absolute inset-0 flex items-center justify-center overflow-hidden">
 				<img
-					src="/img/Gemini_Generated_Image_6asu8i6asu8i6asu.png"
-					alt="Datamonkey mascot ready for sequence input"
-					class="h-32 w-auto opacity-60 transition-opacity hover:opacity-80"
+					src="/img/Gemini_Generated_Image_uno20runo20runo2.png"
+					alt="Datamonkey mascot"
+					class="h-full w-auto max-w-none scale-110 opacity-20"
 				/>
 			</div>
-			<p class="max-w-sm text-base text-text-slate">
-				Upload or select a file to get started
-			</p>
+			<div class="relative z-10 py-8">
+				<p class="text-lg font-medium text-text-rich">
+					Upload or select a file to get started
+				</p>
+			</div>
 		</div>
 	{/if}
 
