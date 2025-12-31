@@ -101,24 +101,27 @@
 				</div>
 			{:else}
 				<div
-					class="flex h-64 flex-col items-center justify-center rounded-premium bg-brand-whisper text-center"
+					class="flex min-h-[360px] flex-col items-center justify-center rounded-2xl bg-gradient-to-b from-brand-whisper to-white p-8 text-center"
 				>
-					<div class="mb-premium-md">
-						<Info class="text-text-muted mx-auto mb-premium-sm h-16 w-16" strokeWidth={1.5} />
-						<h3 class="mb-premium-xs text-premium-title font-semibold text-text-rich">
-							No Analyses Yet
-						</h3>
-						<p class="mb-premium-md text-premium-body text-text-slate">
-							You haven't run any analyses yet. Get started by uploading a file and running an
-							analysis method.
-						</p>
-						<button
-							on:click={() => onChange('analyze')}
-							class="rounded-premium bg-brand-royal px-premium-md py-premium-sm font-medium text-white transition-colors hover:bg-brand-deep"
-						>
-							Go to Analyze Tab
-						</button>
+					<div class="mb-6 overflow-hidden rounded-2xl shadow-sm">
+						<img
+							src="/img/Gemini_Generated_Image_9t03gi9t03gi9t03.png"
+							alt="Datamonkey mascot ready to analyze"
+							class="h-44 w-auto opacity-50 transition-opacity hover:opacity-70"
+						/>
 					</div>
+					<h3 class="mb-2 text-lg font-semibold text-text-rich">
+						No Analyses Yet
+					</h3>
+					<p class="mb-5 max-w-xs text-sm text-text-slate">
+						Run an analysis to see your results here
+					</p>
+					<button
+						on:click={() => onChange('analyze')}
+						class="rounded-xl bg-brand-royal px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-brand-deep hover:shadow-md"
+					>
+						Go to Analyze Tab
+					</button>
 				</div>
 			{/if}
 		</div>
