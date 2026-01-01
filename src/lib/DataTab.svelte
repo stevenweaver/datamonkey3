@@ -101,8 +101,12 @@
 	{:else}
 		<div
 			class="relative my-premium-xl overflow-hidden rounded-2xl border border-border-platinum p-8 text-center shadow-sm"
-			style="background: linear-gradient(135deg, rgba(248,250,252,0.95), rgba(255,255,255,0.9)), url('/img/Gemini_Generated_Image_uno20runo20runo2.png'); background-size: 200px; background-repeat: repeat;"
 		>
+			<div
+				class="absolute -inset-12 opacity-15"
+				style="background: url('/img/Gemini_Generated_Image_uno20runo20runo2.png'); background-size: 180px; background-repeat: repeat; transform: rotate(-12deg);"
+			></div>
+			<div class="absolute inset-0 bg-gradient-to-br from-white/90 via-white/80 to-brand-whisper/90"></div>
 			<div class="relative z-10 py-12">
 				<p class="text-lg font-medium text-text-rich">
 					Upload or select a file to get started
