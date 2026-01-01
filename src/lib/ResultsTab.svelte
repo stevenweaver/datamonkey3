@@ -105,7 +105,7 @@
 				>
 					<div class="mb-6 overflow-hidden rounded-2xl shadow-sm">
 						<img
-							src="/img/Gemini_Generated_Image_9t03gi9t03gi9t03.png"
+							src="/img/mascot-ready.png"
 							alt="Datamonkey mascot ready to analyze"
 							class="h-44 w-auto opacity-50 transition-opacity hover:opacity-70"
 						/>

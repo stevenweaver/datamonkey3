@@ -178,7 +178,7 @@
 		<div class="error-container flex flex-col items-center rounded-2xl bg-gradient-to-b from-red-50 to-white p-8 text-center">
 			<div class="mb-5 overflow-hidden rounded-xl shadow-sm">
 				<img
-					src="/img/Gemini_Generated_Image_z8pawnz8pawnz8pa.png"
+					src="/img/mascot-error.png"
 					alt="Datamonkey mascot encountered an error"
 					class="h-36 w-auto opacity-60"
 				/>

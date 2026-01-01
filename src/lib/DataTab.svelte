@@ -104,7 +104,7 @@
 		>
 			<div
 				class="absolute -inset-32 opacity-30"
-				style="background: url('/img/Gemini_Generated_Image_uno20runo20runo2.png'); background-size: 180px; background-repeat: repeat; transform: rotate(-12deg);"
+				style="background: url('/img/mascot-pattern.png'); background-size: 180px; background-repeat: repeat; transform: rotate(-12deg);"
 			></div>
 			<div class="absolute inset-0 bg-gradient-to-br from-white/90 via-white/80 to-brand-whisper/90"></div>
 			<div class="relative z-10 py-12">

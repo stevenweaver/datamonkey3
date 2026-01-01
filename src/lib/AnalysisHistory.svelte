@@ -165,7 +165,7 @@
 		<div class="rounded-xl border border-status-error-border bg-gradient-to-b from-red-50 to-white p-6 text-center text-status-error-text">
 			<div class="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-xl">
 				<img
-					src="/img/Gemini_Generated_Image_z8pawnz8pawnz8pa.png"
+					src="/img/mascot-error.png"
 					alt="Datamonkey mascot encountered an error"
 					class="h-full w-auto opacity-60"
 				/>
@@ -177,7 +177,7 @@
 			<div class="flex flex-col items-center">
 				<div class="mb-4 overflow-hidden rounded-xl">
 					<img
-						src="/img/Gemini_Generated_Image_ypha3cypha3cypha.png"
+						src="/img/mascot-waiting.png"
 						alt="Datamonkey mascot"
 						class="h-28 w-auto opacity-50 transition-opacity hover:opacity-70"
 					/>

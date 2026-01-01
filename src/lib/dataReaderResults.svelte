@@ -53,7 +53,7 @@
 			<div class="flex items-start gap-4">
 				<div class="flex-shrink-0 overflow-hidden rounded-lg">
 					<img
-						src="/img/Gemini_Generated_Image_z8pawnz8pawnz8pa.png"
+						src="/img/mascot-error.png"
 						alt="Datamonkey mascot"
 						class="h-16 w-auto opacity-70"
 					/>
