@@ -40,11 +40,12 @@
 <div class="flex min-h-screen flex-col bg-brand-ghost">
 	<nav class="border-b border-border-platinum bg-white shadow-sm">
 		<div class="container mx-auto flex items-center justify-between px-4 py-3 sm:px-premium-xl sm:py-premium-md">
-			<a class="flex items-center" href="/?tab=data" onclick={closeMobileMenu}>
+			<a class="flex items-center gap-2" href="/?tab=data" onclick={closeMobileMenu}>
+				<img src="/img/logo.png" alt="Datamonkey logo" class="h-8 w-auto" />
 				<span class="text-lg font-bold tracking-premium-tight text-text-rich sm:text-premium-header">
 					<span class="text-brand-royal">Datamonkey</span> <span class="text-accent-copper">3</span>
 				</span>
-				<span class="ml-2 rounded bg-accent-copper px-1.5 py-0.5 text-xs font-semibold text-white">BETA</span>
+				<span class="rounded bg-accent-copper px-1.5 py-0.5 text-xs font-semibold text-white">BETA</span>
 			</a>
 
 			<!-- Mobile menu button -->
