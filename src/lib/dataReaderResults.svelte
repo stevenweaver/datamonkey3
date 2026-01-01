@@ -49,12 +49,21 @@
 
 	{#if fileMetricsJSON?.error}
 		<!-- Error State -->
-		<div class="rounded-md border border-status-error/20 bg-status-error/5 p-4">
-			<div class="flex items-start gap-3">
-				<AlertTriangle class="mt-0.5 h-5 w-5 flex-shrink-0 text-status-error" />
-				<div class="flex-1">
-					<p class="font-medium text-status-error">Validation Error</p>
-					<p class="mt-1 text-sm text-text-slate">{fileMetricsJSON.error}</p>
+		<div class="rounded-xl border border-status-error/20 bg-gradient-to-b from-red-50 to-white p-6">
+			<div class="flex items-start gap-4">
+				<div class="flex-shrink-0 overflow-hidden rounded-lg">
+					<img
+						src="/img/mascot-error.png"
+						alt="Datamonkey mascot"
+						class="h-16 w-auto opacity-70"
+					/>
+				</div>
+				<div class="flex-1 pt-1">
+					<div class="mb-1 flex items-center gap-2">
+						<AlertTriangle class="h-4 w-4 text-status-error" />
+						<p class="font-medium text-status-error">Validation Error</p>
+					</div>
+					<p class="text-sm text-text-slate">{fileMetricsJSON.error}</p>
 				</div>
 			</div>
 		</div>

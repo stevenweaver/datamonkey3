@@ -175,9 +175,16 @@
 			<p>Loading analysis results...</p>
 		</div>
 	{:else if error}
-		<div class="error-container p-4 text-status-error">
-			<h3 class="font-bold">Error</h3>
-			<p>{error}</p>
+		<div class="error-container flex flex-col items-center rounded-2xl bg-gradient-to-b from-red-50 to-white p-8 text-center">
+			<div class="mb-5 overflow-hidden rounded-xl shadow-sm">
+				<img
+					src="/img/mascot-error.png"
+					alt="Datamonkey mascot encountered an error"
+					class="h-36 w-auto opacity-60"
+				/>
+			</div>
+			<h3 class="mb-2 text-lg font-semibold text-text-rich">Something went wrong</h3>
+			<p class="max-w-md text-status-error-text">{error}</p>
 		</div>
 	{:else if analysis && file}
 		<div class="analysis-container">

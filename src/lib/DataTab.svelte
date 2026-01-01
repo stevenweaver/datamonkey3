@@ -100,11 +100,18 @@
 		{/if}
 	{:else}
 		<div
-			class="my-premium-xl rounded-premium border border-border-platinum bg-brand-whisper p-premium-xl text-center"
+			class="relative my-premium-xl overflow-hidden rounded-2xl border border-border-platinum p-8 text-center shadow-sm"
 		>
-			<p class="text-premium-body text-text-slate">
-				Upload or select a file to view sequence data information
-			</p>
+			<div
+				class="absolute -inset-32 opacity-30"
+				style="background: url('/img/mascot-pattern.png'); background-size: 180px; background-repeat: repeat; transform: rotate(-12deg);"
+			></div>
+			<div class="absolute inset-0 bg-gradient-to-br from-white/90 via-white/80 to-brand-whisper/90"></div>
+			<div class="relative z-10 py-12">
+				<p class="text-lg font-medium text-text-rich">
+					Upload or select a file to get started
+				</p>
+			</div>
 		</div>
 	{/if}
 

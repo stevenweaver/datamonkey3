@@ -162,17 +162,30 @@
 			<span>Loading analyses...</span>
 		</div>
 	{:else if $analysisStore.error}
-		<div class="rounded border border-status-error-border bg-status-error-bg p-3 text-status-error-text">
-			<p>Error: {$analysisStore.error}</p>
+		<div class="rounded-xl border border-status-error-border bg-gradient-to-b from-red-50 to-white p-6 text-center text-status-error-text">
+			<div class="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-xl">
+				<img
+					src="/img/mascot-error.png"
+					alt="Datamonkey mascot encountered an error"
+					class="h-full w-auto opacity-60"
+				/>
+			</div>
+			<p class="font-medium">Error: {$analysisStore.error}</p>
 		</div>
 	{:else if sortedAnalyses.length === 0}
-		<div class="rounded border border-border-subtle bg-surface-raised p-4 text-center text-text-silver">
+		<div class="rounded-xl border border-border-subtle bg-gradient-to-b from-brand-whisper to-white p-6 text-center text-text-slate shadow-sm">
 			<div class="flex flex-col items-center">
-				<BadgeCheck class="mb-3 h-12 w-12 text-text-silver" />
-				<p class="font-medium">
+				<div class="mb-4 overflow-hidden rounded-xl">
+					<img
+						src="/img/mascot-waiting.png"
+						alt="Datamonkey mascot"
+						class="h-28 w-auto opacity-50 transition-opacity hover:opacity-70"
+					/>
+				</div>
+				<p class="font-medium text-text-rich">
 					No analyses found{filterByCurrentFile ? ' for the current file' : ''}.
 				</p>
-				<p class="mt-2 text-sm">Run an analysis method (FEL, SLAC, etc.) to see results here.</p>
+				<p class="mt-2 text-sm">Run an analysis method to see results here.</p>
 			</div>
 		</div>
 	{:else}
