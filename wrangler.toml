@@ -1,5 +1,5 @@
-name = "fasta-validation"
-main = ".svelte-kit/cloudflare/_worker.js"
+name = "datamonkey3"
+pages_build_output_dir = ".svelte-kit/cloudflare"
 compatibility_date = "2024-02-24"
 
 # Set environment variables
