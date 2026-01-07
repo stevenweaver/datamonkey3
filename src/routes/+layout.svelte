@@ -4,9 +4,15 @@
 	import BackendConnectivityIndicator from '../lib/BackendConnectivityIndicator.svelte';
 	import Toast from '../lib/Toast.svelte';
 	import { X, Menu } from 'lucide-svelte';
+	import { env } from '$env/dynamic/public';
 
 	// Get version from Vite define
 	const version = __APP_VERSION__;
+
+	// Umami analytics (only if configured)
+	const umamiUrl = env.PUBLIC_UMAMI_URL;
+	const umamiWebsiteId = env.PUBLIC_UMAMI_WEBSITE_ID;
+	const umamiEnabled = umamiUrl && umamiWebsiteId;
 
 	let { children } = $props();
 
@@ -35,6 +41,9 @@
 		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
 	/>
 	<title>Datamonkey 3 - Sequence Analysis Platform</title>
+	{#if umamiEnabled}
+		<script defer src={umamiUrl} data-website-id={umamiWebsiteId}></script>
+	{/if}
 </svelte:head>
 
 <div class="flex min-h-screen flex-col bg-brand-ghost">
