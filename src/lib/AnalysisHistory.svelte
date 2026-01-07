@@ -5,6 +5,7 @@
 	import { browser } from '$app/environment';
 	import AnalysisCard from './AnalysisCard.svelte';
 	import { Loader2, BadgeCheck } from 'lucide-svelte';
+	import { trackEvent } from './utils/analytics.js';
 
 	// Props
 	export let onSelectAnalysis = (id) => {}; // Callback when analysis is selected
@@ -105,7 +106,16 @@
 		const { analysisId } = event.detail;
 		if (confirm('Are you sure you want to cancel this analysis?')) {
 			try {
+				// Find the analysis to get method and progress for tracking
+				const analysis = sortedAnalyses.find((a) => a.id === analysisId);
+
 				await analysisStore.cancelAnalysis(analysisId);
+
+				// Track analysis cancellation
+				trackEvent('analysis-cancelled', {
+					method: analysis?.method || 'unknown',
+					progress: analysis?.progress || 0
+				});
 			} catch (error) {
 				console.error('Error cancelling analysis:', error);
 				alert('Failed to cancel analysis: ' + error.message);
@@ -118,7 +128,15 @@
 		const { analysisId } = event.detail;
 		if (confirm('Are you sure you want to delete this analysis? This action cannot be undone.')) {
 			try {
+				// Find the analysis to get method for tracking
+				const analysis = sortedAnalyses.find((a) => a.id === analysisId);
+
 				await analysisStore.deleteAnalysis(analysisId);
+
+				// Track analysis deletion
+				trackEvent('analysis-deleted', {
+					method: analysis?.method || 'unknown'
+				});
 			} catch (error) {
 				console.error('Error deleting analysis:', error);
 				alert('Failed to delete analysis: ' + error.message);

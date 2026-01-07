@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
 	import { Dna, Sparkles, ArrowRight } from 'lucide-svelte';
+	import { trackEvent } from './utils/analytics.js';
 
 	const dispatch = createEventDispatcher();
 
@@ -59,6 +60,9 @@
 
 			// Add metadata to indicate this is a demo file
 			const metadata = { isDemo: true, source: 'demoSelector' };
+
+			// Track demo file load
+			trackEvent('demo-file-loaded', { filename: fileName });
 
 			// Dispatch the file to the parent component
 			dispatch('selectFile', { file, metadata });

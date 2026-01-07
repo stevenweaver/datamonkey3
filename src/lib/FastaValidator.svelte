@@ -3,6 +3,7 @@
 	import { validateFasta, repairFasta, toFastaFormat, ERROR_TYPES } from './utils/fastaValidation';
 	import { exportData } from './utils/exportUtils';
 	import { Zap, Download, Check } from 'lucide-svelte';
+	import { trackEvent } from './utils/analytics.js';
 
 	// Props
 	export let file = null;
@@ -52,6 +53,13 @@
 
 			// Validate FASTA content
 			validationResults = validateFasta(fileContent, validationOptions);
+
+			// Track file validation
+			trackEvent('file-validated', {
+				isValid: validationResults.valid,
+				errorCount: validationResults.errors?.length || 0,
+				warningCount: validationResults.warnings?.length || 0
+			});
 
 			// Dispatch result
 			dispatch('validated', validationResults);

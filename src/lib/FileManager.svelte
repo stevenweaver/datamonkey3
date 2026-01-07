@@ -4,6 +4,7 @@
 	import { analysisStore } from '../stores/analyses';
 	import FileCard from './FileCard.svelte';
 	import { Search, Trash2, Loader2, File } from '$lib/icons';
+	import { trackEvent } from './utils/analytics.js';
 
 	// Props
 	export let onSelectFile = () => {};
@@ -150,6 +151,9 @@
 			// Then delete the file
 			await persistentFileStore.deleteFile(fileId);
 
+			// Track single file deletion
+			trackEvent('file-deleted', { fileCount: 1 });
+
 			// Remove from previews map
 			filePreviews.delete(fileId);
 			filePreviews = filePreviews; // Trigger reactivity
@@ -168,6 +172,7 @@
 			) {
 				// Get all file IDs
 				const fileIds = $persistentFileStore.files.map((file) => file.id);
+				const fileCount = fileIds.length;
 
 				// Show a loading state specifically for clearing
 				isClearingFiles = true;
@@ -214,6 +219,9 @@
 
 				// Clear the current file
 				persistentFileStore.setCurrentFile(null);
+
+				// Track bulk file deletion
+				trackEvent('file-deleted', { fileCount });
 
 				isClearingFiles = false;
 			}

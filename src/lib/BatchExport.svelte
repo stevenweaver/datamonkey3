@@ -4,6 +4,7 @@
 	import { persistentFileStore } from '../stores/fileInfo';
 	import JSZip from 'jszip';
 	import { Loader2, Download, FileArchive } from 'lucide-svelte';
+	import { trackEvent } from './utils/analytics.js';
 
 	// Internal state
 	let analyses = [];
@@ -106,6 +107,9 @@
 	// Export selected analyses as a ZIP file
 	async function exportSelectedAnalyses() {
 		if (selectedAnalyses.size === 0) return;
+
+		// Track batch export start
+		trackEvent('batch-export-started', { analysisCount: selectedAnalyses.size });
 
 		isExporting = true;
 		exportStatus = 'Preparing export...';

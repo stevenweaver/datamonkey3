@@ -5,6 +5,7 @@
 	import { persistentFileStore } from '../stores/fileInfo';
 	import LogDownloader from './LogDownloader.svelte';
 	import { ChevronUp, ChevronDown, Download } from '$lib/icons';
+	import { trackEvent } from './utils/analytics.js';
 
 	// Props
 	export let analysisId;
@@ -139,6 +140,12 @@
 
 			// Export the data as JSON
 			exportData(resultData, exportFilename, 'json');
+
+			// Track results export
+			trackEvent('results-exported', {
+				method: analysis?.method || 'unknown',
+				format: 'json'
+			});
 
 			// Show success message
 			exportStatus = 'Exported successfully';

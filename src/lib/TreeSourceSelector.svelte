@@ -3,6 +3,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { Upload, X, ChevronDown, ChevronUp } from '$lib/icons';
 	import PhyloTree from './phylotree.svelte';
+	import { trackEvent } from './utils/analytics.js';
 
 	const dispatch = createEventDispatcher();
 
@@ -62,6 +63,9 @@
 				console.error('Error reading tree file:', e);
 				newUploadedNewick = '';
 			}
+
+			// Track tree upload
+			trackEvent('tree-uploaded', { source: 'upload-new' });
 
 			dispatch('fileUploaded', {
 				file,

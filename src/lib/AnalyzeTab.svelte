@@ -18,6 +18,13 @@
 	import { ChevronDown, TreeDeciduous } from '$lib/icons';
 	import { trackEvent } from './utils/analytics.js';
 
+	// Wrap toggleStdOut to add analytics
+	function handleToggleStdOut() {
+		toggleStdOut();
+		// Track after toggle so we capture the new state
+		trackEvent('console-toggled', { visible: !isStdOutVisible });
+	}
+
 	// Props
 	export let methodConfig = {};
 	export let runMethod = () => {};
@@ -347,7 +354,7 @@
 					<button
 						on:click={(e) => {
 							e.stopPropagation();
-							toggleStdOut();
+							handleToggleStdOut();
 						}}
 						class="mr-premium-md rounded-premium-sm bg-brand-royal px-premium-md py-premium-xs text-premium-meta font-medium text-white transition-all duration-premium hover:bg-brand-deep"
 					>

@@ -12,6 +12,7 @@
 	import { analysisStore, currentAnalysis, activeAnalysisProgress, activeAnalyses } from '../stores/analyses';
 	import { backendAnalysisRunner } from '../lib/services/BackendAnalysisRunner.js';
 	import { treeStore, addTree, updateTaggedTree } from '../stores/tree';
+	import { trackEvent } from '../lib/utils/analytics.js';
 	import Aioli from '@biowasm/aioli';
 	import TreeSelector from '../lib/TreeSelector.svelte';
 	import ErrorHandler from '../lib/ErrorHandler.svelte';
@@ -50,6 +51,7 @@
 	let selectedMethod = 'FEL'; // Default selected method for configuration
 	let treeData = {};
 	let showBatchExport = false;
+	let analysisStartTime = null; // Track analysis start time for duration calculation
 
 	// Handle URL query parameter for tab navigation (e.g., /?tab=results)
 	$: {
@@ -198,6 +200,9 @@
 			const analysisId = await analysisStore.createAnalysis(currentFileId, methodName);
 			console.log(`Created analysis ${analysisId} for method ${methodName}`);
 			selectAnalysis(analysisId); // Select the new analysis immediately
+
+			// Track analysis start time for duration calculation
+			analysisStartTime = Date.now();
 
 			// Switch to the analysis tab to show the analysis in progress
 			activeTab = 'analyze';
@@ -376,6 +381,13 @@
 			);
 			console.log(`Analysis ${analysisId} for method ${methodName} completed successfully`);
 
+			// Track analysis completion
+			trackEvent('analysis-completed', {
+				method: methodName,
+				executionMode: 'wasm',
+				durationMs: analysisStartTime ? Date.now() - analysisStartTime : 0
+			});
+
 			// Switch to results tab when analysis completes
 			activeTab = 'results';
 		} catch (error) {
@@ -384,6 +396,13 @@
 				error
 			);
 			hyphyOut = `Error: ${error.message}`;
+
+			// Track analysis failure
+			trackEvent('analysis-failed', {
+				method: typeof method === 'string' ? method : 'unknown',
+				executionMode: 'wasm',
+				errorType: error.message?.substring(0, 50) || 'Unknown error'
+			});
 
 			// Update analysis with error
 			if (analysisStore.currentAnalysisId) {
@@ -859,10 +878,18 @@
 		}
 	}
 
+	// Track tab changes with analytics
+	function changeTab(newTab) {
+		if (newTab !== activeTab) {
+			trackEvent('tab-changed', { from: activeTab, to: newTab });
+			activeTab = newTab;
+		}
+	}
+
 	// Handle tab switching events from child components
 	function handleSwitchTab(event) {
 		if (event.detail && event.detail.tabName) {
-			activeTab = event.detail.tabName;
+			changeTab(event.detail.tabName);
 
 			// If we have an analysis ID, select it
 			if (event.detail.analysisId) {
@@ -959,7 +986,7 @@
 			<!-- Main Tabbed Interface with Smart Navigation -->
 			<SmartTabNavigation
 				{activeTab}
-				onChange={(tab) => (activeTab = tab)}
+				onChange={changeTab}
 			/>
 
 			<!-- Tab Content with Progressive Enhancement -->
@@ -973,7 +1000,7 @@
 					{handleValidated}
 					{handleUseRepaired}
 					{activeTab}
-					onChange={(tab) => (activeTab = tab)}
+					onChange={changeTab}
 				/>
 			{:else if activeTab === 'analyze'}
 				<!-- Analyze Tab -->
@@ -987,7 +1014,7 @@
 					{showAllHistory}
 					{selectAnalysis}
 					{activeTab}
-					onChange={(tab) => (activeTab = tab)}
+					onChange={changeTab}
 				/>
 			{:else if activeTab === 'results'}
 				<!-- Results Tab -->
@@ -998,7 +1025,7 @@
 					{showBatchExport}
 					{toggleBatchExport}
 					{activeTab}
-					onChange={(tab) => (activeTab = tab)}
+					onChange={changeTab}
 				/>
 			{/if}
 		</div>
