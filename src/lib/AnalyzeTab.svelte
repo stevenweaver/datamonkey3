@@ -16,6 +16,7 @@
 	import backendAnalysisRunner from './services/BackendAnalysisRunner.js';
 	import wasmAnalysisRunner from './services/WasmAnalysisRunner.js';
 	import { ChevronDown, TreeDeciduous } from '$lib/icons';
+	import { trackEvent } from './utils/analytics.js';
 
 	// Props
 	export let methodConfig = {};
@@ -115,6 +116,12 @@
 		const executionModeLabel = config.executionMode === 'backend' ? 'server' : 'local';
 		toastStore.info(`${methodName} analysis started (${executionModeLabel})`, {
 			duration: 3000
+		});
+
+		// Track analysis started event
+		trackEvent('analysis-started', {
+			method: methodName,
+			executionMode: config.executionMode
 		});
 
 		try {
