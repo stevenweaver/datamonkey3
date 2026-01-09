@@ -719,6 +719,25 @@
 			result = await cliObj.exec('hyphy LIBPATH=/shared/hyphy/ ' + inputFiles[1]);
 			hyphyOut = await result.stdout;
 
+			// Check for tree-related messages in datareader output (not an error, just informational)
+			const hasTreeParsingMessage = hyphyOut.includes('Illegal right hand side in call to Topology') ||
+				hyphyOut.includes('tree string is invalid') ||
+				hyphyOut.includes('Newick tree spec');
+
+			if (hasTreeParsingMessage) {
+				console.log('ℹ️ No valid tree found in file - will use inferred NJ tree');
+			}
+
+			// Log any error-like messages for debugging (but don't fail)
+			if (hyphyOut.includes('Error') || hyphyOut.includes('error')) {
+				const errorLines = hyphyOut.split('\n').filter(line =>
+					line.toLowerCase().includes('error')
+				);
+				if (errorLines.length > 0) {
+					console.warn('HyPhy datareader messages:', errorLines);
+				}
+			}
+
 			// Process results
 			analysisStore.updateAnalysisProgressById(
 				analysisId,
@@ -726,11 +745,30 @@
 				80,
 				'Processing file information...'
 			);
-			const jsonBlob = await cliObj.download('/shared/data/results.json');
+
+			let jsonBlob;
+			try {
+				jsonBlob = await cliObj.download('/shared/data/results.json');
+			} catch (downloadError) {
+				console.error('Failed to download results.json:', downloadError);
+				throw new Error('File analysis failed. The file may be in an unsupported format or contain invalid data.');
+			}
 			const response = await fetch(jsonBlob);
 			const blob = await response.blob();
 			jsonOut = await blob.text();
-			fileMetricsJSON = JSON.parse(jsonOut);
+
+			// Validate that we got JSON, not an error page
+			if (jsonOut.trim().startsWith('<!') || jsonOut.trim().startsWith('<html')) {
+				console.error('Received HTML instead of JSON:', jsonOut.substring(0, 200));
+				throw new Error('File analysis failed. Please check that your file is a valid FASTA or NEXUS alignment.');
+			}
+
+			try {
+				fileMetricsJSON = JSON.parse(jsonOut);
+			} catch (parseError) {
+				console.error('Failed to parse results JSON:', parseError, 'Content:', jsonOut.substring(0, 500));
+				throw new Error('File analysis produced invalid results. Please ensure your file is a valid sequence alignment.');
+			}
 
 			// Set the file and its metrics in the store
 			fileMetricsStore.set(fileMetricsJSON);
@@ -798,14 +836,19 @@
 			// Update progress tracking
 			analysisStore.completeAnalysisProgress(false, `Error: ${error.message}`);
 
+			// Determine error type and provide appropriate message
+			const errorMsg = error.message || '';
+			const isTreeError = errorMsg.includes('Tree') || errorMsg.includes('tree') ||
+				errorMsg.includes('Topology') || errorMsg.includes('Newick');
+
 			// Set validation error for display
 			validationError = {
-				code: 'FASTA-999',
-				message: 'File processing error',
+				code: isTreeError ? 'TREE-001' : 'FASTA-999',
+				message: isTreeError ? 'Tree parsing issue' : 'File processing error',
 				details: error.message,
 				type: {
-					code: 'FASTA-999',
-					message: 'File processing error'
+					code: isTreeError ? 'TREE-001' : 'FASTA-999',
+					message: isTreeError ? 'Tree parsing issue' : 'File processing error'
 				}
 			};
 		}

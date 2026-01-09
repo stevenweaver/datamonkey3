@@ -1,6 +1,6 @@
 <script>
 	import PhyloTree from './phylotree.svelte';
-	import { AlertTriangle, Check, X, ChevronRight, Copy } from 'lucide-svelte';
+	import { AlertTriangle, Check, Info, ChevronRight, Copy } from 'lucide-svelte';
 
 	export let fileMetricsJSON = null;
 
@@ -9,7 +9,7 @@
 	let userTreeStringExpanded = {};
 	let copySuccess = null;
 
-	$: passed = fileMetricsJSON?.FILE_INFO?.goodtree;
+	$: hasTree = fileMetricsJSON?.FILE_INFO?.goodtree;
 
 	// Format timestamp in a clear, unambiguous format
 	function formatTimestamp(timestamp) {
@@ -71,16 +71,16 @@
 		<!-- Status Badge (non-interactive) and Toggle -->
 		<div class="mb-4 flex items-center gap-3">
 			<span
-				class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium {passed
+				class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium {hasTree
 					? 'bg-status-success/10 text-status-success'
-					: 'bg-status-error/10 text-status-error'}"
+					: 'bg-amber-100 text-amber-700'}"
 			>
-				{#if passed}
+				{#if hasTree}
 					<Check class="h-3.5 w-3.5" />
 				{:else}
-					<X class="h-3.5 w-3.5" />
+					<Info class="h-3.5 w-3.5" />
 				{/if}
-				{passed ? 'Valid Tree' : 'Invalid Tree'}
+				{hasTree ? 'Tree Included' : 'No Tree Detected'}
 			</span>
 			<button
 				on:click={() => (isOpen = !isOpen)}

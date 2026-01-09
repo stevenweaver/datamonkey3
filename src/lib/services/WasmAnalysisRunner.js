@@ -386,6 +386,15 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 			}
 		}
 
+		// Check for tree-related errors
+		if (stdout.includes('Illegal right hand side in call to Topology') ||
+			stdout.includes('tree string is invalid') ||
+			stdout.includes('Newick tree spec')) {
+			throw new Error(
+				'Tree format error. Please select "Inferred NJ tree" in the Analyze tab, or upload a valid Newick tree file.'
+			);
+		}
+
 		this.updateProgress(analysisId, 'processing', 80, 'Processing results...');
 
 		// Map method names to their result file extensions

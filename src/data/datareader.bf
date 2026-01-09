@@ -82,9 +82,16 @@ function checkTreeString (treeS, treeID) {
         notify("info", "Aminoacid translation in " + BASE_CGI_URL_STRING + "showdata.pl?" + filePath + ".aa'");
       }
     }
-	if (Abs(treeS))
+	// Only attempt to parse tree if it's a String containing valid Newick
+	// DATAFILE_TREE can be "{}" (AssociativeList) for files without trees
+	// Must use nested ifs because HyPhy doesn't short-circuit && operator
+	if (Type(treeS) == "String")
 	{
-		Topology t 	= treeS;
+		if (Abs(treeS) > 0)
+		{
+			if ((treeS $ "\\(")[0] >= 0)
+			{
+				Topology t 	= treeS;
 		leafCount 	= TipCount (t) - Abs (removedSequences);
 		
 		internalLabels = {};
@@ -166,9 +173,11 @@ function checkTreeString (treeS, treeID) {
 				
 			}
 		}
-		else
+			else
 		{
-      notify(warning, "A tree (#" + treeID + ") was found in the data file, but the number of leaves (" + leafCount + ") did not match the number of sequences in the file.");
+			notify("warning", "A tree (#" + treeID + ") was found in the data file, but the number of leaves (" + leafCount + ") did not match the number of sequences in the file.");
+		}
+			}
 		}
 	}
 	return "";

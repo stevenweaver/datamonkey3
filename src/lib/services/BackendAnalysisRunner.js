@@ -161,13 +161,23 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 		this.socket.on('script error', async (error) => {
 			console.error('❌ Backend analysis error:', error);
 
+			// Detect tree-related errors and provide clearer message
+			const errorMsg = error.message || error || '';
+			let userFacingError = `Analysis failed: ${errorMsg}`;
+
+			if (errorMsg.includes('Illegal right hand side in call to Topology') ||
+				errorMsg.includes('tree string is invalid') ||
+				errorMsg.includes('Newick tree spec')) {
+				userFacingError = 'Tree format error. Please select "Inferred NJ tree" in the Analyze tab, or upload a valid Newick tree file.';
+			}
+
 			// Update all active analyses as failed (since we don't have specific job context)
 			for (const [jobId, analysisId] of this.activeAnalyses.entries()) {
 				await this.completeAnalysis(
 					analysisId,
 					false,
 					null,
-					`Analysis failed: ${error.message || error}`
+					userFacingError
 				);
 				this.activeAnalyses.delete(jobId);
 			}

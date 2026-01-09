@@ -9,7 +9,7 @@
 	import DemoFileSelector from './DemoFileSelector.svelte';
 	import TabNavigation from './TabNavigation.svelte';
 	import FastaExport from './FastaExport.svelte';
-	import { ArrowRight } from 'lucide-svelte';
+	import { ArrowRight, AlertTriangle, TreeDeciduous, Info } from 'lucide-svelte';
 
 	// Props
 	export let handleFileUpload = () => {};
@@ -27,6 +27,12 @@
 	$: hasFileMetrics = !!fileMetricsJSON && Object.keys(fileMetricsJSON).length > 0;
 	$: hasTree = $treeStore && ($treeStore.nj || $treeStore.usertree);
 	$: isReadyForAnalysis = hasFileMetrics && hasTree;
+
+	// Check if error is tree-related (show as warning instead of error)
+	$: isTreeError = validationError?.code?.startsWith('TREE') ||
+		validationError?.message?.toLowerCase().includes('tree') ||
+		validationError?.details?.toLowerCase().includes('tree');
+	$: errorLevel = isTreeError ? 'warning' : 'error';
 </script>
 
 <div class="data-tab">
@@ -56,10 +62,10 @@
 			</div>
 		</div>
 
-		<!-- Error display -->
+		<!-- Error display (tree errors show as warning, others as error) -->
 		<ErrorHandler
 			error={validationError}
-			level="error"
+			level={errorLevel}
 			on:dismiss={() => (validationError = null)}
 		/>
 	</div>
@@ -98,6 +104,49 @@
 				</div>
 			</div>
 		{/if}
+
+		<!-- Phylogenetic Tree Status Section -->
+		<div class="mb-premium-xl">
+			<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">
+				Phylogenetic Tree Status
+			</h2>
+			<div class="rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium">
+				{#if $treeStore?.usertree}
+					<!-- User tree found -->
+					<div class="flex items-center gap-3">
+						<div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+							<TreeDeciduous class="h-5 w-5 text-green-600" />
+						</div>
+						<div>
+							<p class="font-semibold text-green-800">Tree detected in file</p>
+							<p class="text-sm text-green-600">Using the phylogenetic tree from your uploaded file</p>
+						</div>
+					</div>
+				{:else if $treeStore?.nj}
+					<!-- NJ tree inferred -->
+					<div class="flex items-center gap-3">
+						<div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+							<Info class="h-5 w-5 text-blue-600" />
+						</div>
+						<div>
+							<p class="font-semibold text-blue-800">Using inferred neighbor-joining tree</p>
+							<p class="text-sm text-blue-600">No tree was found in your file. A tree has been inferred from the sequence data.</p>
+						</div>
+					</div>
+				{:else}
+					<!-- No tree available -->
+					<div class="flex items-center gap-3">
+						<div class="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
+							<AlertTriangle class="h-5 w-5 text-yellow-600" />
+						</div>
+						<div>
+							<p class="font-semibold text-yellow-800">No phylogenetic tree available</p>
+							<p class="text-sm text-yellow-600">Please upload a tree file in the Analyze tab to proceed.</p>
+						</div>
+					</div>
+				{/if}
+			</div>
+		</div>
 	{:else}
 		<div
 			class="relative my-premium-xl overflow-hidden rounded-2xl border border-border-platinum p-8 text-center shadow-sm"
