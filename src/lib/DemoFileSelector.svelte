@@ -7,33 +7,33 @@
 	const dispatch = createEventDispatcher();
 
 	// Sample files available for demo with enhanced metadata
-	// All demo files are sequence alignments, so they all use the Dna icon
+	// Names are user-friendly to help new users understand what to expect
 	const demoFiles = [
 		{
 			name: 'CD2-slim.fna',
-			description: 'CD2 gene alignment',
-			detail: '10 sequences • FASTA format',
+			description: 'Quick Start Example',
+			detail: '10 sequences • Fast results',
 			path: '/test-data/CD2-slim.fna',
 			size: 'small'
 		},
 		{
 			name: 'small.nex',
-			description: 'Small alignment',
-			detail: 'NEXUS format • Quick test',
+			description: 'NEXUS with Tree',
+			detail: 'Includes phylogenetic tree',
 			path: '/test-data/small.nex',
 			size: 'small'
 		},
 		{
 			name: 'medium.nex',
-			description: 'Medium alignment',
-			detail: 'NEXUS format • Standard',
+			description: 'Standard Example',
+			detail: 'Typical analysis size',
 			path: '/test-data/medium.nex',
 			size: 'medium'
 		},
 		{
 			name: 'large.nex',
-			description: 'Large alignment',
-			detail: 'NEXUS format • Extended',
+			description: 'Large Dataset',
+			detail: 'For testing performance',
 			path: '/test-data/large.nex',
 			size: 'large'
 		}
