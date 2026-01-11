@@ -62,6 +62,16 @@
 			</div>
 		</div>
 
+		<!-- File limits info -->
+		<div class="mt-premium-md flex items-start gap-2 rounded-lg bg-blue-50 p-3 text-sm text-blue-700">
+			<Info class="mt-0.5 h-4 w-4 flex-shrink-0" />
+			<div>
+				<span class="font-medium">File limits:</span>
+				Max 5,000 sequences, 12,000 alignment sites.
+				Files with &gt;500 sequences require an embedded tree.
+			</div>
+		</div>
+
 		<!-- Error display (tree errors show as warning, others as error) -->
 		<ErrorHandler
 			error={validationError}
