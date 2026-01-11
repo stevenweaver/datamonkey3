@@ -602,9 +602,15 @@ if (buildNJtree) {
 
 file_info_record["sequences"] = filteredData.species;
 file_info_record["timestamp"] = Format(Time(1),20,0);
-file_info_record["goodtree"] = goodTree; 
-file_info_record["nj"] = treeString; 
+file_info_record["goodtree"] = goodTree;
+file_info_record["nj"] = treeString;
 file_info_record["rawsites"] = filteredData.sites;
+
+// Validation details - expose what datareader detected for UI display
+file_info_record["duplicate_sequences"] = dupSeqCount;
+file_info_record["sequences_renamed"] = renames;
+file_info_record["ambiguous_sites"] = padWarning;
+file_info_record["stop_codons_stripped"] = terminalCodonsStripped;
 
 sequence_records = {};
 GetString(seqNames, filteredData, -1);
