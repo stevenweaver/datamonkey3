@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>HyPhy WASM Benchmark Suite</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+					Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+				max-width: 1200px;
+				margin: 0 auto;
+				padding: 20px;
+				background: #f5f5f5;
+			}
+
+			h1 {
+				text-align: center;
+				color: #333;
+				margin-bottom: 10px;
+			}
+
+			.subtitle {
+				text-align: center;
+				color: #666;
+				margin-bottom: 20px;
+			}
+
+			.card {
+				background: white;
+				padding: 20px;
+				border-radius: 8px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				margin-bottom: 20px;
+			}
+
+			.card h2 {
+				margin-top: 0;
+				color: #333;
+				font-size: 18px;
+				border-bottom: 1px solid #eee;
+				padding-bottom: 10px;
+			}
+
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+				gap: 20px;
+			}
+
+			.control-group {
+				display: flex;
+				flex-direction: column;
+				gap: 5px;
+				margin-bottom: 15px;
+			}
+
+			.control-group label {
+				font-weight: 500;
+				color: #555;
+			}
+
+			select,
+			input[type='number'],
+			input[type='file'] {
+				padding: 8px 12px;
+				border: 1px solid #ddd;
+				border-radius: 4px;
+				font-size: 14px;
+			}
+
+			.checkbox-group {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 15px;
+			}
+
+			.checkbox-group label {
+				display: flex;
+				align-items: center;
+				gap: 5px;
+				cursor: pointer;
+			}
+
+			button {
+				padding: 12px 20px;
+				border: none;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 14px;
+				font-weight: 500;
+				transition: all 0.2s;
+			}
+
+			button.primary {
+				background-color: #4a76a8;
+				color: white;
+			}
+
+			button.primary:hover:not(:disabled) {
+				background-color: #3a5a78;
+			}
+
+			button.secondary {
+				background-color: #6c757d;
+				color: white;
+			}
+
+			button.secondary:hover:not(:disabled) {
+				background-color: #5a6268;
+			}
+
+			button:disabled {
+				background-color: #cccccc;
+				cursor: not-allowed;
+			}
+
+			.button-group {
+				display: flex;
+				gap: 10px;
+				margin-top: 15px;
+			}
+
+			.status {
+				padding: 10px 15px;
+				border-radius: 4px;
+				font-weight: 500;
+				text-align: center;
+				margin: 15px 0;
+			}
+
+			.status.running {
+				background: #fff3cd;
+				color: #856404;
+			}
+
+			.status.completed {
+				background: #d4edda;
+				color: #155724;
+			}
+
+			.status.error {
+				background: #f8d7da;
+				color: #721c24;
+			}
+
+			.progress-bar {
+				width: 100%;
+				height: 20px;
+				background: #e9ecef;
+				border-radius: 10px;
+				overflow: hidden;
+				margin: 10px 0;
+			}
+
+			.progress-bar-fill {
+				height: 100%;
+				background: linear-gradient(90deg, #4a76a8, #2ecc71);
+				transition: width 0.3s ease;
+			}
+
+			table {
+				width: 100%;
+				border-collapse: collapse;
+				margin-top: 15px;
+			}
+
+			th,
+			td {
+				padding: 10px;
+				text-align: left;
+				border-bottom: 1px solid #ddd;
+			}
+
+			th {
+				background-color: #f8f9fa;
+				font-weight: 600;
+			}
+
+			.stats-row td {
+				font-weight: 500;
+			}
+
+			.stats-row.mean {
+				background: #e3f2fd;
+			}
+
+			.stats-row.ci {
+				background: #fff8e1;
+			}
+
+			.hardware-info {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+				gap: 10px;
+			}
+
+			.hardware-item {
+				background: #f8f9fa;
+				padding: 10px;
+				border-radius: 4px;
+			}
+
+			.hardware-item label {
+				display: block;
+				font-size: 12px;
+				color: #666;
+				margin-bottom: 3px;
+			}
+
+			.hardware-item .value {
+				font-weight: 600;
+				color: #333;
+			}
+
+			.log {
+				background-color: #1e1e1e;
+				color: #d4d4d4;
+				padding: 15px;
+				border-radius: 4px;
+				height: 200px;
+				overflow-y: auto;
+				font-family: 'Monaco', 'Consolas', monospace;
+				font-size: 12px;
+				white-space: pre-wrap;
+			}
+
+			.log .timestamp {
+				color: #6a9955;
+			}
+
+			.log .error {
+				color: #f48771;
+			}
+
+			.log .success {
+				color: #4ec9b0;
+			}
+
+			.test-alignments {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+				gap: 10px;
+			}
+
+			.alignment-card {
+				padding: 10px;
+				border: 2px solid #e9ecef;
+				border-radius: 4px;
+				cursor: pointer;
+				transition: all 0.2s;
+			}
+
+			.alignment-card:hover {
+				border-color: #4a76a8;
+			}
+
+			.alignment-card.selected {
+				border-color: #4a76a8;
+				background: #e3f2fd;
+			}
+
+			.alignment-card .name {
+				font-weight: 600;
+				color: #333;
+			}
+
+			.alignment-card .details {
+				font-size: 12px;
+				color: #666;
+				margin-top: 3px;
+			}
+
+			.hidden {
+				display: none !important;
+			}
+
+			.export-buttons {
+				display: flex;
+				gap: 10px;
+				margin-top: 15px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>HyPhy WASM Benchmark Suite</h1>
+		<p class="subtitle">Statistical benchmarking for DM3 paper: WASM vs Native CLI comparison</p>
+
+		<!-- Hardware Info -->
+		<div class="card">
+			<h2>System Information</h2>
+			<div class="hardware-info" id="hardware-info">
+				<div class="hardware-item">
+					<label>CPU Cores</label>
+					<div class="value" id="hw-cores">-</div>
+				</div>
+				<div class="hardware-item">
+					<label>Memory</label>
+					<div class="value" id="hw-memory">-</div>
+				</div>
+				<div class="hardware-item">
+					<label>Platform</label>
+					<div class="value" id="hw-platform">-</div>
+				</div>
+				<div class="hardware-item">
+					<label>Browser</label>
+					<div class="value" id="hw-browser">-</div>
+				</div>
+				<div class="hardware-item">
+					<label>OS</label>
+					<div class="value" id="hw-os">-</div>
+				</div>
+				<div class="hardware-item">
+					<label>HyPhy Version</label>
+					<div class="value" id="hw-hyphy">Loading...</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="grid">
+			<!-- Configuration -->
+			<div class="card">
+				<h2>Benchmark Configuration</h2>
+
+				<div class="control-group">
+					<label>Methods to Test</label>
+					<div class="checkbox-group">
+						<label><input type="checkbox" value="fel" checked /> FEL</label>
+						<label><input type="checkbox" value="meme" checked /> MEME</label>
+						<label><input type="checkbox" value="slac" checked /> SLAC</label>
+					</div>
+				</div>
+
+				<div class="control-group">
+					<label for="iterations">Iterations per Test</label>
+					<input type="number" id="iterations" min="3" max="20" value="5" />
+				</div>
+
+				<div class="control-group">
+					<label>Test Alignments</label>
+					<div class="test-alignments" id="test-alignments">
+						<!-- Populated by JavaScript -->
+					</div>
+				</div>
+
+				<div class="control-group">
+					<label for="custom-file">Or Upload Custom Alignment</label>
+					<input type="file" id="custom-file" accept=".nex,.fasta,.fas,.fa,.nexus" />
+				</div>
+			</div>
+
+			<!-- Controls -->
+			<div class="card">
+				<h2>Run Benchmark</h2>
+
+				<div id="status" class="status hidden"></div>
+
+				<div class="progress-bar hidden" id="progress-container">
+					<div class="progress-bar-fill" id="progress-bar" style="width: 0%"></div>
+				</div>
+
+				<div id="progress-text" style="text-align: center; margin: 10px 0"></div>
+
+				<div class="button-group">
+					<button class="primary" id="start-benchmark" disabled>Start Benchmark</button>
+					<button class="secondary" id="stop-benchmark" disabled>Stop</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Results -->
+		<div class="card" id="results-container" style="display: none">
+			<h2>Results</h2>
+
+			<div id="results-tables"></div>
+
+			<div class="export-buttons">
+				<button class="secondary" id="export-json">Export JSON</button>
+				<button class="secondary" id="export-csv">Export CSV</button>
+				<button class="secondary" id="copy-latex">Copy LaTeX Table</button>
+			</div>
+		</div>
+
+		<!-- Log -->
+		<div class="card">
+			<h2>Execution Log</h2>
+			<div class="log" id="log"></div>
+		</div>
+
+		<script src="https://cdn.jsdelivr.net/npm/@biowasm/aioli@3.2.1/dist/aioli.js"></script>
+		<script>
+			// Test alignment definitions
+			const TEST_ALIGNMENTS = [
+				{
+					id: 'tiny',
+					name: 'Tiny',
+					sequences: 10,
+					sites: 150,
+					filename: 'tiny.nex',
+					category: 'tiny'
+				},
+				{
+					id: 'small',
+					name: 'Small',
+					sequences: 25,
+					sites: 300,
+					filename: 'small.nex',
+					category: 'small'
+				},
+				{
+					id: 'medium-narrow',
+					name: 'Med Narrow',
+					sequences: 50,
+					sites: 201,
+					filename: 'medium-narrow.nex',
+					category: 'medium'
+				},
+				{
+					id: 'medium',
+					name: 'Medium',
+					sequences: 50,
+					sites: 501,
+					filename: 'medium.nex',
+					category: 'medium'
+				},
+				{
+					id: 'medium-wide',
+					name: 'Med Wide',
+					sequences: 25,
+					sites: 999,
+					filename: 'medium-wide.nex',
+					category: 'medium'
+				},
+				{
+					id: 'large-narrow',
+					name: 'Large Narrow',
+					sequences: 100,
+					sites: 300,
+					filename: 'large-narrow.nex',
+					category: 'large'
+				},
+				{ id: 'large', name: 'Large', sequences: 100, sites: 600, filename: 'large.nex', category: 'large' },
+				{
+					id: 'xlarge',
+					name: 'X-Large',
+					sequences: 200,
+					sites: 450,
+					filename: 'xlarge.nex',
+					category: 'xlarge'
+				}
+			];
+
+			// DOM Elements
+			const logEl = document.getElementById('log');
+			const statusEl = document.getElementById('status');
+			const progressContainer = document.getElementById('progress-container');
+			const progressBar = document.getElementById('progress-bar');
+			const progressText = document.getElementById('progress-text');
+			const startButton = document.getElementById('start-benchmark');
+			const stopButton = document.getElementById('stop-benchmark');
+			const resultsContainer = document.getElementById('results-container');
+			const resultsTables = document.getElementById('results-tables');
+			const customFileInput = document.getElementById('custom-file');
+
+			// State
+			let cliObj = null;
+			let isRunning = false;
+			let shouldStop = false;
+			let allResults = [];
+			let hardwareInfo = {};
+			let softwareInfo = { hyphyVersion: 'Loading...' };
+
+			// Utility functions
+			function log(text, type = '') {
+				const timestamp = new Date().toISOString().substr(11, 12);
+				const typeClass = type ? ` class="${type}"` : '';
+				logEl.innerHTML += `<span class="timestamp">[${timestamp}]</span> <span${typeClass}>${text}</span>\n`;
+				logEl.scrollTop = logEl.scrollHeight;
+			}
+
+			function updateStatus(text, type = '') {
+				statusEl.textContent = text;
+				statusEl.className = 'status ' + type;
+				statusEl.classList.remove('hidden');
+			}
+
+			function updateProgress(percent, text) {
+				progressContainer.classList.remove('hidden');
+				progressBar.style.width = `${percent}%`;
+				progressText.textContent = text;
+			}
+
+			function hideProgress() {
+				progressContainer.classList.add('hidden');
+				progressText.textContent = '';
+			}
+
+			// Hardware detection
+			function detectHardware() {
+				const ua = navigator.userAgent;
+
+				hardwareInfo = {
+					cores: navigator.hardwareConcurrency || 'Unknown',
+					memoryGB: navigator.deviceMemory || 'Unknown',
+					platform: navigator.platform,
+					userAgent: ua
+				};
+
+				// Extract browser info
+				let browser = 'Unknown';
+				if (ua.includes('Firefox/')) {
+					browser = 'Firefox ' + ua.match(/Firefox\/(\d+)/)?.[1];
+				} else if (ua.includes('Edg/')) {
+					browser = 'Edge ' + ua.match(/Edg\/(\d+)/)?.[1];
+				} else if (ua.includes('Chrome/')) {
+					browser = 'Chrome ' + ua.match(/Chrome\/(\d+)/)?.[1];
+				} else if (ua.includes('Safari/') && !ua.includes('Chrome')) {
+					browser = 'Safari ' + ua.match(/Version\/(\d+)/)?.[1];
+				}
+				hardwareInfo.browser = browser;
+
+				// Extract OS info
+				let os = 'Unknown';
+				if (ua.includes('Windows')) {
+					os = 'Windows';
+				} else if (ua.includes('Mac OS X')) {
+					const version = ua.match(/Mac OS X (\d+[._]\d+)/)?.[1]?.replace('_', '.');
+					os = `macOS ${version || ''}`;
+				} else if (ua.includes('Linux')) {
+					os = 'Linux';
+				}
+				hardwareInfo.os = os;
+
+				// Update UI
+				document.getElementById('hw-cores').textContent = hardwareInfo.cores;
+				document.getElementById('hw-memory').textContent =
+					hardwareInfo.memoryGB !== 'Unknown' ? `${hardwareInfo.memoryGB} GB` : 'Unknown';
+				document.getElementById('hw-platform').textContent = hardwareInfo.platform;
+				document.getElementById('hw-browser').textContent = hardwareInfo.browser;
+				document.getElementById('hw-os').textContent = hardwareInfo.os;
+			}
+
+			// Statistics calculations
+			function calculateStatistics(times) {
+				const n = times.length;
+				if (n === 0)
+					return {
+						n: 0,
+						mean: 0,
+						stdDev: 0,
+						standardError: 0,
+						ci95: [0, 0],
+						min: 0,
+						max: 0,
+						median: 0,
+						cv: 0
+					};
+
+				const sorted = [...times].sort((a, b) => a - b);
+				const mean = times.reduce((sum, t) => sum + t, 0) / n;
+				const variance = times.reduce((sum, t) => sum + Math.pow(t - mean, 2), 0) / (n - 1);
+				const stdDev = Math.sqrt(variance);
+				const standardError = stdDev / Math.sqrt(n);
+				const ci95 = [mean - 1.96 * standardError, mean + 1.96 * standardError];
+				const median = n % 2 === 0 ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2 : sorted[Math.floor(n / 2)];
+
+				return {
+					n,
+					mean,
+					stdDev,
+					standardError,
+					ci95,
+					min: sorted[0],
+					max: sorted[n - 1],
+					median,
+					cv: (stdDev / mean) * 100
+				};
+			}
+
+			// Initialize test alignment cards
+			function initializeAlignmentCards() {
+				const container = document.getElementById('test-alignments');
+				TEST_ALIGNMENTS.forEach((alignment) => {
+					const card = document.createElement('div');
+					card.className = 'alignment-card';
+					card.dataset.id = alignment.id;
+					card.innerHTML = `
+            <div class="name">${alignment.name}</div>
+            <div class="details">${alignment.sequences} seq × ${alignment.sites} sites</div>
+          `;
+					card.addEventListener('click', () => {
+						card.classList.toggle('selected');
+						customFileInput.value = '';
+					});
+					container.appendChild(card);
+				});
+
+				// Select 'tiny' and 'small' by default
+				document.querySelector('[data-id="tiny"]')?.classList.add('selected');
+				document.querySelector('[data-id="small"]')?.classList.add('selected');
+			}
+
+			// Get selected methods
+			function getSelectedMethods() {
+				const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked');
+				return Array.from(checkboxes).map((cb) => cb.value);
+			}
+
+			// Get selected alignments
+			function getSelectedAlignments() {
+				const cards = document.querySelectorAll('.alignment-card.selected');
+				return Array.from(cards).map((card) => TEST_ALIGNMENTS.find((a) => a.id === card.dataset.id));
+			}
+
+			// Load alignment file
+			async function loadAlignmentFile(alignment) {
+				if (alignment.customData) {
+					return alignment.customData;
+				}
+				const response = await fetch(`test-alignments/${alignment.filename}`);
+				if (!response.ok) {
+					throw new Error(`Failed to load ${alignment.filename}: ${response.statusText}`);
+				}
+				return await response.text();
+			}
+
+			// Run single benchmark iteration
+			async function runIteration(method, alignmentData) {
+				const inputFiles = await cliObj.mount([{ name: 'user.nex', data: alignmentData }]);
+				const hyphyCommand = `hyphy LIBPATH=/shared/hyphy/ ${method} ${inputFiles[0]}`;
+
+				const startTime = performance.now();
+				const result = await cliObj.exec(hyphyCommand);
+				await result.stdout;
+				const endTime = performance.now();
+
+				// Try to get the JSON result for concordance checking
+				let jsonResult = null;
+				try {
+					const jsonBlob = await cliObj.download(`/shared/data/user.nex.${method.toUpperCase()}.json`);
+					const response = await fetch(jsonBlob);
+					const blob = await response.blob();
+					const jsonText = await blob.text();
+					jsonResult = JSON.parse(jsonText);
+				} catch (err) {
+					// JSON may not be available for all methods
+				}
+
+				return {
+					runtimeMs: endTime - startTime,
+					success: true,
+					jsonResult,
+					startTime: new Date(startTime).toISOString(),
+					endTime: new Date(endTime).toISOString()
+				};
+			}
+
+			// Run full benchmark
+			async function runBenchmark() {
+				const methods = getSelectedMethods();
+				let alignments = getSelectedAlignments();
+				const iterations = parseInt(document.getElementById('iterations').value, 10);
+
+				// Check for custom file
+				if (customFileInput.files?.length > 0) {
+					const file = customFileInput.files[0];
+					const fileData = await file.text();
+					alignments = [
+						{
+							id: 'custom',
+							name: file.name,
+							sequences: 'Unknown',
+							sites: 'Unknown',
+							filename: file.name,
+							customData: fileData
+						}
+					];
+				}
+
+				if (methods.length === 0) {
+					alert('Please select at least one method.');
+					return;
+				}
+
+				if (alignments.length === 0) {
+					alert('Please select at least one alignment or upload a custom file.');
+					return;
+				}
+
+				isRunning = true;
+				shouldStop = false;
+				allResults = [];
+				startButton.disabled = true;
+				stopButton.disabled = false;
+				resultsContainer.style.display = 'none';
+				resultsTables.innerHTML = '';
+
+				const totalTests = methods.length * alignments.length * iterations;
+				let completedTests = 0;
+
+				log(`Starting benchmark: ${methods.length} methods × ${alignments.length} alignments × ${iterations} iterations = ${totalTests} tests`, 'success');
+
+				for (const alignment of alignments) {
+					if (shouldStop) break;
+
+					log(`\nLoading alignment: ${alignment.name}...`);
+					let alignmentData;
+					try {
+						alignmentData = await loadAlignmentFile(alignment);
+						log(`  Loaded ${(alignmentData.length / 1024).toFixed(1)} KB`);
+					} catch (err) {
+						log(`  Error loading alignment: ${err.message}`, 'error');
+						continue;
+					}
+
+					for (const method of methods) {
+						if (shouldStop) break;
+
+						const runResult = {
+							id: `${Date.now()}-${method}-${alignment.id}`,
+							platform: 'wasm',
+							browser: hardwareInfo.browser?.split(' ')[0]?.toLowerCase(),
+							method,
+							alignment,
+							iterations: [],
+							statistics: null,
+							hardware: hardwareInfo,
+							software: softwareInfo,
+							timestamp: new Date().toISOString(),
+							sampleResult: null
+						};
+
+						log(`\nRunning ${method.toUpperCase()} on ${alignment.name}...`);
+
+						for (let i = 1; i <= iterations; i++) {
+							if (shouldStop) break;
+
+							const progress = ((completedTests / totalTests) * 100).toFixed(1);
+							updateProgress(progress, `${method.toUpperCase()} on ${alignment.name}: iteration ${i}/${iterations}`);
+							updateStatus(`Running ${method.toUpperCase()} iteration ${i}/${iterations}...`, 'running');
+
+							try {
+								const iterResult = await runIteration(method, alignmentData);
+								runResult.iterations.push({
+									iteration: i,
+									...iterResult
+								});
+
+								// Store first successful JSON result for concordance
+								if (iterResult.jsonResult && !runResult.sampleResult) {
+									runResult.sampleResult = iterResult.jsonResult;
+								}
+
+								log(`  Iteration ${i}: ${iterResult.runtimeMs.toFixed(2)} ms`, 'success');
+							} catch (err) {
+								runResult.iterations.push({
+									iteration: i,
+									runtimeMs: 0,
+									success: false,
+									error: err.message,
+									startTime: new Date().toISOString(),
+									endTime: new Date().toISOString()
+								});
+								log(`  Iteration ${i}: FAILED - ${err.message}`, 'error');
+							}
+
+							completedTests++;
+						}
+
+						// Calculate statistics for successful iterations
+						const successfulTimes = runResult.iterations
+							.filter((iter) => iter.success)
+							.map((iter) => iter.runtimeMs);
+
+						runResult.statistics = calculateStatistics(successfulTimes);
+						allResults.push(runResult);
+
+						// Log summary
+						if (successfulTimes.length > 0) {
+							const stats = runResult.statistics;
+							log(
+								`  Summary: mean=${stats.mean.toFixed(2)}ms, SE=${stats.standardError.toFixed(2)}ms, 95% CI=[${stats.ci95[0].toFixed(2)}, ${stats.ci95[1].toFixed(2)}]`,
+								'success'
+							);
+						}
+					}
+				}
+
+				isRunning = false;
+				startButton.disabled = false;
+				stopButton.disabled = true;
+				hideProgress();
+
+				if (shouldStop) {
+					updateStatus('Benchmark stopped by user', 'error');
+					log('\nBenchmark stopped by user', 'error');
+				} else {
+					updateStatus('Benchmark completed!', 'completed');
+					log('\nBenchmark completed!', 'success');
+				}
+
+				displayResults();
+			}
+
+			// Display results in tables
+			function displayResults() {
+				if (allResults.length === 0) return;
+
+				resultsContainer.style.display = 'block';
+				resultsTables.innerHTML = '';
+
+				// Group by alignment
+				const byAlignment = {};
+				allResults.forEach((result) => {
+					const key = result.alignment.id;
+					if (!byAlignment[key]) byAlignment[key] = [];
+					byAlignment[key].push(result);
+				});
+
+				for (const [alignmentId, results] of Object.entries(byAlignment)) {
+					const alignment = results[0].alignment;
+
+					const tableHtml = `
+            <h3>${alignment.name} (${alignment.sequences} seq × ${alignment.sites} sites)</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>n</th>
+                  <th>Mean (ms)</th>
+                  <th>Std Dev</th>
+                  <th>SE</th>
+                  <th>95% CI</th>
+                  <th>Min</th>
+                  <th>Max</th>
+                  <th>CV%</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${results
+									.map(
+										(r) => `
+                  <tr>
+                    <td><strong>${r.method.toUpperCase()}</strong></td>
+                    <td>${r.statistics.n}</td>
+                    <td>${r.statistics.mean.toFixed(2)}</td>
+                    <td>${r.statistics.stdDev.toFixed(2)}</td>
+                    <td>${r.statistics.standardError.toFixed(2)}</td>
+                    <td>[${r.statistics.ci95[0].toFixed(2)}, ${r.statistics.ci95[1].toFixed(2)}]</td>
+                    <td>${r.statistics.min.toFixed(2)}</td>
+                    <td>${r.statistics.max.toFixed(2)}</td>
+                    <td>${r.statistics.cv.toFixed(1)}</td>
+                  </tr>
+                `
+									)
+									.join('')}
+              </tbody>
+            </table>
+          `;
+
+					resultsTables.innerHTML += tableHtml;
+				}
+			}
+
+			// Export functions
+			function exportJSON() {
+				const exportData = {
+					version: '1.0.0',
+					timestamp: new Date().toISOString(),
+					hardware: hardwareInfo,
+					software: softwareInfo,
+					runs: allResults
+				};
+
+				const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = `benchmark-wasm-${new Date().toISOString().slice(0, 10)}.json`;
+				a.click();
+				URL.revokeObjectURL(url);
+			}
+
+			function exportCSV() {
+				let csv =
+					'platform,browser,alignment,sequences,sites,method,replicate,runtime_ms,mean_ms,se_ms,ci95_low,ci95_high\n';
+
+				allResults.forEach((result) => {
+					result.iterations.forEach((iter) => {
+						if (iter.success) {
+							csv += `wasm,${result.browser},${result.alignment.id},${result.alignment.sequences},${result.alignment.sites},${result.method},${iter.iteration},${iter.runtimeMs.toFixed(2)},${result.statistics.mean.toFixed(2)},${result.statistics.standardError.toFixed(2)},${result.statistics.ci95[0].toFixed(2)},${result.statistics.ci95[1].toFixed(2)}\n`;
+						}
+					});
+				});
+
+				const blob = new Blob([csv], { type: 'text/csv' });
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = `benchmark-wasm-${new Date().toISOString().slice(0, 10)}.csv`;
+				a.click();
+				URL.revokeObjectURL(url);
+			}
+
+			function copyLatexTable() {
+				let latex = `\\begin{table}[h]
+\\centering
+\\caption{WASM Browser Benchmark Results}
+\\begin{tabular}{llrrrrr}
+\\toprule
+Alignment & Method & n & Mean (ms) & SE & 95\\% CI & CV\\% \\\\
+\\midrule\n`;
+
+				allResults.forEach((r) => {
+					latex += `${r.alignment.name} & ${r.method.toUpperCase()} & ${r.statistics.n} & ${r.statistics.mean.toFixed(2)} & ${r.statistics.standardError.toFixed(2)} & [${r.statistics.ci95[0].toFixed(2)}, ${r.statistics.ci95[1].toFixed(2)}] & ${r.statistics.cv.toFixed(1)} \\\\\n`;
+				});
+
+				latex += `\\bottomrule
+\\end{tabular}
+\\end{table}`;
+
+				navigator.clipboard.writeText(latex).then(() => {
+					alert('LaTeX table copied to clipboard!');
+				});
+			}
+
+			// Initialize Aioli/HyPhy
+			async function initializeHyPhy() {
+				try {
+					log('Initializing HyPhy WASM...');
+
+					cliObj = await new Aioli(
+						{
+							tool: 'hyphy',
+							version: '2.5.63',
+							urlPrefix: 'https://data.hyphy.org/web/biowasm'
+						},
+						{
+							printInterleaved: false,
+							callback: (payload) => {
+								// Suppress verbose output
+							}
+						}
+					);
+
+					const result = await cliObj.exec('hyphy --version');
+					const version = result.stdout.trim().split('\n')[0];
+					softwareInfo.hyphyVersion = version;
+					document.getElementById('hw-hyphy').textContent = version;
+
+					log(`HyPhy initialized: ${version}`, 'success');
+					startButton.disabled = false;
+				} catch (error) {
+					log(`Error initializing HyPhy: ${error.message}`, 'error');
+					document.getElementById('hw-hyphy').textContent = 'Failed to load';
+				}
+			}
+
+			// Event listeners
+			document.getElementById('start-benchmark').addEventListener('click', runBenchmark);
+			document.getElementById('stop-benchmark').addEventListener('click', () => {
+				shouldStop = true;
+				log('Stop requested, waiting for current iteration to complete...');
+			});
+			document.getElementById('export-json').addEventListener('click', exportJSON);
+			document.getElementById('export-csv').addEventListener('click', exportCSV);
+			document.getElementById('copy-latex').addEventListener('click', copyLatexTable);
+
+			// Custom file clears alignment selection
+			customFileInput.addEventListener('change', () => {
+				document.querySelectorAll('.alignment-card.selected').forEach((card) => card.classList.remove('selected'));
+			});
+
+			// Initialize
+			document.addEventListener('DOMContentLoaded', () => {
+				detectHardware();
+				initializeAlignmentCards();
+				initializeHyPhy();
+			});
+		</script>
+	</body>
+</html>
