@@ -59,7 +59,8 @@ while [[ $# -gt 0 ]]; do
             echo "  --methods LIST     Comma-separated list of methods (default: $DEFAULT_METHODS)"
             echo "  --iterations N     Number of iterations per test (default: $DEFAULT_ITERATIONS)"
             echo ""
-            echo "Available alignments: tiny small medium-narrow medium medium-wide large-narrow large xlarge"
+            echo "Synthetic alignments: tiny small medium-narrow medium medium-wide large-narrow large xlarge"
+            echo "Real HyPhy datasets: bglobin lysozyme adh HIVvif HepatitisD camelid"
             echo "Available methods: fel meme slac"
             exit 0
             ;;
@@ -202,6 +203,7 @@ run_benchmark() {
     # Get alignment info from filename patterns
     local sequences sites
     case $alignment in
+        # Synthetic alignments
         tiny) sequences=10; sites=150 ;;
         small) sequences=25; sites=300 ;;
         medium-narrow) sequences=50; sites=201 ;;
@@ -210,6 +212,13 @@ run_benchmark() {
         large-narrow) sequences=100; sites=300 ;;
         large) sequences=100; sites=600 ;;
         xlarge) sequences=200; sites=450 ;;
+        # Real HyPhy test datasets
+        bglobin) sequences=17; sites=432 ;;
+        lysozyme) sequences=19; sites=390 ;;
+        adh) sequences=23; sites=762 ;;
+        HIVvif) sequences=29; sites=576 ;;
+        HepatitisD) sequences=33; sites=588 ;;
+        camelid) sequences=212; sites=288 ;;
         *) sequences=0; sites=0 ;;
     esac
 

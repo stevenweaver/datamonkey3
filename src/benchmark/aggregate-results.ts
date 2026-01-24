@@ -296,7 +296,12 @@ function aggregateResults(
 	}
 
 	// Sort rows by alignment size, then method
-	const alignmentOrder = ['tiny', 'small', 'medium-narrow', 'medium', 'medium-wide', 'large-narrow', 'large', 'xlarge'];
+	const alignmentOrder = [
+		// Synthetic alignments
+		'tiny', 'small', 'medium-narrow', 'medium', 'medium-wide', 'large-narrow', 'large', 'xlarge',
+		// Real HyPhy datasets (sorted by complexity)
+		'bglobin', 'lysozyme', 'adh', 'HIVvif', 'HepatitisD', 'camelid'
+	];
 	rows.sort((a, b) => {
 		const aIdx = alignmentOrder.indexOf(a.alignment);
 		const bIdx = alignmentOrder.indexOf(b.alignment);

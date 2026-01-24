@@ -44,6 +44,7 @@ const BENCHMARK_CONFIG = {
 
 // Test alignment metadata
 const TEST_ALIGNMENTS = {
+	// Synthetic alignments
 	tiny: { sequences: 10, sites: 150, filename: 'tiny.nex' },
 	small: { sequences: 25, sites: 300, filename: 'small.nex' },
 	'medium-narrow': { sequences: 50, sites: 201, filename: 'medium-narrow.nex' },
@@ -51,7 +52,14 @@ const TEST_ALIGNMENTS = {
 	'medium-wide': { sequences: 25, sites: 999, filename: 'medium-wide.nex' },
 	'large-narrow': { sequences: 100, sites: 300, filename: 'large-narrow.nex' },
 	large: { sequences: 100, sites: 600, filename: 'large.nex' },
-	xlarge: { sequences: 200, sites: 450, filename: 'xlarge.nex' }
+	xlarge: { sequences: 200, sites: 450, filename: 'xlarge.nex' },
+	// Real HyPhy test datasets
+	bglobin: { sequences: 17, sites: 432, filename: 'bglobin.nex' },
+	lysozyme: { sequences: 19, sites: 390, filename: 'lysozyme.nex' },
+	adh: { sequences: 23, sites: 762, filename: 'adh.nex' },
+	HIVvif: { sequences: 29, sites: 576, filename: 'HIVvif.nex' },
+	HepatitisD: { sequences: 33, sites: 588, filename: 'HepatitisD.nex' },
+	camelid: { sequences: 212, sites: 288, filename: 'camelid.nex' }
 };
 
 type AlignmentId = keyof typeof TEST_ALIGNMENTS;
