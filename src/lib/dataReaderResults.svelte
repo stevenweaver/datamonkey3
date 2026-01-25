@@ -122,22 +122,28 @@
 					<span class="text-text-slate">Analyzed</span>
 					<span class="font-medium text-text-rich">{formatTimestamp(fileMetricsJSON.FILE_INFO.timestamp)}</span>
 				</div>
-				{#if fileMetricsJSON.FILE_INFO.duplicate_sequences}
+				{#if fileMetricsJSON.FILE_INFO.duplicate_sequences > 0}
 					<div class="flex justify-between">
-						<span class="text-text-slate">Duplicates</span>
+						<span class="text-text-slate">Duplicates Removed</span>
 						<span class="font-medium text-status-warning">{fileMetricsJSON.FILE_INFO.duplicate_sequences}</span>
+					</div>
+				{/if}
+				{#if fileMetricsJSON.FILE_INFO.sequences_renamed > 0}
+					<div class="flex justify-between">
+						<span class="text-text-slate">Sequences Renamed</span>
+						<span class="font-medium text-status-warning">{fileMetricsJSON.FILE_INFO.sequences_renamed}</span>
 					</div>
 				{/if}
 				{#if fileMetricsJSON.FILE_INFO.ambiguous_sites}
 					<div class="flex justify-between">
-						<span class="text-text-slate">Ambiguous</span>
-						<span class="font-medium text-status-warning">{fileMetricsJSON.FILE_INFO.ambiguous_sites}</span>
+						<span class="text-text-slate">Ambiguous Sites</span>
+						<span class="font-medium text-status-warning">Present</span>
 					</div>
 				{/if}
-				{#if fileMetricsJSON.FILE_INFO.stop_codons}
+				{#if fileMetricsJSON.FILE_INFO.stop_codons_stripped > 0}
 					<div class="flex justify-between">
-						<span class="text-text-slate">Stop Codons</span>
-						<span class="font-medium text-status-error">{fileMetricsJSON.FILE_INFO.stop_codons}</span>
+						<span class="text-text-slate">Stop Codons Stripped</span>
+						<span class="font-medium text-status-warning">{fileMetricsJSON.FILE_INFO.stop_codons_stripped}</span>
 					</div>
 				{/if}
 			</div>
