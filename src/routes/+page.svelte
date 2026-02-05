@@ -205,7 +205,7 @@
 			analysisStartTime = Date.now();
 
 			// Switch to the analysis tab to show the analysis in progress
-			activeTab = 'analyze';
+			changeTab('analyze');
 
 			// Initialize progress tracking
 			analysisStore.startAnalysisProgress(
@@ -389,7 +389,7 @@
 			});
 
 			// Switch to results tab when analysis completes
-			activeTab = 'results';
+			changeTab('results');
 		} catch (error) {
 			console.error(
 				`Error running method ${typeof method === 'string' ? method : 'unknown'}:`,
@@ -608,7 +608,7 @@
 							selectAnalysis(mostRecentAnalysis.id);
 
 							// Switch to the data tab to show the file information
-							activeTab = 'data';
+							changeTab('data');
 
 							return; // Exit early since we've loaded existing analysis
 						} catch (error) {
@@ -680,7 +680,7 @@
 					selectAnalysis(analysisId);
 
 					// Switch to the data tab to show the file information
-					activeTab = 'data';
+					changeTab('data');
 
 					return; // Exit early since we've loaded existing analysis
 				}
@@ -828,7 +828,7 @@
 			selectAnalysis(analysisId);
 
 			// Switch to the data tab to show the file information
-			activeTab = 'data';
+			changeTab('data');
 		} catch (error) {
 			console.error('Error handling file upload:', error);
 			hyphyOut = `Error: ${error.message}`;
@@ -924,7 +924,7 @@
 	// Track tab changes with analytics
 	function changeTab(newTab) {
 		if (newTab !== activeTab) {
-			trackEvent('tab-changed', { from: activeTab, to: newTab });
+			trackEvent('tab-changed', { from_tab: activeTab, to_tab: newTab });
 			activeTab = newTab;
 		}
 	}
@@ -992,7 +992,7 @@
 
 	// Handle navigation from toast action (analysis completion)
 	function handleNavigateToResults() {
-		activeTab = 'results';
+		changeTab('results');
 	}
 
 	// Set up beforeunload handler
