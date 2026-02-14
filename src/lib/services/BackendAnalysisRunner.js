@@ -539,6 +539,14 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					branches: 'All'
 				};
 
+			case 'nrm':
+				return {
+					...baseParams,
+					// Map NRM specific parameters to backend format
+					rate_classes: config.rate_classes || 1,
+					triple_islands: config.triple_islands || 'No'
+				};
+
 			case 'relax':
 				return {
 					...baseParams,
@@ -550,6 +558,7 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					mode: config.mode || 'Classic mode',
 					'kill-zero-lengths': config.killZeroLengths || config['kill-zero-lengths'] || 'No'
 				};
+
 			default:
 				return baseParams;
 		}

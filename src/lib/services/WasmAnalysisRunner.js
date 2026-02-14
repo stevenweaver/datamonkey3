@@ -287,6 +287,10 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				} else if (key === 'rates') {
 					// Multi-Hit rate classes parameter
 					args.push(`--rates ${value}`);
+			} else if (key === 'rate_classes') {
+				// NRM rate classes parameter (convert underscore to hyphen)
+				args.push(`--rate-classes ${value}`);
+
 				} else if (key === 'triple_islands') {
 					// Multi-Hit triple islands parameter (convert underscore to hyphen)
 					args.push(`--triple-islands ${value}`);
@@ -353,7 +357,9 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		const methodCommandMap = {
 			'multi-hit': 'fmm',
 			multihit: 'fmm',
-			'MULTI-HIT': 'fmm'
+			'MULTI-HIT': 'fmm',
+			nrm: 'NRM',
+			NRM: 'NRM'
 		};
 		const hyphyCommand = methodCommandMap[method] || method;
 
@@ -401,7 +407,9 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		const resultFileMap = {
 			'multi-hit': 'FITTER',
 			multihit: 'FITTER',
-			'MULTI-HIT': 'FITTER'
+			'MULTI-HIT': 'FITTER',
+			nrm: 'NRM',
+			NRM: 'NRM'
 		};
 		const resultFileSuffix = resultFileMap[method] || method.toUpperCase();
 

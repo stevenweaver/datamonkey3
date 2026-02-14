@@ -139,6 +139,10 @@
 			case 'multi-hit':
 			case 'multihit':
 				return MultiHitVisualizationWrapper;
+		case 'nrm':
+			// NRM doesn't have a hyphy-scope visualization yet - will fall back to raw results
+			return null;
+
 			default:
 				return null;
 		}
