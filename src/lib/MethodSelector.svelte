@@ -668,8 +668,12 @@
 				type: 'select',
 				label: 'PRIME Variant',
 				default: 'S-PRIME',
-				options: ['S-PRIME'],
-				description: 'S-PRIME: site-level property-informed model. G-PRIME and E-PRIME coming soon.'
+				options: [
+					'S-PRIME',
+					{ value: 'G-PRIME', label: 'G-PRIME (coming soon)', disabled: true },
+					{ value: 'E-PRIME', label: 'E-PRIME (coming soon)', disabled: true }
+				],
+				description: 'S-PRIME: site-level property-informed model'
 			},
 			// Branch selection options
 			branchesToTest: {
@@ -1155,7 +1159,11 @@
 												disabled={!isEnabled}
 											>
 												{#each optionConfig.options as option}
-													<option value={option}>{option}</option>
+													{#if typeof option === 'object'}
+														<option value={option.value} disabled={option.disabled}>{option.label || option.value}</option>
+													{:else}
+														<option value={option}>{option}</option>
+													{/if}
 												{/each}
 											</select>
 										</label>
