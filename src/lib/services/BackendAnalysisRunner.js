@@ -550,6 +550,16 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					mode: config.mode || 'Classic mode',
 					'kill-zero-lengths': config.killZeroLengths || config['kill-zero-lengths'] || 'No'
 				};
+
+			case 'prime':
+				return {
+					...baseParams,
+					// Map PRIME-specific parameters to backend format
+					branches: config.branchesToTest === 'Interactive' ? 'FG' : (config.branchesToTest || 'All'),
+					'property-set': config.propertySet || '5PROP',
+					pvalue: config.pValueThreshold || 0.1,
+					'impute-states': config.imputeStates || 'No'
+				};
 			default:
 				return baseParams;
 		}

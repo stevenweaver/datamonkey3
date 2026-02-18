@@ -151,7 +151,7 @@ export function cleanupOldAnalysisData(maxAge = 7 * 24 * 60 * 60 * 1000) {
  * @returns {Array} - Array of supported method names
  */
 export function getSupportedMethods() {
-	return ['fel', 'contrastfel', 'meme', 'busted', 'absrel', 'gard', 'nrm', 'multihit', 'slac', 'fubar'];
+	return ['fel', 'contrastfel', 'meme', 'busted', 'absrel', 'gard', 'nrm', 'multihit', 'slac', 'fubar', 'prime'];
 }
 
 /**

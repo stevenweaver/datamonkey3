@@ -213,7 +213,8 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				key !== 'branchSet1' &&
 				key !== 'branchSet2' &&
 				key !== 'testBranches' &&
-				key !== 'referenceBranches'
+				key !== 'referenceBranches' &&
+				key !== 'variant'
 			) {
 				// Handle specific FEL parameter mappings
 				if (key === 'branchesToTest') {
@@ -239,6 +240,12 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 						args.push(`--branches ${value}`);
 					}
 					// Skip 'All' since it's the default
+				} else if (key === 'propertySet') {
+					// PRIME property set parameter
+					args.push(`--property-set ${value}`);
+				} else if (key === 'imputeStates') {
+					// PRIME impute states parameter
+					args.push(`--impute-states ${value}`);
 				} else if (key === 'geneticCode') {
 					// Use genetic code string value directly for HyPhy
 					console.log('🧬 WASM - Using genetic code:', value);
@@ -446,7 +453,8 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				key !== 'branchSet1' &&
 				key !== 'branchSet2' &&
 				key !== 'testBranches' &&
-				key !== 'referenceBranches'
+				key !== 'referenceBranches' &&
+				key !== 'variant'
 			) {
 				// Handle specific FEL parameter mappings
 				if (key === 'branchesToTest') {
@@ -465,6 +473,12 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 						args.push(`--branches ${value}`);
 					}
 					// Skip 'All' since it's the default
+				} else if (key === 'propertySet') {
+					// PRIME property set parameter
+					args.push(`--property-set ${value}`);
+				} else if (key === 'imputeStates') {
+					// PRIME impute states parameter
+					args.push(`--impute-states ${value}`);
 				} else if (key === 'geneticCode') {
 					// Use genetic code string value directly for HyPhy
 					console.log('🧬 WASM - Using genetic code:', value);
