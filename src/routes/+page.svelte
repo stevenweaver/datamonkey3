@@ -140,6 +140,13 @@
 			args: [],
 			description: 'Nonstationary rate mixture model.'
 		},
+		PRIME: {
+			command: 'prime',
+			outputSuffix: 'PRIME.json',
+			url: 'prime',
+			args: [],
+			description: 'Tests for property-dependent selection at individual sites.'
+		},
 		RELAX: {
 			command: 'relax',
 			outputSuffix: 'RELAX.json',
