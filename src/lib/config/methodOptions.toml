@@ -574,6 +574,95 @@ type = "string"
 default = ""
 choices = []
 
+[prime]
+description = "PRIME (PRoperty Informed Models of Evolution) tests whether amino acid property changes (e.g., hydrophobicity, volume, charge) drive substitution rate variation at individual sites, going beyond traditional dN/dS models."
+
+[[prime.options]]
+name = "code"
+description = "Which genetic code should be used"
+takes_value = true
+type = "string"
+default = "Universal"
+choices = [
+    { value = "Universal", description = "Universal code" },
+    { value = "Vertebrate mtDNA", description = "Vertebrate mitochondrial DNA code" },
+    { value = "Yeast mtDNA", description = "Yeast mitochondrial DNA code" },
+    { value = "Mold/Protozoan mtDNA", description = "Mold, Protozoan and Coelenterate mt; Mycoplasma/Spiroplasma" },
+    { value = "Invertebrate mtDNA", description = "Invertebrate mitochondrial DNA code" },
+    { value = "Ciliate Nuclear", description = "Ciliate, Dasycladacean and Hexamita Nuclear code" },
+    { value = "Echinoderm mtDNA", description = "Echinoderm mitochondrial DNA code" },
+    { value = "Euplotid Nuclear", description = "Euplotid Nuclear code" },
+    { value = "Alt. Yeast Nuclear", description = "Alternative Yeast Nuclear code" },
+    { value = "Ascidian mtDNA", description = "Ascidian mitochondrial DNA code" },
+    { value = "Flatworm mtDNA", description = "Flatworm mitochondrial DNA code" },
+    { value = "Blepharisma Nuclear", description = "Blepharisma Nuclear code" },
+]
+
+[[prime.options]]
+name = "alignment"
+description = "An in-frame codon alignment in one of the formats supported by HyPhy"
+takes_value = true
+type = "file"
+choices = []
+
+[[prime.options]]
+name = "tree"
+description = "A phylogenetic tree (optionally annotated with {})"
+takes_value = true
+type = "tree"
+default = ""
+choices = []
+
+[[prime.options]]
+name = "branches"
+description = "Branches to test"
+takes_value = true
+type = "branch-set"
+default = "All"
+choices = []
+
+[[prime.options]]
+name = "property-set"
+description = "Set of amino acid properties to use for the analysis"
+takes_value = true
+type = "string"
+default = "5PROP"
+choices = [
+    { value = "5PROP", description = "Hydrophobicity, polarity, volume, charge, iso-electric point" },
+    { value = "4PROP", description = "Four amino acid properties" },
+    { value = "3PROP", description = "Three amino acid properties" },
+    { value = "2PROP", description = "Two amino acid properties" },
+    { value = "Atchley", description = "Atchley factor scores" },
+    { value = "LCAP", description = "LCAP amino acid properties" },
+]
+
+[[prime.options]]
+name = "pvalue"
+description = "The p-value threshold to use when testing for selection"
+takes_value = true
+type = "number"
+default = 0.1
+choices = []
+
+[[prime.options]]
+name = "impute-states"
+description = "Use site-level model fits to impute likely character states for each sequence"
+takes_value = true
+type = "string"
+default = "No"
+choices = [
+    { value = "Yes", description = "Impute marginal likelihoods for each codon at each sequence and each site" },
+    { value = "No", description = "Do not impute marginal likelihoods" },
+]
+
+[[prime.options]]
+name = "output"
+description = "Write the resulting JSON to this file"
+takes_value = true
+type = "string"
+default = ""
+choices = []
+
 [relax]
 description = "RELAX tests whether the strength of natural selection has been relaxed or intensified along a specified set of test branches compared to reference branches. The method uses a selection intensity parameter K to compare ω distributions between test and reference branches."
 

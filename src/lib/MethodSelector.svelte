@@ -25,6 +25,7 @@
 		'gard',
 		'meme',
 		'multi-hit',
+		'prime',
 		'relax'
 	];
 
@@ -101,6 +102,12 @@
 			fullName: 'Non-Reversible Model',
 			shortDescription: 'Directional evolution analysis',
 			supported: false
+		},
+		prime: {
+			name: 'PRIME',
+			fullName: 'PRoperty Informed Models of Evolution',
+			shortDescription: 'Detect property-dependent selection at individual sites',
+			supported: true
 		},
 		'contrast-fel': {
 			name: 'Contrast-FEL',
@@ -655,6 +662,62 @@
 				default: true
 			}
 		},
+		prime: {
+			// PRIME variant selection
+			variant: {
+				type: 'select',
+				label: 'PRIME Variant',
+				default: 'S-PRIME',
+				options: [
+					'S-PRIME',
+					{ value: 'G-PRIME', label: 'G-PRIME (coming soon)', disabled: true },
+					{ value: 'E-PRIME', label: 'E-PRIME (coming soon)', disabled: true }
+				],
+				description: 'S-PRIME: site-level property-informed model'
+			},
+			// Branch selection options
+			branchesToTest: {
+				type: 'select',
+				label: 'Branches to Test',
+				default: 'All',
+				options: ['All', 'Internal', 'Leaves', 'Unlabeled', 'Interactive'],
+				description: 'Which branches to test for property-dependent selection'
+			},
+			interactiveTree: {
+				type: 'interactive-tree',
+				label: 'Select branches on tree',
+				default: '',
+				dependsOn: 'branchesToTest',
+				enabledWhen: ['Interactive'],
+				description: 'Click on tree branches to select them for testing'
+			},
+			// Property set selection
+			propertySet: {
+				type: 'select',
+				label: 'Amino Acid Property Set',
+				default: '5PROP',
+				options: ['5PROP', '4PROP', '3PROP', '2PROP', 'Atchley', 'LCAP'],
+				description: 'Set of amino acid properties to model (5PROP: hydrophobicity, polarity, volume, charge, iso-electric point)'
+			},
+			// P-value threshold
+			pValueThreshold: {
+				type: 'number',
+				label: 'P-value threshold',
+				default: 0.1,
+				min: 0.001,
+				max: 1,
+				step: 0.001,
+				description: 'The p-value threshold to use when testing for property-dependent selection'
+			},
+			// Impute states
+			imputeStates: {
+				type: 'select',
+				label: 'Impute states',
+				default: 'No',
+				options: ['No', 'Yes'],
+				description: 'Use site-level model fits to impute likely character states'
+			}
+		},
 		'contrast-fel': {
 			// Branch selection options
 			branchesToTest: {
@@ -1096,7 +1159,11 @@
 												disabled={!isEnabled}
 											>
 												{#each optionConfig.options as option}
-													<option value={option}>{option}</option>
+													{#if typeof option === 'object'}
+														<option value={option.value} disabled={option.disabled}>{option.label || option.value}</option>
+													{:else}
+														<option value={option}>{option}</option>
+													{/if}
 												{/each}
 											</select>
 										</label>

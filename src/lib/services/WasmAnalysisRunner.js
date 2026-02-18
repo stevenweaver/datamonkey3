@@ -213,7 +213,8 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				key !== 'branchSet1' &&
 				key !== 'branchSet2' &&
 				key !== 'testBranches' &&
-				key !== 'referenceBranches'
+				key !== 'referenceBranches' &&
+				key !== 'variant'
 			) {
 				// Handle specific FEL parameter mappings
 				if (key === 'branchesToTest') {
@@ -234,11 +235,17 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 							console.log('🌳 WASM - Converting Interactive to FG for HyPhy');
 							args.push(`--branches FG`);
 						}
-					} else if (value && value !== 'All') {
-						// For other values like 'Internal', 'Leaves', etc., pass them directly
-						args.push(`--branches ${value}`);
+					} else {
+						// Always pass --branches explicitly (including 'All') to avoid
+						// stale state issues with Emscripten's callMain between invocations
+						args.push(`--branches ${value || 'All'}`);
 					}
-					// Skip 'All' since it's the default
+				} else if (key === 'propertySet') {
+					// PRIME property set parameter
+					args.push(`--property-set ${value}`);
+				} else if (key === 'imputeStates') {
+					// PRIME impute states parameter
+					args.push(`--impute-states ${value}`);
 				} else if (key === 'geneticCode') {
 					// Use genetic code string value directly for HyPhy
 					console.log('🧬 WASM - Using genetic code:', value);
@@ -349,16 +356,33 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 			}
 		}
 
-		// Map method names to HyPhy command names
-		const methodCommandMap = {
-			'multi-hit': 'fmm',
-			multihit: 'fmm',
-			'MULTI-HIT': 'fmm'
+		// Map method names to HyPhy batch file paths (relative to LIBPATH/TemplateBatchFiles/)
+		// Using explicit paths avoids issues with method name resolution across multiple callMain invocations
+		const methodBatchFileMap = {
+			'multi-hit': 'SelectionAnalyses/FitMultiModel.bf',
+			multihit: 'SelectionAnalyses/FitMultiModel.bf',
+			'MULTI-HIT': 'SelectionAnalyses/FitMultiModel.bf',
+			absrel: 'SelectionAnalyses/aBSREL.bf',
+			bgm: 'BGM.bf',
+			busted: 'SelectionAnalyses/BUSTED.bf',
+			'contrast-fel': 'SelectionAnalyses/contrast-fel.bf',
+			fade: 'SelectionAnalyses/FADE.bf',
+			fel: 'SelectionAnalyses/FEL.bf',
+			fubar: 'SelectionAnalyses/FUBAR.bf',
+			gard: 'GARD.bf',
+			meme: 'SelectionAnalyses/MEME.bf',
+			prime: 'SelectionAnalyses/PRIME.bf',
+			relax: 'SelectionAnalyses/RELAX.bf',
+			slac: 'SelectionAnalyses/SLAC.bf'
 		};
-		const hyphyCommand = methodCommandMap[method] || method;
+		const methodKey = method.toLowerCase();
+		const batchFile = methodBatchFileMap[methodKey];
+		const hyphyCommand = batchFile
+			? `/res/TemplateBatchFiles/${batchFile}`
+			: methodKey;
 
 		// Build and execute the command
-		const fullHyphyCommand = `hyphy LIBPATH=/shared/hyphy/ ${hyphyCommand} ${args.join(' ')}`;
+		const fullHyphyCommand = `hyphy LIBPATH=/res/ ${hyphyCommand} ${args.join(' ')}`;
 		console.log(`Executing HyPhy command: ${fullHyphyCommand}`);
 
 		this.updateProgress(analysisId, 'running', 40, `Executing ${method} analysis...`);
@@ -446,7 +470,8 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 				key !== 'branchSet1' &&
 				key !== 'branchSet2' &&
 				key !== 'testBranches' &&
-				key !== 'referenceBranches'
+				key !== 'referenceBranches' &&
+				key !== 'variant'
 			) {
 				// Handle specific FEL parameter mappings
 				if (key === 'branchesToTest') {
@@ -460,11 +485,17 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 						} else {
 							args.push(`--branches FG`);
 						}
-					} else if (value && value !== 'All') {
-						// For other values like 'Internal', 'Leaves', etc., pass them directly
-						args.push(`--branches ${value}`);
+					} else {
+						// Always pass --branches explicitly (including 'All') to avoid
+						// stale state issues with Emscripten's callMain between invocations
+						args.push(`--branches ${value || 'All'}`);
 					}
-					// Skip 'All' since it's the default
+				} else if (key === 'propertySet') {
+					// PRIME property set parameter
+					args.push(`--property-set ${value}`);
+				} else if (key === 'imputeStates') {
+					// PRIME impute states parameter
+					args.push(`--impute-states ${value}`);
 				} else if (key === 'geneticCode') {
 					// Use genetic code string value directly for HyPhy
 					console.log('🧬 WASM - Using genetic code:', value);
@@ -569,7 +600,7 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		}
 
 		return {
-			command: `hyphy LIBPATH=/shared/hyphy/ ${method} ${args.join(' ')}`,
+			command: `hyphy LIBPATH=/res/ ${method.toLowerCase()} ${args.join(' ')}`,  // Preview shows method name for readability
 			method: method.toUpperCase(),
 			parameters: config,
 			treeData: treeData

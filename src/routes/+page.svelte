@@ -140,6 +140,13 @@
 			args: [],
 			description: 'Nonstationary rate mixture model.'
 		},
+		PRIME: {
+			command: 'prime',
+			outputSuffix: 'PRIME.json',
+			url: 'prime',
+			args: [],
+			description: 'Tests for property-dependent selection at individual sites.'
+		},
 		RELAX: {
 			command: 'relax',
 			outputSuffix: 'RELAX.json',
@@ -269,7 +276,7 @@
 			}
 
 			// Mounting input files for HyPhy execution
-			const fullCommand = `hyphy LIBPATH=/shared/hyphy/ ${command} ${cmdArgs}`;
+			const fullCommand = `hyphy LIBPATH=/res/ ${command} ${cmdArgs}`;
 			console.log('Executing command:', fullCommand);
 			result = await cliObj.exec(fullCommand);
 			hyphyOut = await result.stdout;
@@ -481,8 +488,8 @@
 		cliObj = await new Aioli(
 			{
 				tool: 'hyphy',
-				version: '2.5.63',
-				urlPrefix: 'https://data.hyphy.org/web/biowasm'
+				version: '2.5.94',
+				urlPrefix: `${window.location.origin}/wasm/hyphy/2.5.94`
 			},
 			{
 				printInterleaved: false,
@@ -716,7 +723,7 @@
 				40,
 				'Analyzing file structure...'
 			);
-			result = await cliObj.exec('hyphy LIBPATH=/shared/hyphy/ ' + inputFiles[1]);
+			result = await cliObj.exec('hyphy LIBPATH=/res/ ' + inputFiles[1]);
 			hyphyOut = await result.stdout;
 
 			// Check for tree-related messages in datareader output (not an error, just informational)
