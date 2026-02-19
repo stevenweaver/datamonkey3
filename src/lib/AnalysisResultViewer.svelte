@@ -21,7 +21,8 @@
 		BgmVisualization,
 		FadeVisualization,
 		GardVisualization,
-		FubarVisualization
+		FubarVisualization,
+		PrimeVisualization
 	} from 'hyphy-scope';
 	import AbsrelVisualizationWrapper from './AbsrelVisualizationWrapper.svelte';
 	import FubarVisualizationWrapper from './FubarVisualizationWrapper.svelte';
@@ -139,6 +140,8 @@
 			case 'multi-hit':
 			case 'multihit':
 				return MultiHitVisualizationWrapper;
+			case 'prime':
+				return PrimeVisualization;
 			default:
 				return null;
 		}
