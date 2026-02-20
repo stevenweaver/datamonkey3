@@ -871,6 +871,15 @@
 		});
 	}
 
+	// RELAX branch validation - requires TEST and REFERENCE branches to be tagged
+	$: relaxHasTestBranches = selectedMethod?.toLowerCase() === 'relax' &&
+		methodOptions?.relax?.interactiveTree?.includes('{TEST}');
+	$: relaxHasReferenceBranches = selectedMethod?.toLowerCase() === 'relax' &&
+		(methodOptions?.relax?.interactiveTree?.includes('{REFERENCE}') ||
+		 methodOptions?.relax?.referenceBranches === 'All');
+	$: relaxBranchesValid = selectedMethod?.toLowerCase() !== 'relax' ||
+		(relaxHasTestBranches && relaxHasReferenceBranches);
+
 	// Initialize default values for a method's options
 	function initializeMethodOptions(method) {
 		const options = METHOD_ADVANCED_OPTIONS[method.toLowerCase()];
@@ -1284,11 +1293,17 @@
 	<!-- Run Analysis Button - Always at bottom -->
 	{#if selectedMethod}
 		<div class="run-analysis-container">
+			{#if selectedMethod?.toLowerCase() === 'relax' && !relaxBranchesValid}
+				<div class="branch-validation-warning">
+					<AlertTriangle class="warning-icon" />
+					<span>Please select TEST and REFERENCE branches on the tree before running RELAX.</span>
+				</div>
+			{/if}
 			<button
 				class="run-button-large"
 				class:submitting={isSubmitting}
 				on:click={runAnalysis}
-				disabled={!selectedMethod || !currentMethod?.info.supported || isSubmitting}
+				disabled={!selectedMethod || !currentMethod?.info.supported || isSubmitting || !relaxBranchesValid}
 			>
 				{#if isSubmitting}
 					<Loader2 class="run-icon spinning" />
@@ -1596,6 +1611,26 @@
 		margin-top: 24px;
 		padding-top: 24px;
 		border-top: 1px solid #e2e8f0;
+	}
+
+	.branch-validation-warning {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 12px 16px;
+		margin-bottom: 16px;
+		background-color: #fef3c7;
+		border: 1px solid #f59e0b;
+		border-radius: 8px;
+		color: #92400e;
+		font-size: 14px;
+	}
+
+	.branch-validation-warning :global(.warning-icon) {
+		flex-shrink: 0;
+		width: 18px;
+		height: 18px;
+		color: #f59e0b;
 	}
 
 	.run-button-large {
