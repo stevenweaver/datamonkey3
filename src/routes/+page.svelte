@@ -726,6 +726,32 @@
 			result = await cliObj.exec('hyphy LIBPATH=/res/ ' + inputFiles[1]);
 			hyphyOut = await result.stdout;
 
+			// Extract meaningful error from HyPhy stdout for better error reporting
+			let hyphyError = null;
+			if (hyphyOut) {
+				const lines = hyphyOut.split('\n').filter(l => l.trim());
+				const errorPatterns = [
+					/Expected \d+ sites?, but found \d+/,
+					/stop codons? found/i,
+					/not a valid/i,
+					/divisible by 3/i,
+					/at least 3 unique sequences/i,
+					/too large/i,
+				];
+				for (const line of lines) {
+					if (errorPatterns.some(p => p.test(line))) {
+						hyphyError = line.trim();
+						break;
+					}
+				}
+				if (!hyphyError) {
+					const errorLine = lines.find(l => /^Error:/i.test(l.trim()));
+					if (errorLine) {
+						hyphyError = errorLine.trim().replace(/^Error:\s*/i, '');
+					}
+				}
+			}
+
 			// Check for tree-related messages in datareader output (not an error, just informational)
 			const hasTreeParsingMessage = hyphyOut.includes('Illegal right hand side in call to Topology') ||
 				hyphyOut.includes('tree string is invalid') ||
@@ -758,7 +784,7 @@
 				jsonBlob = await cliObj.download('/shared/data/results.json');
 			} catch (downloadError) {
 				console.error('Failed to download results.json:', downloadError);
-				throw new Error('File analysis failed. The file may be in an unsupported format or contain invalid data.');
+				throw new Error(hyphyError || 'File analysis failed. The file may be in an unsupported format or contain invalid data.');
 			}
 			const response = await fetch(jsonBlob);
 			const blob = await response.blob();
@@ -767,14 +793,22 @@
 			// Validate that we got JSON, not an error page
 			if (jsonOut.trim().startsWith('<!') || jsonOut.trim().startsWith('<html')) {
 				console.error('Received HTML instead of JSON:', jsonOut.substring(0, 200));
-				throw new Error('File analysis failed. Please check that your file is a valid FASTA or NEXUS alignment.');
+				throw new Error(hyphyError || 'File analysis failed. Please check that your file is a valid FASTA or NEXUS alignment.');
 			}
 
 			try {
 				fileMetricsJSON = JSON.parse(jsonOut);
 			} catch (parseError) {
 				console.error('Failed to parse results JSON:', parseError, 'Content:', jsonOut.substring(0, 500));
-				throw new Error('File analysis produced invalid results. Please ensure your file is a valid sequence alignment.');
+				throw new Error(hyphyError || 'File analysis produced invalid results. Please ensure your file is a valid sequence alignment.');
+			}
+
+			// If datareader returned an error in JSON, surface it
+			if (fileMetricsJSON?.error) {
+				fileMetricsStore.set(fileMetricsJSON);
+				// Clean up legacy references to "detailed report below" from datareader.bf
+				const cleanedError = fileMetricsJSON.error.replace(/\s*\(detailed report below\)/gi, '');
+				throw new Error(cleanedError);
 			}
 
 			// Set the file and its metrics in the store
