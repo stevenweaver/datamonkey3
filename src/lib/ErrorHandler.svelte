@@ -13,7 +13,7 @@
 
 	// Local state
 	let timer = null;
-	let isExpanded = false;
+	let isExpanded = true;
 
 	const dispatch = createEventDispatcher();
 
