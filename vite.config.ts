@@ -1,12 +1,20 @@
 import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { readFileSync } from 'fs';
+import path from 'path';
 
 // Read package.json to get version
 const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
 
 export default defineConfig({
 	plugins: [sveltekit()],
+
+	resolve: {
+		alias: {
+			alivibe: path.resolve(__dirname, '../alivibe-app/src/lib/alivibe')
+		},
+		dedupe: ['svelte']
+	},
 
 	test: {
 		include: [
@@ -32,6 +40,9 @@ export default defineConfig({
 	server: {
 		host: true,
 		allowedHosts: ['v3.datamonkey.org'],
+		fs: {
+			allow: ['..']
+		},
 		// Increase WebSocket timeout to prevent timeout errors
 		hmr: {
 			timeout: 60000 // 60 seconds instead of default 30
@@ -60,6 +71,6 @@ export default defineConfig({
 	optimizeDeps: {
 		include: ['@biowasm/aioli', 'toml', 'marked', 'socket.io-client'],
 		// Exclude linked packages so changes are picked up immediately
-		exclude: ['phylotree']
+		exclude: ['phylotree', 'alivibe']
 	}
 });
