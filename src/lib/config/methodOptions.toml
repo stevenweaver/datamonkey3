@@ -766,3 +766,78 @@ takes_value = true
 type = "string"
 default = ""
 choices = []
+
+[b-still]
+description = "B-STILL (Bayesian Significance Test of Invariant Low Likelihoods) detects invariant sites using Bayesian inference."
+
+[[b-still.options]]
+name = "code"
+description = "Which genetic code should be used"
+takes_value = true
+type = "string"
+default = "Universal"
+choices = []
+
+[[b-still.options]]
+name = "alignment"
+description = "An in-frame codon alignment in one of the formats supported by HyPhy"
+takes_value = true
+type = "string"
+default = ""
+choices = []
+
+[[b-still.options]]
+name = "tree"
+description = "A phylogenetic tree (optionally annotated with {})"
+takes_value = true
+type = "string"
+default = ""
+choices = []
+
+[[b-still.options]]
+name = "grid"
+description = "The number of grid points per dimension"
+takes_value = true
+type = "number"
+default = "20"
+choices = []
+
+[[b-still.options]]
+name = "concentration_parameter"
+description = "The concentration parameter of the Dirichlet prior"
+takes_value = true
+type = "number"
+default = "0.5"
+choices = []
+
+[[b-still.options]]
+name = "method"
+description = "Posterior estimation method"
+takes_value = true
+type = "string"
+default = "Variational-Bayes"
+choices = ["Variational-Bayes", "Collapsed-Gibbs", "Metropolis-Hastings"]
+
+[[b-still.options]]
+name = "ebf"
+description = "Empirical Bayes Factor threshold for reporting invariant sites"
+takes_value = true
+type = "number"
+default = "10"
+choices = []
+
+[[b-still.options]]
+name = "radius_threshold"
+description = "Expected substitution multiplier for near-zero regime"
+takes_value = true
+type = "number"
+default = "0.5"
+choices = []
+
+[[b-still.options]]
+name = "output"
+description = "File path to save the resulting JSON"
+takes_value = true
+type = "string"
+default = ""
+choices = []

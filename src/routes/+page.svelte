@@ -105,6 +105,13 @@
 			args: [],
 			description: 'Fixed Effects Likelihood for testing selection.'
 		},
+		'B-STILL': {
+			command: 'b-still',
+			outputSuffix: 'FUBAR-inv.json',
+			url: 'fubar',
+			args: [],
+			description: 'Detects invariant sites using Bayesian inference.'
+		},
 		FUBAR: {
 			command: 'fubar',
 			outputSuffix: 'FUBAR.json',

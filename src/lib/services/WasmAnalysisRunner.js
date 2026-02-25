@@ -373,7 +373,8 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 			meme: 'SelectionAnalyses/MEME.bf',
 			prime: 'SelectionAnalyses/PRIME.bf',
 			relax: 'SelectionAnalyses/RELAX.bf',
-			slac: 'SelectionAnalyses/SLAC.bf'
+			slac: 'SelectionAnalyses/SLAC.bf',
+			'b-still': 'SelectionAnalyses/B-STILL.bf'
 		};
 		const methodKey = method.toLowerCase();
 		const batchFile = methodBatchFileMap[methodKey];
@@ -425,7 +426,9 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		const resultFileMap = {
 			'multi-hit': 'FITTER',
 			multihit: 'FITTER',
-			'MULTI-HIT': 'FITTER'
+			'MULTI-HIT': 'FITTER',
+			'b-still': 'FUBAR-inv',
+			'B-STILL': 'FUBAR-inv'
 		};
 		const resultFileSuffix = resultFileMap[method] || method.toUpperCase();
 

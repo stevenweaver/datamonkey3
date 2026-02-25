@@ -15,6 +15,7 @@
 
 	// Supported methods - easy to update when methods are implemented
 	const SUPPORTED_METHODS = [
+		'b-still',
 		'fel',
 		'slac',
 		'fubar',
@@ -31,6 +32,12 @@
 
 	// Method info with simplified descriptions and runtime estimates
 	const METHOD_INFO = {
+		'b-still': {
+			name: 'B-STILL',
+			fullName: 'Bayesian Significance Test of Invariant Low Likelihoods',
+			shortDescription: 'Detect invariant sites via posterior probabilities and Empirical Bayes Factors',
+			supported: true
+		},
 		fel: {
 			name: 'FEL',
 			fullName: 'Fixed Effects Likelihood',
@@ -335,6 +342,94 @@
 				step: 0.01,
 				description:
 					'Sites with posterior probability above this threshold are considered under positive selection'
+			}
+		},
+		'b-still': {
+			grid: {
+				type: 'number',
+				label: 'Number of grid points',
+				default: 20,
+				min: 5,
+				max: 50,
+				description: 'Grid points per dimension (total grid = D²)'
+			},
+			concentration_parameter: {
+				type: 'number',
+				label: 'Concentration parameter',
+				default: 0.5,
+				min: 0.001,
+				max: 1,
+				step: 0.001,
+				description: 'Dirichlet prior concentration parameter'
+			},
+			method: {
+				type: 'select',
+				label: 'Posterior estimation method',
+				default: 'Variational-Bayes',
+				options: ['Variational-Bayes', 'Collapsed-Gibbs', 'Metropolis-Hastings'],
+				description: 'Method for estimating the posterior distribution'
+			},
+			ebf: {
+				type: 'number',
+				label: 'EBF threshold',
+				default: 10,
+				min: 1,
+				max: 1000,
+				step: 1,
+				description: 'Empirical Bayes Factor threshold for reporting invariant sites'
+			},
+			radius_threshold: {
+				type: 'number',
+				label: 'Radius threshold',
+				default: 0.5,
+				min: 0,
+				max: 10,
+				step: 0.1,
+				description: 'Expected substitution multiplier for near-zero regime'
+			}
+		},
+		'b-still': {
+			grid: {
+				type: 'number',
+				label: 'Number of grid points',
+				default: 20,
+				min: 5,
+				max: 50,
+				description: 'Grid points per dimension (total grid = D²)'
+			},
+			concentration_parameter: {
+				type: 'number',
+				label: 'Concentration parameter',
+				default: 0.5,
+				min: 0.001,
+				max: 1,
+				step: 0.001,
+				description: 'Dirichlet prior concentration parameter'
+			},
+			method: {
+				type: 'select',
+				label: 'Posterior estimation method',
+				default: 'Variational-Bayes',
+				options: ['Variational-Bayes', 'Collapsed-Gibbs', 'Metropolis-Hastings'],
+				description: 'Method for estimating the posterior distribution'
+			},
+			ebf: {
+				type: 'number',
+				label: 'EBF threshold',
+				default: 10,
+				min: 1,
+				max: 1000,
+				step: 1,
+				description: 'Empirical Bayes Factor threshold for reporting invariant sites'
+			},
+			radius_threshold: {
+				type: 'number',
+				label: 'Radius threshold',
+				default: 0.5,
+				min: 0,
+				max: 10,
+				step: 0.1,
+				description: 'Expected substitution multiplier for near-zero regime'
 			}
 		},
 		absrel: {

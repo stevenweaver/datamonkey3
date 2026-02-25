@@ -130,6 +130,8 @@
 			case 'slac':
 				return SlacVisualization;
 			case 'fubar':
+			case 'b-still':
+			case 'bstill':
 				return FubarVisualizationWrapper;
 			case 'bgm':
 				return BgmVisualization;
