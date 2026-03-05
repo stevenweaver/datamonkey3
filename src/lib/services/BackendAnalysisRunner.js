@@ -234,7 +234,8 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			// Map method names to backend socket event names
 			const methodNameMap = {
 				'contrast-fel': 'cfel',
-				'multi-hit': 'multihit'
+				'multi-hit': 'multihit',
+				'b-still': 'bstill'
 			};
 			const backendMethodName = methodNameMap[method.toLowerCase()] || method.toLowerCase();
 			const eventName = `${backendMethodName}:spawn`;
@@ -445,6 +446,17 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 					...baseParams,
 					grid: config.grid || 20,
 					concentration_parameter: config.concentration_parameter || 0.5,
+					branches: 'All'
+				};
+
+			case 'b-still':
+				return {
+					...baseParams,
+					grid: config.grid || 20,
+					concentration_parameter: config.concentration_parameter || 0.5,
+					method: config.method || 'Variational-Bayes',
+					ebf: config.ebf || 10,
+					radius_threshold: config.radius_threshold || 0.5,
 					branches: 'All'
 				};
 
