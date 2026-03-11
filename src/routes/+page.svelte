@@ -1109,13 +1109,7 @@
 								>
 									Read the preprint <ExternalLink size={13} />
 								</a>
-								<button
-									class="prime-card-btn-try"
-									onclick={() => { primeCardDismissed = true; changeTab('analyze'); selectedMethod = 'PRIME'; }}
-								>
-									Try PRIME now &rarr;
-								</button>
-							</div>
+								</div>
 						</div>
 					</div>
 				</div>
@@ -1295,26 +1289,6 @@
 
 	.prime-card-btn-preprint:hover {
 		background: #6d28d9;
-	}
-
-	.prime-card-btn-try {
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
-		padding: 6px 14px;
-		font-size: 13px;
-		font-weight: 600;
-		color: #7c3aed;
-		background: white;
-		border: 1px solid #d8b4fe;
-		border-radius: 6px;
-		cursor: pointer;
-		transition: all 200ms;
-	}
-
-	.prime-card-btn-try:hover {
-		background: #f5f3ff;
-		border-color: #7c3aed;
 	}
 
 	@media (max-width: 639px) {
