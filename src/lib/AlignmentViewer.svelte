@@ -87,6 +87,22 @@
 		}
 	}
 
+	function stripAppendedTrees(fastaContent) {
+		const lines = fastaContent.split('\n');
+		const filtered = [];
+
+		for (const line of lines) {
+			const trimmed = line.trim();
+			// Skip Newick tree lines (start with '(', contain ':' and ';')
+			if (trimmed.startsWith('(') && trimmed.includes(':') && trimmed.includes(';')) {
+				continue;
+			}
+			filtered.push(line);
+		}
+
+		return filtered.join('\n');
+	}
+
 	function convertToFasta(content) {
 		const trimmed = content.trim();
 
@@ -95,7 +111,7 @@
 		}
 
 		if (trimmed.startsWith('>')) {
-			return trimmed;
+			return stripAppendedTrees(trimmed);
 		}
 
 		return trimmed;
@@ -172,6 +188,9 @@
 		frame: true,
 		info: true
 	}} />
+	<div class="attribution">
+		Alignment viewer powered by <a href="https://murrellgroup.github.io/WebWidgets/alivibe.html" target="_blank" rel="noopener noreferrer">AlIViBE</a> from the <a href="https://github.com/MurrellGroup" target="_blank" rel="noopener noreferrer">Murrell Group</a> (<a href="https://github.com/MurrellGroup/WebWidgets" target="_blank" rel="noopener noreferrer">source</a>)
+	</div>
 </div>
 
 <style>
@@ -209,5 +228,24 @@
 	.save-btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	.attribution {
+		padding: 6px 12px;
+		font-size: 11px;
+		color: #9ca3af;
+		text-align: right;
+		border-top: 1px solid #e5e7eb;
+		background: #f9fafb;
+	}
+
+	.attribution a {
+		color: #6b7280;
+		text-decoration: underline;
+		text-decoration-color: #d1d5db;
+	}
+
+	.attribution a:hover {
+		color: #374151;
 	}
 </style>
