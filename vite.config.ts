@@ -8,6 +8,10 @@ const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
 export default defineConfig({
 	plugins: [sveltekit()],
 
+	resolve: {
+		dedupe: ['svelte']
+	},
+
 	test: {
 		include: [
 			'src/test/**/*.{test,spec}.{js,ts}',
@@ -32,6 +36,9 @@ export default defineConfig({
 	server: {
 		host: true,
 		allowedHosts: ['v3.datamonkey.org'],
+		fs: {
+			allow: ['..']
+		},
 		// Increase WebSocket timeout to prevent timeout errors
 		hmr: {
 			timeout: 60000 // 60 seconds instead of default 30
@@ -60,6 +67,6 @@ export default defineConfig({
 	optimizeDeps: {
 		include: ['@biowasm/aioli', 'toml', 'marked', 'socket.io-client'],
 		// Exclude linked packages so changes are picked up immediately
-		exclude: ['phylotree']
+		exclude: ['phylotree', 'alivibe']
 	}
 });

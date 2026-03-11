@@ -9,6 +9,7 @@
 	import DemoFileSelector from './DemoFileSelector.svelte';
 	import TabNavigation from './TabNavigation.svelte';
 	import FastaExport from './FastaExport.svelte';
+	import AlignmentViewer from './AlignmentViewer.svelte';
 	import { ArrowRight, AlertTriangle, TreeDeciduous, Info } from 'lucide-svelte';
 
 	// Props
@@ -97,6 +98,18 @@
 				<DataReaderResults {fileMetricsJSON} />
 			</div>
 		</div>
+
+		<!-- Alignment Viewer -->
+		{#if $alignmentFileStore}
+			<div class="mb-premium-xl">
+				<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">
+					Alignment Viewer
+				</h2>
+				<div class="rounded-premium border border-border-platinum bg-white shadow-premium overflow-hidden">
+					<AlignmentViewer alignmentFile={$alignmentFileStore} {fileMetricsJSON} />
+				</div>
+			</div>
+		{/if}
 
 		<!-- Sequence Warnings Section -->
 		<SequenceWarnings {fileMetricsJSON} />
