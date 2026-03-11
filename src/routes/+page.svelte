@@ -17,6 +17,7 @@
 	import TreeSelector from '../lib/TreeSelector.svelte';
 	import ErrorHandler from '../lib/ErrorHandler.svelte';
 	import DemoFileSelector from '../lib/DemoFileSelector.svelte';
+	import { X, FlaskConical, ExternalLink } from 'lucide-svelte';
 
 	// New tabbed structure components
 	import DataTab from '../lib/DataTab.svelte';
@@ -52,6 +53,7 @@
 	let treeData = {};
 	let showBatchExport = false;
 	let analysisStartTime = null; // Track analysis start time for duration calculation
+	let primeCardDismissed = false;
 
 	// Handle URL query parameter for tab navigation (e.g., /?tab=results)
 	$: {
@@ -1074,6 +1076,45 @@
 				Sequence Analysis Platform
 			</h1>
 
+			<!-- PRIME Feature Card -->
+			{#if !primeCardDismissed}
+				<div class="prime-card">
+					<button
+						class="prime-card-close"
+						onclick={() => primeCardDismissed = true}
+						aria-label="Dismiss"
+					>
+						<X size={14} />
+					</button>
+					<div class="prime-card-inner">
+						<div class="prime-card-icon">
+							<FlaskConical size={24} />
+						</div>
+						<div class="prime-card-content">
+							<h3 class="prime-card-title">
+								Introducing PRIME
+							</h3>
+							<p class="prime-card-subtitle">
+								Property-Informed Models of Evolution
+							</p>
+							<p class="prime-card-desc">
+								Characterize physicochemical selection in protein evolution. PRIME incorporates amino acid properties like molecular volume, hydropathy, and structural propensities to resolve the biophysical basis of selective constraint.
+							</p>
+							<div class="prime-card-actions">
+								<a
+									href="https://www.biorxiv.org/content/10.64898/2026.03.09.710461v1"
+									target="_blank"
+									rel="noopener noreferrer"
+									class="prime-card-btn-preprint"
+								>
+									Read the preprint <ExternalLink size={13} />
+								</a>
+								</div>
+						</div>
+					</div>
+				</div>
+			{/if}
+
 			<!-- Main Tabbed Interface with Smart Navigation -->
 			<SmartTabNavigation
 				{activeTab}
@@ -1139,6 +1180,128 @@
 		}
 		100% {
 			transform: rotate(360deg);
+		}
+	}
+
+	/* PRIME Feature Card */
+	.prime-card {
+		position: relative;
+		margin-bottom: 1rem;
+		border-radius: 12px;
+		border: 1px solid #e9d5ff;
+		background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #ede9fe 100%);
+		overflow: hidden;
+	}
+
+	.prime-card::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 3px;
+		background: linear-gradient(90deg, #7c3aed, #c2410c);
+	}
+
+	.prime-card-close {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		padding: 4px;
+		border-radius: 6px;
+		color: #9ca3af;
+		cursor: pointer;
+		transition: all 200ms;
+	}
+
+	.prime-card-close:hover {
+		color: #6b7280;
+		background: rgba(0, 0, 0, 0.05);
+	}
+
+	.prime-card-inner {
+		display: flex;
+		align-items: flex-start;
+		gap: 16px;
+		padding: 20px 24px;
+	}
+
+	.prime-card-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 48px;
+		height: 48px;
+		border-radius: 12px;
+		background: linear-gradient(135deg, #7c3aed, #6d28d9);
+		color: white;
+		flex-shrink: 0;
+	}
+
+	.prime-card-content {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.prime-card-title {
+		font-size: 16px;
+		font-weight: 700;
+		color: #111827;
+		margin: 0;
+		line-height: 1.2;
+	}
+
+	.prime-card-subtitle {
+		font-size: 13px;
+		font-weight: 500;
+		color: #7c3aed;
+		margin: 2px 0 0;
+	}
+
+	.prime-card-desc {
+		font-size: 13px;
+		color: #475569;
+		margin: 8px 0 0;
+		line-height: 1.5;
+	}
+
+	.prime-card-actions {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		margin-top: 12px;
+		flex-wrap: wrap;
+	}
+
+	.prime-card-btn-preprint {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		padding: 6px 14px;
+		font-size: 13px;
+		font-weight: 600;
+		color: white;
+		background: #7c3aed;
+		border-radius: 6px;
+		text-decoration: none;
+		transition: background 200ms;
+	}
+
+	.prime-card-btn-preprint:hover {
+		background: #6d28d9;
+	}
+
+	@media (max-width: 639px) {
+		.prime-card-inner {
+			padding: 16px;
+		}
+
+		.prime-card-icon {
+			display: none;
+		}
+
+		.prime-card-desc {
+			display: none;
 		}
 	}
 </style>
