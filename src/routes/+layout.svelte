@@ -3,11 +3,14 @@
 	import AnalysisStatusIndicator from '../lib/AnalysisStatusIndicator.svelte';
 	import BackendConnectivityIndicator from '../lib/BackendConnectivityIndicator.svelte';
 	import Toast from '../lib/Toast.svelte';
-	import { X, Menu } from 'lucide-svelte';
+	import { X, Menu, FlaskConical } from 'lucide-svelte';
 	import { env } from '$env/dynamic/public';
 
 	// Get version from Vite define
 	const version = __APP_VERSION__;
+
+	// Announcement banner state
+	let bannerDismissed = $state(false);
 
 	// Umami analytics (only if configured)
 	const umamiUrl = env.PUBLIC_UMAMI_URL;
@@ -47,6 +50,36 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col bg-brand-ghost">
+	<!-- PRIME Announcement Banner -->
+	{#if !bannerDismissed}
+		<div class="prime-banner">
+			<div class="container mx-auto flex items-center justify-between px-4 py-2.5 sm:px-premium-xl">
+				<div class="flex flex-1 items-center justify-center gap-2 text-sm font-medium">
+					<FlaskConical size={16} class="shrink-0" />
+					<span>
+						<strong>New:</strong> PRIME — Property-Informed Models of Evolution is now available.
+						<a
+							href="https://www.biorxiv.org/content/10.64898/2026.03.09.710461v1"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="prime-banner-link"
+						>
+							Read the preprint &rarr;
+						</a>
+					</span>
+				</div>
+				<button
+					type="button"
+					class="prime-banner-close"
+					onclick={() => bannerDismissed = true}
+					aria-label="Dismiss announcement"
+				>
+					<X size={16} />
+				</button>
+			</div>
+		</div>
+	{/if}
+
 	<nav class="border-b border-border-platinum bg-white shadow-sm">
 		<div class="container mx-auto flex items-center justify-between px-4 py-3 sm:px-premium-xl sm:py-premium-md">
 			<a class="flex items-center gap-2" href="/?tab=data" onclick={closeMobileMenu}>
@@ -159,3 +192,35 @@
 
 <!-- Global Toast Notifications -->
 <Toast />
+
+<style>
+	.prime-banner {
+		background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 50%, #5b21b6 100%);
+		color: white;
+	}
+
+	.prime-banner-link {
+		color: #fed7aa;
+		text-decoration: underline;
+		text-decoration-color: rgba(254, 215, 170, 0.4);
+		text-underline-offset: 2px;
+	}
+
+	.prime-banner-link:hover {
+		color: white;
+		text-decoration-color: white;
+	}
+
+	.prime-banner-close {
+		padding: 4px;
+		border-radius: 4px;
+		color: rgba(255, 255, 255, 0.7);
+		cursor: pointer;
+		transition: all 200ms;
+	}
+
+	.prime-banner-close:hover {
+		color: white;
+		background: rgba(255, 255, 255, 0.15);
+	}
+</style>
