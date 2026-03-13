@@ -1221,14 +1221,14 @@
 					</div>
 
 					<div class="advanced-content">
-						{#if Object.keys(currentMethodOptions).length > 0}
-							{#each Object.entries(currentMethodOptions) as [optionKey, optionConfig]}
+						{#if Object.keys(currentMethodOptions).length > 0 && methodOptions[selectedMethod]}
+							{#each Object.entries(currentMethodOptions).filter(([_, c]) => c.type !== 'interactive-tree') as [optionKey, optionConfig]}
 								{@const isEnabled =
 									!optionConfig.dependsOn ||
 									(methodOptions[selectedMethod] &&
 										optionConfig.enabledWhen &&
 										optionConfig.enabledWhen.includes(
-											methodOptions[selectedMethod][optionConfig.dependsOn]
+											methodOptions[selectedMethod]?.[optionConfig.dependsOn]
 										))}
 
 								<div class="option-group" class:disabled={!isEnabled}>

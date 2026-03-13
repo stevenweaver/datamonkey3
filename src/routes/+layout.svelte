@@ -32,7 +32,6 @@
 </script>
 
 <svelte:head>
-	<link rel="stylesheet" href="https://observablehq.com/_next/static/css/92c0a8010b575b66.css" />
 	<link
 		rel="stylesheet"
 		href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css"
