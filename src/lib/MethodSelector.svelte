@@ -987,6 +987,14 @@
 		}
 	}
 
+	// Check if an advanced option is enabled (based on dependencies)
+	function isOptionEnabled(optConfig, method) {
+		if (!optConfig.dependsOn) return true;
+		if (!methodOptions[method]) return false;
+		if (!optConfig.enabledWhen) return false;
+		return optConfig.enabledWhen.includes(methodOptions[method][optConfig.dependsOn]);
+	}
+
 	// Get method info helper
 	function getMethodInfo(key) {
 		return (
@@ -1222,47 +1230,39 @@
 
 					<div class="advanced-content">
 						{#if Object.keys(currentMethodOptions).length > 0 && methodOptions[selectedMethod]}
-							{#each Object.entries(currentMethodOptions).filter(([_, c]) => c.type !== 'interactive-tree') as [optionKey, optionConfig]}
-								{@const isEnabled =
-									!optionConfig.dependsOn ||
-									(methodOptions[selectedMethod] &&
-										optionConfig.enabledWhen &&
-										optionConfig.enabledWhen.includes(
-											methodOptions[selectedMethod]?.[optionConfig.dependsOn]
-										))}
-
-								<div class="option-group" class:disabled={!isEnabled}>
-									{#if optionConfig.type === 'number'}
+							{#each Object.entries(currentMethodOptions).filter(([_, c]) => c.type !== 'interactive-tree') as entry}
+								<div class="option-group" class:disabled={!isOptionEnabled(entry[1], selectedMethod)}>
+									{#if entry[1].type === 'number'}
 										<label class="option-label">
-											{optionConfig.label}:
+											{entry[1].label}:
 											<input
 												type="number"
-												bind:value={methodOptions[selectedMethod][optionKey]}
-												min={optionConfig.min || 0}
-												max={optionConfig.max || 1000}
-												step={optionConfig.step || 1}
+												bind:value={methodOptions[selectedMethod][entry[0]]}
+												min={entry[1].min || 0}
+												max={entry[1].max || 1000}
+												step={entry[1].step || 1}
 												class="option-input"
-												disabled={!isEnabled}
+												disabled={!isOptionEnabled(entry[1], selectedMethod)}
 											/>
 										</label>
-									{:else if optionConfig.type === 'boolean'}
+									{:else if entry[1].type === 'boolean'}
 										<label class="option-checkbox">
 											<input
 												type="checkbox"
-												bind:checked={methodOptions[selectedMethod][optionKey]}
-												disabled={!isEnabled}
+												bind:checked={methodOptions[selectedMethod][entry[0]]}
+												disabled={!isOptionEnabled(entry[1], selectedMethod)}
 											/>
-											{optionConfig.label}
+											{entry[1].label}
 										</label>
-									{:else if optionConfig.type === 'select'}
+									{:else if entry[1].type === 'select'}
 										<label class="option-label">
-											{optionConfig.label}:
+											{entry[1].label}:
 											<select
-												bind:value={methodOptions[selectedMethod][optionKey]}
+												bind:value={methodOptions[selectedMethod][entry[0]]}
 												class="option-select"
-												disabled={!isEnabled}
+												disabled={!isOptionEnabled(entry[1], selectedMethod)}
 											>
-												{#each optionConfig.options as option}
+												{#each entry[1].options as option}
 													{#if typeof option === 'object'}
 														<option value={option.value} disabled={option.disabled}>{option.label || option.value}</option>
 													{:else}
@@ -1271,22 +1271,22 @@
 												{/each}
 											</select>
 										</label>
-									{:else if optionConfig.type === 'text'}
+									{:else if entry[1].type === 'text'}
 										<label class="option-label">
-											{optionConfig.label}:
+											{entry[1].label}:
 											<input
 												type="text"
-												bind:value={methodOptions[selectedMethod][optionKey]}
-												placeholder={optionConfig.placeholder || ''}
+												bind:value={methodOptions[selectedMethod][entry[0]]}
+												placeholder={entry[1].placeholder || ''}
 												class="option-input"
-												disabled={!isEnabled}
+												disabled={!isOptionEnabled(entry[1], selectedMethod)}
 											/>
 										</label>
 									{/if}
 
-									{#if optionConfig.description}
+									{#if entry[1].description}
 										<div class="option-description">
-											{optionConfig.description}
+											{entry[1].description}
 										</div>
 									{/if}
 								</div>
