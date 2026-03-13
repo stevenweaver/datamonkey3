@@ -44,7 +44,7 @@
 	/>
 	<title>Datamonkey 3 - Sequence Analysis Platform</title>
 	{#if umamiEnabled}
-		<script defer src={umamiUrl} data-website-id={umamiWebsiteId}></script>
+		{@html `<script defer src="${umamiUrl}" data-website-id="${umamiWebsiteId}"></script>`}
 	{/if}
 </svelte:head>
 

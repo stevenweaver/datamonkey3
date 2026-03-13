@@ -942,10 +942,20 @@
 		? METHOD_ADVANCED_OPTIONS[selectedMethod.toLowerCase()] || {}
 		: {};
 
-	// Filtered list of renderable advanced options (excludes interactive-tree, which is rendered separately)
-	$: renderableOptions = Object.entries(currentMethodOptions)
-		.filter(([_, c]) => c.type !== 'interactive-tree')
-		.map(([key, config]) => ({ key, config }));
+	// Pre-computed renderable options array (excludes interactive-tree)
+	$: renderableAdvancedOptions = (selectedMethod && methodOptions[selectedMethod])
+		? Object.entries(currentMethodOptions)
+			.filter(([_, c]) => c.type !== 'interactive-tree')
+			.map(([key, config]) => {
+				const isEnabled = !config.dependsOn ||
+					(methodOptions[selectedMethod] &&
+						config.enabledWhen &&
+						config.enabledWhen.includes(
+							methodOptions[selectedMethod][config.dependsOn]
+						));
+				return { key, config, isEnabled };
+			})
+		: [];
 
 	// Initialize method options when method changes
 	$: if (selectedMethod && !methodOptions[selectedMethod]) {
@@ -980,6 +990,14 @@
 	$: relaxBranchesValid = selectedMethod?.toLowerCase() !== 'relax' ||
 		(relaxHasTestBranches && relaxHasReferenceBranches);
 
+	// Update a single method option (avoids bind:value inside {#each} which breaks in Svelte 5.23+)
+	function updateMethodOption(key, value) {
+		if (selectedMethod && methodOptions[selectedMethod]) {
+			methodOptions[selectedMethod][key] = value;
+			methodOptions = { ...methodOptions };
+		}
+	}
+
 	// Initialize default values for a method's options
 	function initializeMethodOptions(method) {
 		const options = METHOD_ADVANCED_OPTIONS[method.toLowerCase()];
@@ -990,14 +1008,6 @@
 			}
 			methodOptions = { ...methodOptions }; // Trigger reactivity
 		}
-	}
-
-	// Check if an advanced option is enabled (based on dependencies)
-	function isOptionEnabled(optConfig, method) {
-		if (!optConfig.dependsOn) return true;
-		if (!methodOptions[method]) return false;
-		if (!optConfig.enabledWhen) return false;
-		return optConfig.enabledWhen.includes(methodOptions[method][optConfig.dependsOn]);
 	}
 
 	// Get method info helper
@@ -1234,28 +1244,30 @@
 					</div>
 
 					<div class="advanced-content">
-						{#if renderableOptions.length > 0 && methodOptions[selectedMethod]}
-							{#each renderableOptions as opt}
-								<div class="option-group" class:disabled={!isOptionEnabled(opt.config, selectedMethod)}>
+						{#if renderableAdvancedOptions.length > 0}
+							{#each renderableAdvancedOptions as opt}
+								<div class="option-group" class:disabled={!opt.isEnabled}>
 									{#if opt.config.type === 'number'}
 										<label class="option-label">
 											{opt.config.label}:
 											<input
 												type="number"
-												bind:value={methodOptions[selectedMethod][opt.key]}
+												value={methodOptions[selectedMethod]?.[opt.key]}
+												on:input={e => updateMethodOption(opt.key, +e.target.value)}
 												min={opt.config.min || 0}
 												max={opt.config.max || 1000}
 												step={opt.config.step || 1}
 												class="option-input"
-												disabled={!isOptionEnabled(opt.config, selectedMethod)}
+												disabled={!opt.isEnabled}
 											/>
 										</label>
 									{:else if opt.config.type === 'boolean'}
 										<label class="option-checkbox">
 											<input
 												type="checkbox"
-												bind:checked={methodOptions[selectedMethod][opt.key]}
-												disabled={!isOptionEnabled(opt.config, selectedMethod)}
+												checked={methodOptions[selectedMethod]?.[opt.key]}
+												on:change={e => updateMethodOption(opt.key, e.target.checked)}
+												disabled={!opt.isEnabled}
 											/>
 											{opt.config.label}
 										</label>
@@ -1263,9 +1275,10 @@
 										<label class="option-label">
 											{opt.config.label}:
 											<select
-												bind:value={methodOptions[selectedMethod][opt.key]}
+												value={methodOptions[selectedMethod]?.[opt.key]}
+												on:change={e => updateMethodOption(opt.key, e.target.value)}
 												class="option-select"
-												disabled={!isOptionEnabled(opt.config, selectedMethod)}
+												disabled={!opt.isEnabled}
 											>
 												{#each opt.config.options as option}
 													{#if typeof option === 'object'}
@@ -1281,10 +1294,11 @@
 											{opt.config.label}:
 											<input
 												type="text"
-												bind:value={methodOptions[selectedMethod][opt.key]}
+												value={methodOptions[selectedMethod]?.[opt.key]}
+												on:input={e => updateMethodOption(opt.key, e.target.value)}
 												placeholder={opt.config.placeholder || ''}
 												class="option-input"
-												disabled={!isOptionEnabled(opt.config, selectedMethod)}
+												disabled={!opt.isEnabled}
 											/>
 										</label>
 									{/if}
