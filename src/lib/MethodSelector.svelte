@@ -942,6 +942,11 @@
 		? METHOD_ADVANCED_OPTIONS[selectedMethod.toLowerCase()] || {}
 		: {};
 
+	// Initialize method options when method changes (must run before renderableAdvancedOptions)
+	$: if (selectedMethod && !methodOptions[selectedMethod]) {
+		initializeMethodOptions(selectedMethod);
+	}
+
 	// Pre-computed renderable options array (excludes interactive-tree)
 	$: renderableAdvancedOptions = (selectedMethod && methodOptions[selectedMethod])
 		? Object.entries(currentMethodOptions)
@@ -956,11 +961,6 @@
 				return { key, config, isEnabled };
 			})
 		: [];
-
-	// Initialize method options when method changes
-	$: if (selectedMethod && !methodOptions[selectedMethod]) {
-		initializeMethodOptions(selectedMethod);
-	}
 
 	// Update genetic code ID when name changes
 	$: {
