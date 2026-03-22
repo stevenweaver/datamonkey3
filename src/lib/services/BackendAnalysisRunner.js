@@ -7,6 +7,7 @@ import io from 'socket.io-client';
 import { DATAMONKEY_SERVER_URL } from '../config/env.ts';
 import { BaseAnalysisRunner } from './BaseAnalysisRunner.js';
 import { analysisStore } from '../../stores/analyses.js';
+import { sanitizeSequenceNames } from '../utils/fastaValidation.js';
 
 /**
  * Strip embedded trees from alignment data
@@ -243,16 +244,22 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			// Strip embedded trees from alignment data (NEXUS or FASTA)
 			const cleanedFastaData = stripEmbeddedTrees(fastaData);
 
+			// Sanitize sequence names to remove characters invalid in Newick format
+			const { sanitizedFasta, sanitizedTree } = sanitizeSequenceNames(
+				cleanedFastaData,
+				treeData
+			);
+
 			console.log(`📤 Submitting ${method} analysis to backend:`, eventName, {
-				alignmentLength: cleanedFastaData.length,
-				treeLength: treeData.length,
+				alignmentLength: sanitizedFasta.length,
+				treeLength: sanitizedTree.length,
 				jobId,
 				jobParams: analysisParams
 			});
 
 			const submitData = {
-				alignment: cleanedFastaData,
-				tree: treeData,
+				alignment: sanitizedFasta,
+				tree: sanitizedTree,
 				job: {
 					id: jobId, // Include jobId for reconnection support (backend 2.8.0+)
 					...analysisParams
