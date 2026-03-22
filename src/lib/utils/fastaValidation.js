@@ -193,6 +193,84 @@ export function getSequenceStats(sequences) {
 }
 
 /**
+ * Sanitize a single sequence/node name for Newick compatibility.
+ * Replaces characters that are invalid in Newick tree format with underscores,
+ * collapses consecutive underscores, and strips leading/trailing underscores.
+ * @param {string} name - Original name
+ * @returns {string} Sanitized name
+ */
+export function sanitizeName(name) {
+	if (!name) return name;
+	// Replace characters invalid in Newick format with underscores
+	let sanitized = name.replace(/[|() ,;:[\]'"]/g, '_');
+	// Collapse consecutive underscores to a single underscore
+	sanitized = sanitized.replace(/_+/g, '_');
+	// Strip leading and trailing underscores
+	sanitized = sanitized.replace(/^_+|_+$/g, '');
+	return sanitized;
+}
+
+/**
+ * Sanitize sequence names in FASTA data and tree data so they remain consistent
+ * and compatible with HyPhy's Newick tree parser.
+ *
+ * Characters replaced: | ( ) space , : ; [ ] ' "
+ *
+ * @param {string} fastaData - Raw FASTA content
+ * @param {string} treeData - Newick tree string
+ * @returns {{ sanitizedFasta: string, sanitizedTree: string }}
+ */
+export function sanitizeSequenceNames(fastaData, treeData) {
+	// Build a mapping of original names to sanitized names from the FASTA headers
+	const nameMap = new Map();
+	const lines = fastaData.split(/\r?\n/);
+
+	for (const line of lines) {
+		if (line.startsWith('>')) {
+			const original = line.substring(1).trim();
+			const sanitized = sanitizeName(original);
+			if (original !== sanitized) {
+				nameMap.set(original, sanitized);
+			}
+		}
+	}
+
+	// If nothing needs sanitizing, return early
+	if (nameMap.size === 0) {
+		return { sanitizedFasta: fastaData, sanitizedTree: treeData };
+	}
+
+	console.log(`Sanitizing ${nameMap.size} sequence name(s) with special characters`);
+
+	// Sanitize FASTA headers
+	const sanitizedFasta = lines
+		.map((line) => {
+			if (line.startsWith('>')) {
+				const original = line.substring(1).trim();
+				const sanitized = nameMap.get(original);
+				return sanitized !== undefined ? `>${sanitized}` : line;
+			}
+			return line;
+		})
+		.join('\n');
+
+	// Sanitize tree node names by replacing each original name in the Newick string
+	let sanitizedTree = treeData;
+	if (treeData) {
+		// Sort by length descending so longer names are replaced first,
+		// preventing partial replacements of shorter substrings
+		const sortedEntries = [...nameMap.entries()].sort((a, b) => b[0].length - a[0].length);
+		for (const [original, sanitized] of sortedEntries) {
+			// Escape special regex characters in the original name
+			const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+			sanitizedTree = sanitizedTree.replace(new RegExp(escaped, 'g'), sanitized);
+		}
+	}
+
+	return { sanitizedFasta, sanitizedTree };
+}
+
+/**
  * Convert sequences to FASTA format string
  * @param {Array} sequences - Array of sequence objects
  * @param {number} lineWidth - Line width for sequence wrapping (default: 80)

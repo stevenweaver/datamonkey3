@@ -7,6 +7,7 @@ import { BaseAnalysisRunner } from './BaseAnalysisRunner.js';
 import { aioliStore } from '../../stores/aioli.js';
 import { get } from 'svelte/store';
 import { getCachedOrCompute, generateAnalysisKey } from '../utils/cacheUtils.js';
+import { sanitizeSequenceNames } from '../utils/fastaValidation.js';
 
 /**
  * Strip embedded trees from alignment data
@@ -165,26 +166,32 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		// Strip any embedded trees from alignment data (NEXUS or FASTA)
 		const cleanedFastaData = stripEmbeddedTrees(fastaData);
 
+		// Sanitize sequence names to remove characters invalid in Newick format
+		const { sanitizedFasta, sanitizedTree } = sanitizeSequenceNames(
+			cleanedFastaData,
+			treeData
+		);
+
 		// Create temporary file from cleaned FASTA data
-		const inputFile = new File([cleanedFastaData], 'user.nex', { type: 'text/plain' });
+		const inputFile = new File([sanitizedFasta], 'user.nex', { type: 'text/plain' });
 
 		// Prepare files to mount
-		const filesToMount = [{ name: 'user.nex', data: cleanedFastaData }];
+		const filesToMount = [{ name: 'user.nex', data: sanitizedFasta }];
 
 		// Add tree file if provided
-		if (treeData && treeData.trim()) {
+		if (sanitizedTree && sanitizedTree.trim()) {
 			console.log('🌳 TREE DEBUG - Tree data being mounted:');
-			console.log('Tree length:', treeData.length);
+			console.log('Tree length:', sanitizedTree.length);
 			console.log(
 				'Tree content (first 200 chars):',
-				treeData.substring(0, 200) + (treeData.length > 200 ? '...' : '')
+				sanitizedTree.substring(0, 200) + (sanitizedTree.length > 200 ? '...' : '')
 			);
-			console.log('Tree has {FG} tags:', treeData.includes('{FG}'));
+			console.log('Tree has {FG} tags:', sanitizedTree.includes('{FG}'));
 			console.log('🌳🔥 FULL TREE FILE CONTENTS BEING WRITTEN TO /shared/data/user.tree:');
 			console.log('=== START TREE FILE ===');
-			console.log(treeData);
+			console.log(sanitizedTree);
 			console.log('=== END TREE FILE ===');
-			filesToMount.push({ name: 'user.tree', data: treeData });
+			filesToMount.push({ name: 'user.tree', data: sanitizedTree });
 		}
 
 		// Mount the files
@@ -197,7 +204,7 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		args.push(`--alignment ${inputFiles[0]}`);
 
 		// Add tree argument if tree data was provided
-		if (treeData && treeData.trim()) {
+		if (sanitizedTree && sanitizedTree.trim()) {
 			args.push(`--tree ${inputFiles[1]}`);
 		}
 
@@ -393,7 +400,7 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		const stdout = await cmdResult.stdout;
 
 		// Add command execution details to stdout for debugging
-		const commandInfo = `\n=== HyPhy Command Execution ===\nCommand: ${fullHyphyCommand}\nFiles mounted: ${filesToMount.map((f) => f.name).join(', ')}\nTree data provided: ${treeData && treeData.trim() ? 'Yes' : 'No'}\n================================\n\n`;
+		const commandInfo = `\n=== HyPhy Command Execution ===\nCommand: ${fullHyphyCommand}\nFiles mounted: ${filesToMount.map((f) => f.name).join(', ')}\nTree data provided: ${sanitizedTree && sanitizedTree.trim() ? 'Yes' : 'No'}\n================================\n\n`;
 		const enhancedStdout = commandInfo + stdout;
 
 		// Check for common HyPhy errors
