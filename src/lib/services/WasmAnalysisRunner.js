@@ -8,6 +8,7 @@ import { aioliStore } from '../../stores/aioli.js';
 import { get } from 'svelte/store';
 import { getCachedOrCompute, generateAnalysisKey } from '../utils/cacheUtils.js';
 import { sanitizeSequenceNames } from '../utils/fastaValidation.js';
+import { safeParseJSON } from '../utils/jsonUtils.js';
 
 /**
  * Strip embedded trees from alignment data
@@ -444,7 +445,7 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 		const response = await fetch(jsonBlob);
 		const blob = await response.blob();
 		const jsonText = await blob.text();
-		const jsonData = JSON.parse(jsonText);
+		const jsonData = safeParseJSON(jsonText);
 
 		this.updateProgress(analysisId, 'saving', 95, 'Saving results...');
 
