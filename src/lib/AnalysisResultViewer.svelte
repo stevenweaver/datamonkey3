@@ -11,6 +11,7 @@
 		isMethodSupported,
 		getHyphyEyeUrl
 	} from './utils/hyphyEyeIntegration';
+	import { safeParseJSON } from './utils/jsonUtils';
 	import {
 		FelVisualization as HyphyScopeFel,
 		SimpleFelVisualization,
@@ -77,7 +78,7 @@
 				try {
 					// Check if result is already an object (from backend) or needs parsing (from WebAssembly)
 					if (typeof analysis.result === 'string') {
-						resultData = JSON.parse(analysis.result);
+						resultData = safeParseJSON(analysis.result);
 					} else {
 						// Already parsed object from backend
 						resultData = analysis.result;
