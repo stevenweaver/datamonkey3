@@ -1134,7 +1134,7 @@
 	<div class="interface-container">
 		<!-- Method Selection Row -->
 		<div class="method-selection">
-			<select bind:value={selectedMethod} class="method-dropdown">
+			<select bind:value={selectedMethod} class="method-dropdown" data-testid="method-dropdown">
 				<option value={null}>Select an analysis method</option>
 				{#each availableMethods as method}
 					<option value={method.id} disabled={!method.info.supported}>
@@ -1418,6 +1418,7 @@
 				class:submitting={isSubmitting}
 				on:click={runAnalysis}
 				disabled={!selectedMethod || !currentMethod?.info.supported || isSubmitting || !relaxBranchesValid}
+				data-testid="run-analysis-btn"
 			>
 				{#if isSubmitting}
 					<Loader2 class="run-icon spinning" />

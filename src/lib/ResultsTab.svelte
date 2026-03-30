@@ -65,7 +65,7 @@
 					<button
 						on:click={handleClearAll}
 						class="inline-flex items-center rounded bg-red-100 px-2.5 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-200"
-						title="Delete all analyses"
+						title="Delete all analyses" data-testid="clear-all-btn"
 					>
 						<Trash2 class="mr-1 h-3 w-3" />
 						Clear All
