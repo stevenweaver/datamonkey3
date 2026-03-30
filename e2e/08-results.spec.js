@@ -3,19 +3,12 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { freshStart, seedCompletedAnalysis } from './fixtures/helpers.js';
-import fs from 'fs';
-import path from 'path';
-
-const FEL_RESULT = fs.readFileSync(
-	path.resolve('src/benchmark/test-alignments/bglobin.nex.FEL.json'),
-	'utf-8'
-);
+import { freshStart, seedCompletedAnalysis, MOCK_FEL_RESULT } from './fixtures/helpers.js';
 
 test.describe('Results Tab', () => {
 	test.beforeEach(async ({ page }) => {
 		await freshStart(page);
-		await seedCompletedAnalysis(page, { resultJson: FEL_RESULT, method: 'FEL', fileName: 'bglobin.nex' });
+		await seedCompletedAnalysis(page, { resultJson: MOCK_FEL_RESULT, method: 'FEL', fileName: 'bglobin.nex' });
 		await page.reload();
 		await page.waitForSelector('.sample-card', { timeout: 60000 });
 	});

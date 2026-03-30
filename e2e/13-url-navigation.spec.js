@@ -3,9 +3,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { freshStart, loadDemoFile, seedCompletedAnalysis } from './fixtures/helpers.js';
-import fs from 'fs';
-import path from 'path';
+import { freshStart, loadDemoFile, seedCompletedAnalysis, MOCK_FEL_RESULT } from './fixtures/helpers.js';
 
 test.describe('URL Deep Linking', () => {
 	test('/?tab=data shows the Data tab', async ({ page }) => {
@@ -19,11 +17,7 @@ test.describe('URL Deep Linking', () => {
 		await page.goto('/');
 		await page.waitForSelector('.sample-card', { timeout: 60000 });
 
-		const resultJson = fs.readFileSync(
-			path.resolve('src/benchmark/test-alignments/bglobin.nex.FEL.json'),
-			'utf-8'
-		);
-		await seedCompletedAnalysis(page, { resultJson, method: 'FEL' });
+		await seedCompletedAnalysis(page, { resultJson: MOCK_FEL_RESULT, method: 'FEL' });
 
 		await page.goto('/?tab=results');
 		await page.waitForSelector('.sample-card, [data-testid="analysis-viewer"], .analysis-history', { timeout: 60000 });
@@ -35,11 +29,7 @@ test.describe('URL Deep Linking', () => {
 		await page.goto('/');
 		await page.waitForSelector('.sample-card', { timeout: 60000 });
 
-		const resultJson = fs.readFileSync(
-			path.resolve('src/benchmark/test-alignments/bglobin.nex.FEL.json'),
-			'utf-8'
-		);
-		await seedCompletedAnalysis(page, { resultJson, method: 'FEL' });
+		await seedCompletedAnalysis(page, { resultJson: MOCK_FEL_RESULT, method: 'FEL' });
 		await page.reload();
 		await page.waitForSelector('.sample-card', { timeout: 60000 });
 

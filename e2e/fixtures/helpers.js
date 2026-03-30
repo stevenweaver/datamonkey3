@@ -20,9 +20,33 @@ export const TEST_FILES = {
 	'large.nex': path.resolve('static/test-data/large.nex'),
 	'broken-not-an-alignment.txt': path.resolve('src/test-data/broken-not-an-alignment.txt'),
 	'stop-codons.fna': path.resolve('static/test-data/validation-tests/stop-codons.fna'),
-	'duplicates.fna': path.resolve('static/test-data/validation-tests/duplicates.fna'),
-	'bglobin.nex.FEL.json': path.resolve('src/benchmark/test-alignments/bglobin.nex.FEL.json')
+	'duplicates.fna': path.resolve('static/test-data/validation-tests/duplicates.fna')
 };
+
+/**
+ * Minimal mock FEL result JSON for seeding tests.
+ * Tests only check that UI elements render (cards, viewer, export panel),
+ * not the actual analysis data, so a minimal structure suffices.
+ */
+export const MOCK_FEL_RESULT = JSON.stringify({
+	MLE: {
+		content: {
+			"0": [[1.0, 0.1, 0.3, 5.0, 0.03, 2.0]],
+		},
+		headers: [
+			["alpha", "Mean posterior synonymous substitution rate at a site"],
+			["beta", "Mean posterior non-synonymous substitution rate at a site"],
+			["alpha=beta", "Mean posterior rate under the neutral model"],
+			["LRT", "Likelihood ratio test statistic"],
+			["p-value", "Asymptotic p-value from the LRT"],
+			["Total branch length", "Total length of branches contributing to inference"]
+		]
+	},
+	input: { "file name": "bglobin.nex", "number of sequences": 10, "number of sites": 25 },
+	fits: { "Global MG94xREV": { "Log Likelihood": -1000, "AIC-c": 2100 } },
+	tested: { "0": { "FEL": 25 } },
+	"data partitions": { "0": { "name": "default", "coverage": [[0, 24]] } }
+});
 
 /**
  * Wait for the app to be ready (HyPhy WASM loaded, demo cards visible)

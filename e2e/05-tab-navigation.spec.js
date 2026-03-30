@@ -3,9 +3,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { freshStart, loadDemoFile, seedCompletedAnalysis } from './fixtures/helpers.js';
-import fs from 'fs';
-import path from 'path';
+import { freshStart, loadDemoFile, seedCompletedAnalysis, MOCK_FEL_RESULT } from './fixtures/helpers.js';
 
 test.describe('Tab Navigation Gating', () => {
 	test.beforeEach(async ({ page }) => {
@@ -46,11 +44,7 @@ test.describe('Tab Navigation Gating', () => {
 
 	test('completing an analysis enables the Results tab with badge', async ({ page }) => {
 		// Seed a completed analysis to simulate analysis completion
-		const resultJson = fs.readFileSync(
-			path.resolve('src/benchmark/test-alignments/bglobin.nex.FEL.json'),
-			'utf-8'
-		);
-		await seedCompletedAnalysis(page, { resultJson, method: 'FEL' });
+		await seedCompletedAnalysis(page, { resultJson: MOCK_FEL_RESULT, method: 'FEL' });
 		await page.reload();
 		await page.waitForSelector('.sample-card', { timeout: 60000 });
 

@@ -3,14 +3,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { freshStart, seedCompletedAnalysis } from './fixtures/helpers.js';
-import fs from 'fs';
-import path from 'path';
-
-const FEL_RESULT = fs.readFileSync(
-	path.resolve('src/benchmark/test-alignments/bglobin.nex.FEL.json'),
-	'utf-8'
-);
+import { freshStart, seedCompletedAnalysis, MOCK_MOCK_FEL_RESULT } from './fixtures/helpers.js';
 
 test.describe('Analysis History Management', () => {
 	test.beforeEach(async ({ page }) => {
@@ -19,11 +12,11 @@ test.describe('Analysis History Management', () => {
 
 	test('history shows multiple seeded analyses', async ({ page }) => {
 		// Seed 3 analyses
-		await seedCompletedAnalysis(page, { resultJson: FEL_RESULT, method: 'FEL', fileName: 'file1.nex' });
+		await seedCompletedAnalysis(page, { resultJson: MOCK_FEL_RESULT, method: 'FEL', fileName: 'file1.nex' });
 		await page.waitForTimeout(100);
-		await seedCompletedAnalysis(page, { resultJson: FEL_RESULT, method: 'SLAC', fileName: 'file2.nex' });
+		await seedCompletedAnalysis(page, { resultJson: MOCK_FEL_RESULT, method: 'SLAC', fileName: 'file2.nex' });
 		await page.waitForTimeout(100);
-		await seedCompletedAnalysis(page, { resultJson: FEL_RESULT, method: 'MEME', fileName: 'file3.nex' });
+		await seedCompletedAnalysis(page, { resultJson: MOCK_FEL_RESULT, method: 'MEME', fileName: 'file3.nex' });
 
 		await page.reload();
 		await page.waitForSelector('.sample-card', { timeout: 60000 });
@@ -39,8 +32,8 @@ test.describe('Analysis History Management', () => {
 	});
 
 	test('individual delete removes analysis from list', async ({ page }) => {
-		await seedCompletedAnalysis(page, { resultJson: FEL_RESULT, method: 'FEL' });
-		await seedCompletedAnalysis(page, { resultJson: FEL_RESULT, method: 'SLAC' });
+		await seedCompletedAnalysis(page, { resultJson: MOCK_FEL_RESULT, method: 'FEL' });
+		await seedCompletedAnalysis(page, { resultJson: MOCK_FEL_RESULT, method: 'SLAC' });
 
 		await page.reload();
 		await page.waitForSelector('.sample-card', { timeout: 60000 });
@@ -66,8 +59,8 @@ test.describe('Analysis History Management', () => {
 	});
 
 	test('Clear All empties history', async ({ page }) => {
-		await seedCompletedAnalysis(page, { resultJson: FEL_RESULT, method: 'FEL' });
-		await seedCompletedAnalysis(page, { resultJson: FEL_RESULT, method: 'SLAC' });
+		await seedCompletedAnalysis(page, { resultJson: MOCK_FEL_RESULT, method: 'FEL' });
+		await seedCompletedAnalysis(page, { resultJson: MOCK_FEL_RESULT, method: 'SLAC' });
 
 		await page.reload();
 		await page.waitForSelector('.sample-card', { timeout: 60000 });
@@ -91,7 +84,7 @@ test.describe('Analysis History Management', () => {
 	});
 
 	test('analyses persist after page refresh', async ({ page }) => {
-		await seedCompletedAnalysis(page, { resultJson: FEL_RESULT, method: 'FEL' });
+		await seedCompletedAnalysis(page, { resultJson: MOCK_FEL_RESULT, method: 'FEL' });
 
 		await page.reload();
 		await page.waitForSelector('.sample-card', { timeout: 60000 });
