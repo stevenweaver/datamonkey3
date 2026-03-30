@@ -101,8 +101,8 @@ class WasmAnalysisRunner extends BaseAnalysisRunner {
 			console.log('No tree data provided');
 		}
 
-		// Validate input using base class method
-		this.validateInput(fastaData, treeData, method);
+		// Validate input using base class method (includes codon alignment check)
+		this.validateInput(fastaData, treeData, method, config);
 
 		// Ensure WASM is initialized
 		await this.initialize();

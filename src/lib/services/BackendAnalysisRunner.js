@@ -206,8 +206,8 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			configKeys: Object.keys(config || {})
 		});
 
-		// Validate input using base class method
-		this.validateInput(fastaData, treeData, method);
+		// Validate input using base class method (includes codon alignment check)
+		this.validateInput(fastaData, treeData, method, config);
 
 		if (!this.socket || !this.socket.connected) {
 			console.log('🔌 Socket not connected, attempting to connect...');
