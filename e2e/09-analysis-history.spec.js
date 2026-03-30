@@ -3,7 +3,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { freshStart, seedCompletedAnalysis, MOCK_MOCK_FEL_RESULT } from './fixtures/helpers.js';
+import { freshStart, seedCompletedAnalysis, MOCK_FEL_RESULT } from './fixtures/helpers.js';
 
 test.describe('Analysis History Management', () => {
 	test.beforeEach(async ({ page }) => {
