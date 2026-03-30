@@ -175,6 +175,7 @@
 </script>
 
 <div
+	data-testid="analysis-card"
 	class="analysis-card mb-3 rounded-lg border transition-all duration-200 {compact
 		? 'p-3'
 		: 'p-4'} {selected

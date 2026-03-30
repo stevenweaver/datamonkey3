@@ -44,7 +44,7 @@
 
 </script>
 
-<div class="metrics min-w-full rounded-lg border border-border-subtle bg-surface-raised p-4 shadow-md">
+<div data-testid="sequence-info" class="metrics min-w-full rounded-lg border border-border-subtle bg-surface-raised p-4 shadow-md">
 	<h3 class="mb-4 text-lg font-semibold text-text-rich">Alignment File Metrics</h3>
 
 	{#if fileMetricsJSON?.error}

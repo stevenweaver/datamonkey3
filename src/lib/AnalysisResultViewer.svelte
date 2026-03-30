@@ -174,7 +174,7 @@
 	});
 </script>
 
-<div class="analysis-viewer">
+<div class="analysis-viewer" data-testid="analysis-viewer">
 	{#if loading}
 		<div class="flex flex-col items-center justify-center p-8">
 			<div class="loader mb-4"></div>
