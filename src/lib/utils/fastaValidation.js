@@ -271,6 +271,93 @@ export function sanitizeSequenceNames(fastaData, treeData) {
 }
 
 /**
+ * Stop codons by genetic code ID.
+ * Only entries that differ from Universal (0) are listed separately.
+ */
+const STOP_CODONS_BY_GENETIC_CODE = {
+	0: ['TAA', 'TAG', 'TGA'],  // Universal
+	1: ['TAA', 'TAG', 'AGA', 'AGG'],  // Vertebrate mitochondrial
+	2: ['TAA', 'TAG'],  // Yeast mitochondrial
+	3: ['TAA', 'TAG'],  // Mold mitochondrial
+	4: ['TAA', 'TAG'],  // Invertebrate mitochondrial
+	5: ['TGA'],  // Ciliate nuclear (TAA/TAG code for Gln)
+	6: ['TAA', 'TAG'],  // Echinoderm mitochondrial
+	7: ['TAA', 'TAG'],  // Euplotid nuclear
+	8: ['TAA', 'TAG', 'TGA'],  // Alternative yeast nuclear
+	9: ['TAA', 'TAG'],  // Ascidian mitochondrial
+	10: ['TAA', 'TAG'],  // Flatworm mitochondrial
+	11: ['TAA', 'TGA']  // Blepharisma nuclear
+};
+
+/**
+ * Validate a codon alignment for submission to codon-aware methods.
+ * Checks that sequence lengths are divisible by 3 and scans for in-frame stop codons.
+ *
+ * @param {string} fastaData - Raw FASTA string content
+ * @param {number} [geneticCodeId=0] - Genetic code ID (0 = Universal)
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
+export function validateCodonAlignment(fastaData, geneticCodeId = 0) {
+	const errors = [];
+
+	if (!fastaData || !fastaData.trim()) {
+		return { valid: false, errors: ['FASTA data is empty'] };
+	}
+
+	let parsed;
+	try {
+		parsed = parseFasta(fastaData);
+	} catch (e) {
+		return { valid: false, errors: [e.message] };
+	}
+
+	const { sequences } = parsed;
+
+	if (sequences.length === 0) {
+		return { valid: false, errors: ['No sequences found in FASTA data'] };
+	}
+
+	// Check divisibility by 3 using the first sequence
+	const firstSeqLength = sequences[0].sequence.replace(/[-.]/g, '').length;
+	if (firstSeqLength % 3 !== 0) {
+		errors.push(
+			`Sequence length (${firstSeqLength}) is not divisible by 3. ` +
+			`Codon-based analyses require in-frame coding sequences.`
+		);
+	}
+
+	// Determine stop codons for this genetic code
+	const stopCodons = STOP_CODONS_BY_GENETIC_CODE[geneticCodeId] ||
+		STOP_CODONS_BY_GENETIC_CODE[0];
+
+	const stopCodonSet = new Set(stopCodons);
+
+	// Scan each sequence for in-frame stop codons (excluding the last codon)
+	for (const seq of sequences) {
+		const cleanSeq = seq.sequence.replace(/[-.]/g, '').toUpperCase();
+		// Only check if length is divisible by 3, otherwise we already reported that error
+		if (cleanSeq.length % 3 !== 0) continue;
+
+		const lastCodonStart = cleanSeq.length - 3;
+		for (let i = 0; i < lastCodonStart; i += 3) {
+			const codon = cleanSeq.substring(i, i + 3);
+			if (stopCodonSet.has(codon)) {
+				const codonPosition = (i / 3) + 1;
+				errors.push(
+					`In-frame stop codon (${codon}) found in sequence "${seq.header}" ` +
+					`at codon position ${codonPosition}. Codon-based analyses cannot proceed ` +
+					`with premature stop codons.`
+				);
+				// Only report first stop codon per sequence to keep messages manageable
+				break;
+			}
+		}
+	}
+
+	return { valid: errors.length === 0, errors };
+}
+
+/**
  * Convert sequences to FASTA format string
  * @param {Array} sequences - Array of sequence objects
  * @param {number} lineWidth - Line width for sequence wrapping (default: 80)

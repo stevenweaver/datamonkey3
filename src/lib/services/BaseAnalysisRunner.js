@@ -6,6 +6,15 @@
 import { analysisStore } from '../../stores/analyses.js';
 import { toastStore } from '../../stores/toast.js';
 import { get } from 'svelte/store';
+import { validateCodonAlignment } from '../utils/fastaValidation.js';
+
+/**
+ * Methods that require codon-aligned input (sequence length divisible by 3, no premature stop codons).
+ */
+const CODON_AWARE_METHODS = new Set([
+	'fel', 'slac', 'fubar', 'meme', 'absrel', 'busted', 'relax',
+	'contrast-fel', 'bgm', 'prime', 'multi-hit', 'multihit', 'b-still', 'bstill'
+]);
 
 export class BaseAnalysisRunner {
 	constructor() {
@@ -167,8 +176,12 @@ export class BaseAnalysisRunner {
 
 	/**
 	 * Validate common input parameters
+	 * @param {string} fastaData - FASTA sequence data
+	 * @param {string} treeData - Phylogenetic tree data
+	 * @param {string} method - Analysis method name
+	 * @param {Object} [config={}] - Analysis configuration (used for geneticCodeId)
 	 */
-	validateInput(fastaData, treeData, method) {
+	validateInput(fastaData, treeData, method, config = {}) {
 		if (!fastaData || !fastaData.trim()) {
 			throw new Error('FASTA data is empty or invalid');
 		}
@@ -179,6 +192,15 @@ export class BaseAnalysisRunner {
 
 		if (!method || !method.trim()) {
 			throw new Error('Analysis method is required');
+		}
+
+		// For codon-aware methods, validate alignment is proper codon data
+		if (CODON_AWARE_METHODS.has(method.toLowerCase())) {
+			const geneticCodeId = config.geneticCodeId !== undefined ? config.geneticCodeId : 0;
+			const result = validateCodonAlignment(fastaData, geneticCodeId);
+			if (!result.valid) {
+				throw new Error(result.errors.join('\n'));
+			}
 		}
 	}
 
