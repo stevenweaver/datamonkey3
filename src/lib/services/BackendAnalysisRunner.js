@@ -536,11 +536,24 @@ class BackendAnalysisRunner extends BaseAnalysisRunner {
 			case 'gard':
 				// Map frontend rv to backend site_to_site_variation
 				const rvMap = { None: 'none', GDD: 'general_discrete', Gamma: 'beta_gamma' };
+				const gardDatatype = config.datatype || 'nucleotide';
+				let gardModel = config.model || 'GTR';
+
+				// Safety net: validate model is compatible with datatype
+				const nucleotideModels = ['GTR', 'HKY85', 'TN93', 'JC69'];
+				const proteinModels = ['JTT', 'WAG', 'LG', 'Dayhoff'];
+				if ((gardDatatype === 'nucleotide' || gardDatatype === 'codon') && !nucleotideModels.includes(gardModel)) {
+					console.warn(`GARD: Model "${gardModel}" incompatible with ${gardDatatype} data, falling back to GTR`);
+					gardModel = 'GTR';
+				} else if (gardDatatype === 'protein' && !proteinModels.includes(gardModel)) {
+					console.warn(`GARD: Model "${gardModel}" incompatible with protein data, falling back to JTT`);
+					gardModel = 'JTT';
+				}
+
 				return {
 					...baseParams,
-					// Map GARD-specific parameters to backend format
-					datatype: config.datatype || 'codon',
-					model: config.model || 'JTT',
+					datatype: gardDatatype,
+					model: gardModel,
 					run_mode: config.mode || 'Normal',
 					site_to_site_variation: rvMap[config.rv] || 'none',
 					rate_classes: config.rate_classes || 4,

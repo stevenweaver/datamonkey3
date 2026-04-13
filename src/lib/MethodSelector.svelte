@@ -2,6 +2,7 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
 	import { backendConnectivity } from '../stores/backendConnectivity.js';
+	import { fileMetricsStore } from '../stores/fileInfo';
 	import { treeStore } from '../stores/tree';
 	import BranchSelector from './BranchSelector.svelte';
 	import AnalysisTimingEstimate from './AnalysisTimingEstimate.svelte';
@@ -575,15 +576,26 @@
 			datatype: {
 				type: 'select',
 				label: 'Data type',
-				default: 'codon',
+				default: 'nucleotide',
 				options: ['codon', 'nucleotide', 'protein'],
 				description: 'Type of data to analyze for recombination'
 			},
 			model: {
 				type: 'select',
 				label: 'Substitution model',
-				default: 'JTT',
+				default: 'GTR',
 				options: ['JTT', 'WAG', 'LG', 'Dayhoff', 'GTR', 'HKY85', 'TN93', 'JC69'],
+				filteredOptionsBy: 'datatype',
+				filteredOptions: {
+					codon: ['GTR', 'HKY85', 'TN93', 'JC69'],
+					nucleotide: ['GTR', 'HKY85', 'TN93', 'JC69'],
+					protein: ['JTT', 'WAG', 'LG', 'Dayhoff']
+				},
+				filteredDefaults: {
+					codon: 'GTR',
+					nucleotide: 'GTR',
+					protein: 'JTT'
+				},
 				description: 'Substitution model to use for the analysis'
 			},
 			mode: {
@@ -947,6 +959,30 @@
 		initializeMethodOptions(selectedMethod);
 	}
 
+	// Auto-detect data type from uploaded file for GARD
+	$: if ($fileMetricsStore?.FILE_INFO?.gencodeid !== undefined &&
+		selectedMethod?.toLowerCase() === 'gard' &&
+		methodOptions[selectedMethod]) {
+		const gencodeid = $fileMetricsStore.FILE_INFO.gencodeid;
+		const detectedType = gencodeid === -2 ? 'protein' : gencodeid === -1 ? 'nucleotide' : 'codon';
+		if (methodOptions[selectedMethod].datatype !== detectedType) {
+			methodOptions[selectedMethod].datatype = detectedType;
+			methodOptions = { ...methodOptions };
+		}
+	}
+
+	// When GARD datatype changes, ensure model is compatible
+	$: if (selectedMethod?.toLowerCase() === 'gard' && methodOptions[selectedMethod]) {
+		const dt = methodOptions[selectedMethod].datatype;
+		const modelConfig = METHOD_ADVANCED_OPTIONS.gard.model;
+		const validModels = modelConfig.filteredOptions?.[dt];
+		const currentModel = methodOptions[selectedMethod].model;
+		if (validModels && !validModels.includes(currentModel)) {
+			methodOptions[selectedMethod].model = modelConfig.filteredDefaults?.[dt] || validModels[0];
+			methodOptions = { ...methodOptions };
+		}
+	}
+
 	// Pre-computed renderable options array (excludes interactive-tree)
 	$: renderableAdvancedOptions = (selectedMethod && methodOptions[selectedMethod])
 		? Object.entries(currentMethodOptions)
@@ -958,7 +994,18 @@
 						config.enabledWhen.includes(
 							methodOptions[selectedMethod][config.dependsOn]
 						));
-				return { key, config, isEnabled };
+
+				// Resolve filtered options for selects constrained by another option
+				let effectiveConfig = config;
+				if (config.filteredOptionsBy && config.filteredOptions) {
+					const controllerValue = methodOptions[selectedMethod][config.filteredOptionsBy];
+					const filtered = config.filteredOptions[controllerValue];
+					if (filtered) {
+						effectiveConfig = { ...config, options: filtered };
+					}
+				}
+
+				return { key, config: effectiveConfig, isEnabled };
 			})
 		: [];
 
