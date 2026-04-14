@@ -511,7 +511,7 @@ if (Abs(renameSequenceWarning))
 if (padWarning)
 {
   notify("warning", "It appears that some of the sequences were of unequal length and were padded by HyPhy. This could be because unaligned sequences were uploaded or non-standard characters were used to mark gaps ('-' and '?' are allowed; but '~' (BioEdit) and '_' for example, are not)." +
-					 "Always use the standard IUPAC-IUB character table (http://en.wikipedia.org/wiki/Nucleic_acid_notation#IUPAC_notation) to prepare the alignment for DataMonkey.org.");
+					 "Always use the standard IUPAC-IUB character table (http://en.wikipedia.org/wiki/Nucleic_acid_notation#IUPAC_notation) to prepare the alignment for Datamonkey.org.");
 }
 
 /* convert to AA */
