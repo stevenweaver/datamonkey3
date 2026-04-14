@@ -126,63 +126,61 @@
 </script>
 
 {#if warnings.length > 0}
-	<div class="sequence-warnings mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-		<div class="flex items-center justify-between">
-			<h3 class="text-lg font-semibold">Sequence Warnings ({warnings.length})</h3>
+	<div class="flex items-center justify-between">
+		<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">
+			Sequence Warnings ({warnings.length})
+		</h2>
 
-			{#if warnings.length > 2}
-				<button class="text-sm text-blue-600 hover:text-blue-800" on:click={toggleShowAllWarnings}>
-					{showAllWarnings ? 'Show Fewer' : 'Show All'}
-				</button>
-			{/if}
-		</div>
+		{#if warnings.length > 2}
+			<button class="text-sm text-blue-600 hover:text-blue-800" on:click={toggleShowAllWarnings}>
+				{showAllWarnings ? 'Show Fewer' : 'Show All'}
+			</button>
+		{/if}
+	</div>
 
-		<div class="mt-3 space-y-3">
-			{#each displayedWarnings as warning}
-				<div class={`warning-item rounded-md border p-3 ${getWarningColorClass(warning.type)}`}>
-					<div class="flex items-start">
-						<div class="mr-3 flex-shrink-0" style="margin-top: 2px;">
-							<svelte:component
-								this={getWarningIcon(warning.type).component}
-								class="h-5 w-5 {getWarningIcon(warning.type).color}"
-							/>
-						</div>
+	<div class="space-y-2">
+		{#each displayedWarnings as warning}
+			<div class={`rounded-md border p-3 ${getWarningColorClass(warning.type)}`}>
+				<div class="flex items-start">
+					<div class="mr-2 flex-shrink-0" style="margin-top: 2px;">
+						<svelte:component
+							this={getWarningIcon(warning.type).component}
+							class="h-4 w-4 {getWarningIcon(warning.type).color}"
+						/>
+					</div>
 
-						<div class="flex-1">
-							<h4 class="font-semibold">{warning.title}</h4>
-							<p class="text-sm">{warning.message}</p>
+					<div class="flex-1">
+						<h4 class="text-sm font-semibold">{warning.title}</h4>
+						<p class="text-sm">{warning.message}</p>
 
-							{#if warning.details}
-								<p class="mt-1 text-xs opacity-90">{warning.details}</p>
-							{/if}
+						{#if warning.details}
+							<p class="mt-1 text-xs opacity-80">{warning.details}</p>
+						{/if}
 
-							{#if warning.action}
-								<button
-									class="mt-2 rounded bg-white bg-opacity-50 px-3 py-1 text-xs font-medium hover:bg-opacity-70"
-									on:click={warning.actionHandler}
-								>
-									{warning.action}
-								</button>
-							{/if}
-						</div>
+						{#if warning.action}
+							<button
+								class="mt-1 rounded bg-white bg-opacity-50 px-3 py-1 text-xs font-medium hover:bg-opacity-70"
+								on:click={warning.actionHandler}
+							>
+								{warning.action}
+							</button>
+						{/if}
 					</div>
 				</div>
-			{/each}
+			</div>
+		{/each}
 
-			{#if !showAllWarnings && warnings.length > 2}
-				<div class="text-center">
-					<p class="text-sm text-gray-500">
-						+{warnings.length - 2} more {warnings.length - 2 === 1 ? 'warning' : 'warnings'}
-					</p>
-				</div>
-			{/if}
-		</div>
-
-		<div class="mt-4 text-xs text-gray-500">
-			<p>
-				These warnings are meant to help you improve your analysis results. Minor issues may not
-				significantly affect results.
-			</p>
-		</div>
+		{#if !showAllWarnings && warnings.length > 2}
+			<div class="text-center">
+				<p class="text-sm text-gray-500">
+					+{warnings.length - 2} more {warnings.length - 2 === 1 ? 'warning' : 'warnings'}
+				</p>
+			</div>
+		{/if}
 	</div>
+
+	<p class="mt-2 text-xs text-text-silver">
+		These warnings are meant to help you improve your analysis results. Minor issues may not
+		significantly affect results.
+	</p>
 {/if}

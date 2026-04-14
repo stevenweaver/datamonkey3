@@ -256,8 +256,8 @@
 </script>
 
 {#if alignmentFile && showExport}
-	<div class="fasta-export mb-4 rounded-lg border border-border-subtle bg-white p-4 shadow-sm">
-		<h3 class="mb-3 text-lg font-bold">Export Sequences</h3>
+	<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">Export Sequences</h2>
+	<div class="fasta-export rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium">
 
 		{#if isLoading}
 			<p class="text-sm text-text-silver">Loading sequences...</p>

@@ -112,19 +112,14 @@
 		{/if}
 
 		<!-- Sequence Warnings Section -->
-		<SequenceWarnings {fileMetricsJSON} />
+		<div class="mb-premium-xl">
+			<SequenceWarnings {fileMetricsJSON} />
+		</div>
 
 		<!-- Sequence Export Section -->
 		{#if $alignmentFileStore}
 			<div class="mb-premium-xl">
-				<h2 class="mb-premium-md text-premium-header font-semibold text-text-rich">
-					Export Sequences
-				</h2>
-				<div
-					class="rounded-premium border border-border-platinum bg-white p-premium-lg shadow-premium"
-				>
-					<FastaExport alignmentFile={$alignmentFileStore} />
-				</div>
+				<FastaExport alignmentFile={$alignmentFileStore} />
 			</div>
 		{/if}
 
