@@ -99,6 +99,11 @@
 			</div>
 		</div>
 
+		<!-- Sequence Warnings Section -->
+		<div class="mb-premium-xl">
+			<SequenceWarnings {fileMetricsJSON} />
+		</div>
+
 		<!-- Alignment Viewer -->
 		{#if $alignmentFileStore}
 			<div class="mb-premium-xl">
@@ -110,11 +115,6 @@
 				</div>
 			</div>
 		{/if}
-
-		<!-- Sequence Warnings Section -->
-		<div class="mb-premium-xl">
-			<SequenceWarnings {fileMetricsJSON} />
-		</div>
 
 		<!-- Sequence Export Section -->
 		{#if $alignmentFileStore}
