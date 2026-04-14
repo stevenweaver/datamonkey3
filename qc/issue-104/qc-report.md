@@ -19,7 +19,7 @@ QC testing was performed on Datamonkey 3 using automated browser testing via bro
 | Tree Operations | PASS | NJ tree auto-generates, tree source selector works |
 | Analysis Configuration | PASS | FEL method selection and options work correctly |
 | Analysis Execution | PARTIAL | WASM loads successfully, 8 analyses completed |
-| Backend Connectivity | PASS | Connected to DataMonkey server |
+| Backend Connectivity | PASS | Connected to Datamonkey server |
 | UI/Navigation | PASS | Tab navigation, responsive layout |
 
 ---
@@ -110,7 +110,7 @@ QC testing was performed on Datamonkey 3 using automated browser testing via bro
 ### 5. Backend Connectivity
 
 - [x] Backend connectivity indicator present in navigation
-- [x] Successfully connected: "✅ Backend connectivity: Connected to DataMonkey server"
+- [x] Successfully connected: "✅ Backend connectivity: Connected to Datamonkey server"
 - [x] Backend server option available in Execution Mode
 
 ### 6. Navigation & UI
@@ -139,7 +139,7 @@ The browser console shows healthy application state:
 
 ```
 📊 [AnalysisStore] LOAD: 8 analyses from IndexedDB {completed: 8}
-✅ Backend connectivity: Connected to DataMonkey server
+✅ Backend connectivity: Connected to Datamonkey server
 HYPHY 2.5.79(MP) for Emscripten on wasm32
 📊 [AnalysisStore] Checking for interrupted WASM analyses...
 📊 [AnalysisStore] No interrupted analyses found

@@ -1,6 +1,6 @@
 /**
  * BackendAnalysisRunner - Handles server-side analysis execution via Socket.IO
- * Integrates with the existing DataMonkey backend server used in demo pages
+ * Integrates with the existing Datamonkey backend server used in demo pages
  */
 
 import io from 'socket.io-client';

@@ -165,15 +165,15 @@
 </script>
 
 <svelte:head>
-	<title>DataMonkey Analysis Demos</title>
+	<title>Datamonkey Analysis Demos</title>
 </svelte:head>
 
 <div class="container mx-auto max-w-7xl p-6">
 	<div class="mb-8 text-center">
-		<h1 class="mb-4 text-4xl font-bold text-gray-900">DataMonkey Analysis Demos</h1>
+		<h1 class="mb-4 text-4xl font-bold text-gray-900">Datamonkey Analysis Demos</h1>
 		<p class="mx-auto max-w-3xl text-lg text-gray-600">
 			Interactive demonstrations of phylogenetic selection analysis methods. Connect to your local
-			DataMonkey server to test different analysis methods with real-time progress tracking and
+			Datamonkey server to test different analysis methods with real-time progress tracking and
 			result visualization.
 		</p>
 	</div>
@@ -186,7 +186,7 @@
 			<div>
 				<h3 class="font-semibold text-amber-800">Server Required</h3>
 				<p class="text-sm text-amber-700">
-					These demos require a running DataMonkey server on <code class="rounded bg-amber-100 px-1"
+					These demos require a running Datamonkey server on <code class="rounded bg-amber-100 px-1"
 						>localhost:7015</code
 					>. Make sure your server is running before testing the analysis methods.
 				</p>
@@ -265,9 +265,9 @@
 		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 			<div>
 				<h3 class="mb-2 font-medium text-gray-900">1. Start Your Server</h3>
-				<p class="mb-2 text-sm text-gray-600">Make sure your DataMonkey server is running:</p>
+				<p class="mb-2 text-sm text-gray-600">Make sure your Datamonkey server is running:</p>
 				<code class="block rounded bg-gray-800 p-2 font-mono text-xs text-green-400">
-					# Start DataMonkey server on port 7015 node server.js
+					# Start Datamonkey server on port 7015 node server.js
 				</code>
 			</div>
 			<div>
