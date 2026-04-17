@@ -7,6 +7,7 @@
 	import BranchSelector from './BranchSelector.svelte';
 	import AnalysisTimingEstimate from './AnalysisTimingEstimate.svelte';
 	import { AlertTriangle, Play, Loader2 } from 'lucide-svelte';
+	import { trackEvent } from './utils/analytics.js';
 
 	export let methodConfig;
 	export let runMethod = null;
@@ -957,6 +958,13 @@
 	// Initialize method options when method changes (must run before renderableAdvancedOptions)
 	$: if (selectedMethod && !methodOptions[selectedMethod]) {
 		initializeMethodOptions(selectedMethod);
+	}
+
+	// Track method selection for analytics
+	let lastTrackedMethod = null;
+	$: if (selectedMethod && selectedMethod !== lastTrackedMethod) {
+		lastTrackedMethod = selectedMethod;
+		trackEvent('method-selected', { method: selectedMethod });
 	}
 
 	// Auto-detect data type from uploaded file for GARD

@@ -5,6 +5,7 @@
 	import { alignmentFileStore } from '../stores/fileInfo';
 	import { persistentFileStore } from '../stores/fileInfo';
 	import { Save } from 'lucide-svelte';
+	import { trackEvent } from './utils/analytics.js';
 
 	export let alignmentFile = null;
 	export let fileMetricsJSON = null;
@@ -22,6 +23,8 @@
 
 	async function loadAlignment() {
 		if (!alignmentFile) return;
+
+		trackEvent('alignment-viewer-opened');
 
 		isLoading = true;
 		error = null;
