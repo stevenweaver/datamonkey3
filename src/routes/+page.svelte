@@ -706,6 +706,8 @@
 			analysisId = await analysisStore.createAnalysis(fileId, 'datareader');
 			analysisStore.startAnalysisProgress(analysisId, 'Initializing file analysis...');
 
+			trackEvent('file-validation-started');
+
 			// Mount the file for analysis
 			analysisStore.updateAnalysisProgressById(
 				analysisId,
@@ -824,6 +826,12 @@
 			fileMetricsStore.set(fileMetricsJSON);
 			alignmentFileStore.set(file);
 
+			trackEvent('file-validation-success', {
+				format: fileMetricsJSON.FILE_INFO?.gencodeid >= 0 ? 'codon' : fileMetricsJSON.FILE_INFO?.gencodeid === -1 ? 'nucleotide' : 'protein',
+				sequenceCount: fileMetricsJSON.FILE_INFO?.sequences || 0,
+				siteCount: fileMetricsJSON.FILE_INFO?.sites || 0
+			});
+
 			// Extract trees
 			trees['nj'] = fileMetricsJSON.FILE_INFO?.nj;
 			if (fileMetricsJSON?.FILE_PARTITION_INFO) {
@@ -890,6 +898,13 @@
 			const errorMsg = error.message || '';
 			const isTreeError = errorMsg.includes('Tree') || errorMsg.includes('tree') ||
 				errorMsg.includes('Topology') || errorMsg.includes('Newick');
+
+			const errorType = isTreeError ? 'invalid-tree'
+				: errorMsg.includes('divisible by 3') ? 'not-codon-aligned'
+				: errorMsg.includes('stop codon') ? 'stop-codons'
+				: errorMsg.includes('format') ? 'invalid-format'
+				: 'unknown';
+			trackEvent('file-validation-error', { errorType });
 
 			// Set validation error for display
 			validationError = {

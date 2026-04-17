@@ -240,6 +240,11 @@
 			}
 		} catch (error) {
 			console.error('❌ Analysis execution failed:', error);
+
+			trackEvent('analysis-start-blocked', {
+				reason: error.message
+			});
+
 			// Show error toast instead of alert
 			toastStore.error(`Analysis failed: ${error.message}`, {
 				duration: 8000
