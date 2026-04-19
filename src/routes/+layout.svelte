@@ -5,6 +5,7 @@
 	import Toast from '../lib/Toast.svelte';
 	import { X, Menu, FlaskConical } from 'lucide-svelte';
 	import { env } from '$env/dynamic/public';
+	import { afterNavigate } from '$app/navigation';
 
 	// Get version from Vite define
 	const version = __APP_VERSION__;
@@ -29,6 +30,13 @@
 	function closeMobileMenu() {
 		mobileMenuOpen = false;
 	}
+
+	// Track SPA route changes in Umami so each navigation registers as a pageview
+	afterNavigate(() => {
+		if (typeof window.umami !== 'undefined') {
+			window.umami.track();
+		}
+	});
 </script>
 
 <svelte:head>
