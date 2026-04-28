@@ -101,8 +101,8 @@ END;`;
 				const cliObj = await new Aioli(
 					{
 						tool: 'hyphy',
-						version: '2.5.94',
-						urlPrefix: `${window.location.origin}/wasm/hyphy/2.5.94`
+						version: '2.5.98',
+						urlPrefix: `${window.location.origin}/wasm/hyphy/2.5.98`
 					},
 					{
 						printInterleaved: false
