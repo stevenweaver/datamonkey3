@@ -1,5 +1,6 @@
 <script>
 	import { exportData } from './utils/exportUtils';
+	import { parseAlignment } from './utils/fastaValidation';
 	import { Download } from 'lucide-svelte';
 
 	// Props
@@ -46,108 +47,11 @@
 	}
 
 	/**
-	 * Parse FASTA or NEXUS format content
+	 * Parse FASTA or NEXUS format content using shared utility
 	 */
 	function parseFastaOrNexus(content) {
-		const trimmed = content.trim();
-
-		// Check if it's NEXUS format
-		if (trimmed.toLowerCase().startsWith('#nexus')) {
-			return parseNexus(trimmed);
-		}
-
-		// Otherwise assume FASTA format
-		return parseFasta(trimmed);
-	}
-
-	/**
-	 * Parse FASTA format content
-	 */
-	function parseFasta(content) {
-		const result = [];
-		const lines = content.split('\n');
-		let currentName = '';
-		let currentSequence = '';
-
-		for (const line of lines) {
-			const trimmedLine = line.trim();
-
-			// Skip empty lines
-			if (!trimmedLine) continue;
-
-			// Skip comment lines
-			if (trimmedLine.startsWith(';')) continue;
-
-			// Skip lines that look like Newick trees (start with '(' and contain ':')
-			if (trimmedLine.startsWith('(') && trimmedLine.includes(':')) {
-				continue;
-			}
-
-			if (trimmedLine.startsWith('>')) {
-				// Save previous sequence if exists
-				if (currentName && currentSequence) {
-					result.push({
-						name: currentName,
-						sequence: currentSequence
-					});
-				}
-				// Start new sequence
-				currentName = trimmedLine.substring(1).trim();
-				currentSequence = '';
-			} else {
-				// Append to current sequence, but filter out any tree characters that might be embedded
-				// Trees contain characters like ( ) : ; which aren't valid in sequences
-				const cleanedLine = trimmedLine.replace(/\s/g, '');
-				// Only add if it looks like sequence data (contains only valid nucleotide/amino acid chars and gaps)
-				if (/^[A-Za-z\-\.\*]+$/.test(cleanedLine)) {
-					currentSequence += cleanedLine;
-				}
-			}
-		}
-
-		// Don't forget the last sequence
-		if (currentName && currentSequence) {
-			result.push({
-				name: currentName,
-				sequence: currentSequence
-			});
-		}
-
-		return result;
-	}
-
-	/**
-	 * Parse NEXUS format content
-	 */
-	function parseNexus(content) {
-		const result = [];
-
-		// Find the DATA or CHARACTERS block
-		const matrixMatch = content.match(/MATRIX\s*\n([\s\S]*?)\s*;/i);
-		if (!matrixMatch) {
-			return result;
-		}
-
-		const matrixContent = matrixMatch[1];
-		const lines = matrixContent.split('\n');
-
-		for (const line of lines) {
-			const trimmedLine = line.trim();
-			if (!trimmedLine) continue;
-
-			// Split on whitespace - first part is name, rest is sequence
-			const parts = trimmedLine.split(/\s+/);
-			if (parts.length >= 2) {
-				const name = parts[0];
-				const sequence = parts.slice(1).join('').replace(/\s/g, '');
-
-				if (name && sequence) {
-					result.push({ name, sequence });
-				}
-			}
-		}
-
-		return result;
+		const { sequences } = parseAlignment(content.trim());
+		return sequences.map(s => ({ name: s.header, sequence: s.sequence }));
 	}
 
 	/**
