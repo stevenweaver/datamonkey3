@@ -290,23 +290,86 @@ const STOP_CODONS_BY_GENETIC_CODE = {
 };
 
 /**
+ * Detect whether content is NEXUS format.
+ * @param {string} content - Raw file content
+ * @returns {boolean}
+ */
+export function isNexusFormat(content) {
+	return content?.trim().toLowerCase().startsWith('#nexus') ?? false;
+}
+
+/**
+ * Parse NEXUS format string into sequences.
+ * @param {string} nexusContent - Raw NEXUS content
+ * @returns {Object} { sequences: [{header, sequence}], warnings: [] }
+ */
+export function parseNexus(nexusContent) {
+	if (!nexusContent?.trim()) {
+		throw new Error('File is empty');
+	}
+
+	const sequences = [];
+	const warnings = [];
+
+	const matrixMatch = nexusContent.match(/MATRIX\s*\n([\s\S]*?)\s*;/i);
+	if (!matrixMatch) {
+		throw new Error('No MATRIX block found in NEXUS file');
+	}
+
+	const matrixContent = matrixMatch[1];
+	const lines = matrixContent.split('\n');
+
+	for (const line of lines) {
+		const trimmedLine = line.trim();
+		if (!trimmedLine) continue;
+
+		const parts = trimmedLine.split(/\s+/);
+		if (parts.length >= 2) {
+			const name = parts[0];
+			const sequence = parts.slice(1).join('').replace(/\s/g, '');
+			if (name && sequence) {
+				sequences.push({ header: name, sequence });
+			}
+		}
+	}
+
+	if (sequences.length === 0) {
+		throw new Error('No sequences found in NEXUS MATRIX block');
+	}
+
+	return { sequences, warnings };
+}
+
+/**
+ * Parse alignment content in either FASTA or NEXUS format.
+ * @param {string} content - Raw alignment content
+ * @returns {Object} { sequences: [{header, sequence}], warnings: [] }
+ */
+export function parseAlignment(content) {
+	if (isNexusFormat(content)) {
+		return parseNexus(content);
+	}
+	return parseFasta(content);
+}
+
+/**
  * Validate a codon alignment for submission to codon-aware methods.
- * Checks that sequence lengths are divisible by 3 and scans for in-frame stop codons.
+ * Checks that alignment site count is divisible by 3 and scans for in-frame stop codons.
  *
- * @param {string} fastaData - Raw FASTA string content
+ * @param {string} alignmentData - Raw FASTA or NEXUS alignment content
  * @param {number} [geneticCodeId=0] - Genetic code ID (0 = Universal)
  * @returns {{ valid: boolean, errors: string[] }}
  */
-export function validateCodonAlignment(fastaData, geneticCodeId = 0) {
+export function validateCodonAlignment(alignmentData, geneticCodeId = 0) {
 	const errors = [];
 
-	if (!fastaData || !fastaData.trim()) {
-		return { valid: false, errors: ['FASTA data is empty'] };
+	if (!alignmentData || !alignmentData.trim()) {
+		return { valid: false, errors: ['Alignment data is empty'] };
 	}
 
 	let parsed;
 	try {
-		parsed = parseFasta(fastaData);
+		parsed = parseAlignment(alignmentData);
 	} catch (e) {
 		return { valid: false, errors: [e.message] };
 	}
@@ -314,15 +377,16 @@ export function validateCodonAlignment(fastaData, geneticCodeId = 0) {
 	const { sequences } = parsed;
 
 	if (sequences.length === 0) {
-		return { valid: false, errors: ['No sequences found in FASTA data'] };
+		return { valid: false, errors: ['No sequences found in alignment data'] };
 	}
 
-	// Check divisibility by 3 using the first sequence
-	const firstSeqLength = sequences[0].sequence.replace(/[-.]/g, '').length;
-	if (firstSeqLength % 3 !== 0) {
+	// Check alignment site count (column count including gaps) for divisibility by 3.
+	// HyPhy validates the total number of alignment sites, not ungapped sequence length.
+	const alignmentSites = sequences[0].sequence.length;
+	if (alignmentSites % 3 !== 0) {
 		errors.push(
-			`Sequence length (${firstSeqLength}) is not divisible by 3. ` +
-			`Codon-based analyses require in-frame coding sequences.`
+			`Alignment site count (${alignmentSites}) is not divisible by 3. ` +
+			`Codon-based analyses require the alignment length to be a multiple of 3.`
 		);
 	}
 
@@ -335,7 +399,7 @@ export function validateCodonAlignment(fastaData, geneticCodeId = 0) {
 	// Scan each sequence for in-frame stop codons (excluding the last codon)
 	for (const seq of sequences) {
 		const cleanSeq = seq.sequence.replace(/[-.]/g, '').toUpperCase();
-		// Only check if length is divisible by 3, otherwise we already reported that error
+		// Only check if ungapped length is divisible by 3
 		if (cleanSeq.length % 3 !== 0) continue;
 
 		const lastCodonStart = cleanSeq.length - 3;
@@ -348,7 +412,6 @@ export function validateCodonAlignment(fastaData, geneticCodeId = 0) {
 					`at codon position ${codonPosition}. Codon-based analyses cannot proceed ` +
 					`with premature stop codons.`
 				);
-				// Only report first stop codon per sequence to keep messages manageable
 				break;
 			}
 		}
